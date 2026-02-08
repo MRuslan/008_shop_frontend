@@ -1,42 +1,88 @@
-# sv
+# Интернет-магазин на SvelteKit
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
+Фронтенд интернет-магазина, построенный на SvelteKit с поддержкой SSR/SSG для SEO.
 
-## Creating a project
+## Установка зависимостей
 
-If you're seeing this, you've probably already done this step. Congrats!
+```bash
+# Установка основных зависимостей
+npm install
 
-```sh
-# create a new project
-npx sv create my-app
+# Установка adapter-node для SSR
+npm install -D @sveltejs/adapter-node
+
+# Установка Tailwind CSS (опционально, но рекомендуется)
+npm install -D tailwindcss postcss autoprefixer
+npx tailwindcss init -p
 ```
 
-To recreate this project with the same configuration:
+## Настройка Tailwind CSS
 
-```sh
-# recreate this project
-npx sv create --template minimal --types ts --add prettier eslint --install npm my-app
+Если вы установили Tailwind CSS, обновите `tailwind.config.js`:
+
+```js
+/** @type {import('tailwindcss').Config} */
+export default {
+  content: ['./src/**/*.{html,js,svelte,ts}'],
+  theme: {
+    extend: {},
+  },
+  plugins: [],
+}
 ```
 
-## Developing
+## Переменные окружения
 
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+Создайте файл `.env` на основе `.env.example`:
 
-```sh
+```bash
+cp .env.example .env
+```
+
+И настройте `PUBLIC_API_URL` для вашего бэкенда:
+
+```env
+PUBLIC_API_URL=http://localhost:3000/api
+```
+
+## Разработка
+
+```bash
 npm run dev
 
-# or start the server and open the app in a new browser tab
+# или с автоматическим открытием браузера
 npm run dev -- --open
 ```
 
-## Building
+## Сборка
 
-To create a production version of your app:
-
-```sh
+```bash
 npm run build
 ```
 
-You can preview the production build with `npm run preview`.
+## Просмотр production сборки
 
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
+```bash
+npm run preview
+```
+
+## Структура проекта
+
+- `src/lib/api/` - API клиент и методы
+- `src/lib/stores/` - Svelte stores для состояния
+- `src/lib/types/` - TypeScript типы
+- `src/lib/components/` - Переиспользуемые компоненты
+- `src/routes/` - Страницы и роуты SvelteKit
+
+## Основные функции
+
+- ✅ Авторизация и регистрация
+- ✅ Управление корзиной (гостевая и авторизованная)
+- ✅ Каталог товаров (в разработке)
+- ✅ Оформление заказов (в разработке)
+- ✅ Личный кабинет (в разработке)
+- ✅ Админ-панель (в разработке)
+
+## План разработки
+
+См. файл `PLAN.MD` для детального плана разработки.
