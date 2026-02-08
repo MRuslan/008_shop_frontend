@@ -460,7 +460,7 @@ src/
 
 Создать `.env` файл:
 ```env
-PUBLIC_API_URL=http://localhost:3000/api
+PUBLIC_API_URL=http://localhost:3380/api
 # или для продакшена
 PUBLIC_API_URL=https://api.example.com/api
 ```

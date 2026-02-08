@@ -12,6 +12,11 @@
 		// Инициализируем auth store при монтировании
 		// Корзина инициализируется в layout
 		authStore.init();
+
+		// Слушаем событие открытия модального окна авторизации
+		window.addEventListener('open-auth-modal', () => {
+			openLogin();
+		});
 	});
 
 	function openLogin() {

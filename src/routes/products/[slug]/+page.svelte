@@ -1,10 +1,12 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import type { Product, Category } from '$lib/types/product';
 	import { formatPrice } from '$lib/utils/format';
 	import { storeSettings } from '$lib/stores/store';
 	import { cartApi } from '$lib/api/cart';
 	import { cartStore } from '$lib/stores/cart';
 	import { authStore } from '$lib/stores/auth';
+	import { wishlistApi } from '$lib/api/wishlist';
 	import { getOrCreateSessionId } from '$lib/utils/session';
 
 	interface Props {
@@ -20,6 +22,8 @@
 	let quantity = $state(1);
 	let isAddingToCart = $state(false);
 	let addToCartError = $state<string | null>(null);
+	let isInWishlist = $state(false);
+	let isTogglingWishlist = $state(false);
 
 	const images = data.product.images || [];
 	const mainImage = images[selectedImageIndex]?.url || images[0]?.url;
@@ -67,6 +71,43 @@
 	function decreaseQuantity() {
 		if (quantity > 1) {
 			quantity--;
+		}
+	}
+
+	// Проверяем, есть ли товар в избранном
+	onMount(async () => {
+		if ($authStore.isAuthenticated) {
+			try {
+				const wishlist = await wishlistApi.getWishlist();
+				isInWishlist = wishlist.some((item) => item.productId === data.product.id);
+			} catch (error) {
+				// Игнорируем ошибку
+			}
+		}
+	});
+
+	async function toggleWishlist() {
+		if (!$authStore.isAuthenticated) {
+			// Показываем модальное окно авторизации
+			const event = new CustomEvent('open-auth-modal');
+			window.dispatchEvent(event);
+			return;
+		}
+
+		isTogglingWishlist = true;
+
+		try {
+			if (isInWishlist) {
+				await wishlistApi.removeFromWishlist(data.product.id);
+				isInWishlist = false;
+			} else {
+				await wishlistApi.addToWishlist(data.product.id);
+				isInWishlist = true;
+			}
+		} catch (error: any) {
+			console.error('Wishlist error:', error);
+		} finally {
+			isTogglingWishlist = false;
 		}
 	}
 </script>
@@ -247,13 +288,41 @@
 						</div>
 					</div>
 
-					<button
-						onclick={addToCart}
-						disabled={isAddingToCart}
-						class="w-full bg-blue-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-					>
-						{isAddingToCart ? 'Добавление...' : 'Добавить в корзину'}
-					</button>
+					<div class="flex space-x-2">
+						<button
+							onclick={addToCart}
+							disabled={isAddingToCart}
+							class="flex-1 bg-blue-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+						>
+							{isAddingToCart ? 'Добавление...' : 'Добавить в корзину'}
+						</button>
+						<button
+							onclick={toggleWishlist}
+							disabled={isTogglingWishlist}
+							class="p-3 border-2 rounded-lg transition-colors disabled:opacity-50"
+							class:border-red-500={isInWishlist}
+							class:text-red-600={isInWishlist}
+							class:border-gray-300={!isInWishlist}
+							class:text-gray-600={!isInWishlist}
+							class:hover:bg-red-50={isInWishlist}
+							class:hover:bg-gray-50={!isInWishlist}
+							aria-label={isInWishlist ? 'Удалить из избранного' : 'Добавить в избранное'}
+						>
+							<svg
+								class="w-6 h-6"
+								fill={isInWishlist ? 'currentColor' : 'none'}
+								stroke="currentColor"
+								viewBox="0 0 24 24"
+							>
+								<path
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									stroke-width="2"
+									d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+								/>
+							</svg>
+						</button>
+					</div>
 				{:else}
 					<button
 						disabled

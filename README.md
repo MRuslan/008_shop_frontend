@@ -42,7 +42,7 @@ cp .env.example .env
 И настройте `PUBLIC_API_URL` для вашего бэкенда:
 
 ```env
-PUBLIC_API_URL=http://localhost:3000/api
+PUBLIC_API_URL=http://localhost:3380/api
 ```
 
 ## Разработка
