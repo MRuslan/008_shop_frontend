@@ -186,13 +186,16 @@
 					<option value={null}>Без категории</option>
 					{#each categories as category}
 						<option value={category.id}>{category.name}</option>
-						{#if category.children}
+						{#if category.children && category.children.length > 0}
 							{#each category.children as child}
 								<option value={child.id}>— {child.name}</option>
 							{/each}
 						{/if}
 					{/each}
 				</select>
+				<p class="text-xs text-gray-500 mt-1">
+					Выберите категорию для товара или оставьте "Без категории"
+				</p>
 			</div>
 		</div>
 

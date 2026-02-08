@@ -15,7 +15,11 @@ export const productsApi = {
 		const params = new URLSearchParams();
 		
 		if (filters?.search) params.append('search', filters.search);
-		if (filters?.categoryId) params.append('categoryId', filters.categoryId.toString());
+		// Передаем categoryId только если это число (не null и не undefined)
+		// Бэкенд не поддерживает фильтрацию по null напрямую
+		if (filters?.categoryId !== undefined && filters.categoryId !== null) {
+			params.append('categoryId', filters.categoryId.toString());
+		}
 		if (filters?.minPrice) params.append('minPrice', filters.minPrice.toString());
 		if (filters?.maxPrice) params.append('maxPrice', filters.maxPrice.toString());
 		if (filters?.inStock !== undefined) params.append('inStock', filters.inStock.toString());

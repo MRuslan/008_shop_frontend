@@ -44,7 +44,7 @@ export interface ProductsResponse {
 
 export interface ProductFilters {
 	search?: string;
-	categoryId?: number;
+	categoryId?: number | null; // null означает товары без категорий
 	minPrice?: number;
 	maxPrice?: number;
 	inStock?: boolean;
