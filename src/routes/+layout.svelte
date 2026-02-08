@@ -10,11 +10,14 @@
 	// Устанавливаем настройки магазина в store
 	$storeSettings = data.store;
 
-	onMount(() => {
+	onMount(async () => {
 		// Инициализируем auth store на клиенте
-		import('$lib/stores/auth').then(({ authStore }) => {
-			authStore.init();
-		});
+		const { authStore } = await import('$lib/stores/auth');
+		await authStore.init();
+		
+		// Инициализируем корзину после авторизации
+		const { cartStore } = await import('$lib/stores/cart');
+		await cartStore.init();
 	});
 </script>
 

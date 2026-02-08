@@ -59,12 +59,24 @@ function createAuthStore() {
 		/**
 		 * Установка пользователя после успешной авторизации
 		 */
-		setUser(user: User) {
+		async setUser(user: User) {
 			set({
 				user,
 				isAuthenticated: true,
 				isLoading: false
 			});
+
+			// Сливаем гостевую корзину с корзиной пользователя
+			if (browser) {
+				try {
+					const { cartStore } = await import('./cart');
+					await cartStore.mergeGuestCart();
+					// Перезагружаем корзину после слияния
+					await cartStore.init();
+				} catch (error) {
+					console.error('Failed to merge guest cart:', error);
+				}
+			}
 		},
 
 		/**

@@ -47,7 +47,12 @@
 			// Показываем уведомление (можно добавить toast)
 			alert('Товар добавлен в корзину!');
 		} catch (error: any) {
-			addToCartError = error.message || 'Ошибка при добавлении товара в корзину';
+			const message = error.message || 'Ошибка при добавлении товара в корзину';
+			if (Array.isArray(message)) {
+				addToCartError = message.join(', ');
+			} else {
+				addToCartError = message;
+			}
 		} finally {
 			isAddingToCart = false;
 		}

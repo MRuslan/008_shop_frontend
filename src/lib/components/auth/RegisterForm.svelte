@@ -34,7 +34,7 @@
 		try {
 			const data: RegisterDto = { email, username, password };
 			const response = await authApi.register(data);
-			authStore.setUser(response.user);
+			await authStore.setUser(response.user);
 			
 			// Закрываем модальное окно через событие
 			window.dispatchEvent(new CustomEvent('auth:success'));
