@@ -43,5 +43,26 @@ export const productsApi = {
 	 */
 	async getProductBySlug(slug: string): Promise<Product> {
 		return apiClient.get<Product>(`/products/slug/${slug}`, { skipAuth: true });
+	},
+
+	/**
+	 * Создать товар (для manager/admin)
+	 */
+	async createProduct(data: Partial<Product>): Promise<Product> {
+		return apiClient.post<Product>('/products', data);
+	},
+
+	/**
+	 * Обновить товар (для manager/admin)
+	 */
+	async updateProduct(id: number, data: Partial<Product>): Promise<Product> {
+		return apiClient.patch<Product>(`/products/${id}`, data);
+	},
+
+	/**
+	 * Удалить товар (для manager/admin)
+	 */
+	async deleteProduct(id: number): Promise<void> {
+		return apiClient.delete<void>(`/products/${id}`);
 	}
 };

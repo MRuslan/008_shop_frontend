@@ -40,5 +40,26 @@ export const categoriesApi = {
 	 */
 	async getCategoryBySlug(slug: string): Promise<Category> {
 		return apiClient.get<Category>(`/categories/slug/${slug}`, { skipAuth: true });
+	},
+
+	/**
+	 * Создать категорию (для manager/admin)
+	 */
+	async createCategory(data: Partial<Category>): Promise<Category> {
+		return apiClient.post<Category>('/categories', data);
+	},
+
+	/**
+	 * Обновить категорию (для manager/admin)
+	 */
+	async updateCategory(id: number, data: Partial<Category>): Promise<Category> {
+		return apiClient.patch<Category>(`/categories/${id}`, data);
+	},
+
+	/**
+	 * Удалить категорию (для manager/admin)
+	 */
+	async deleteCategory(id: number): Promise<void> {
+		return apiClient.delete<void>(`/categories/${id}`);
 	}
 };

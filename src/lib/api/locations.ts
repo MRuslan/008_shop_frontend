@@ -28,5 +28,26 @@ export const locationsApi = {
 	 */
 	async getLocationById(id: number): Promise<Location> {
 		return apiClient.get<Location>(`/locations/${id}`, { skipAuth: true });
+	},
+
+	/**
+	 * Создать точку продаж (для manager/admin)
+	 */
+	async createLocation(data: Partial<Location>): Promise<Location> {
+		return apiClient.post<Location>('/locations', data);
+	},
+
+	/**
+	 * Обновить точку продаж (для manager/admin)
+	 */
+	async updateLocation(id: number, data: Partial<Location>): Promise<Location> {
+		return apiClient.patch<Location>(`/locations/${id}`, data);
+	},
+
+	/**
+	 * Удалить точку продаж (для manager/admin)
+	 */
+	async deleteLocation(id: number): Promise<void> {
+		return apiClient.delete<void>(`/locations/${id}`);
 	}
 };
