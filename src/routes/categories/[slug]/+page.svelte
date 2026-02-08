@@ -2,6 +2,8 @@
 	import ProductList from '$lib/components/product/ProductList.svelte';
 	import type { Product, Category, ProductFilters } from '$lib/types/product';
 	import { goto } from '$app/navigation';
+	import { storeSettings } from '$lib/stores/store';
+	import { generateCollectionJsonLd, generateBreadcrumbJsonLd } from '$lib/utils/seo';
 
 	interface Props {
 		data: {
@@ -43,11 +45,36 @@
 	}
 
 	const totalPages = Math.ceil(data.total / data.limit);
+	
+	const siteUrl = typeof window !== 'undefined' ? window.location.origin : '';
+	const siteName = $storeSettings?.name || 'Интернет-магазин';
+	const categoryUrl = `${siteUrl}/categories/${data.category.slug}`;
+	const description = `Товары категории ${data.category.name}. Найдено товаров: ${data.total}. Широкий ассортимент по выгодным ценам.`;
+	const breadcrumbs = [
+		{ name: 'Главная', url: '/' },
+		{ name: 'Каталог', url: '/catalog' },
+		{ name: data.category.name, url: `/categories/${data.category.slug}` }
+	];
 </script>
 
 <svelte:head>
-	<title>{data.category.name} - Каталог</title>
-	<meta name="description" content="Товары категории {data.category.name}" />
+	<title>{data.category.name} | {siteName}</title>
+	<meta name="description" content={description} />
+	<meta property="og:title" content={`${data.category.name} | ${siteName}`} />
+	<meta property="og:description" content={description} />
+	<meta property="og:type" content="website" />
+	<meta property="og:url" content={categoryUrl} />
+	{#if $storeSettings?.logoUrl}
+		<meta property="og:image" content={$storeSettings.logoUrl} />
+	{/if}
+	<meta property="og:site_name" content={siteName} />
+	<meta name="twitter:card" content="summary" />
+	<meta name="twitter:title" content={`${data.category.name} | ${siteName}`} />
+	<meta name="twitter:description" content={description} />
+	<link rel="canonical" href={categoryUrl} />
+	
+	{@html `<script type="application/ld+json">${JSON.stringify(generateCollectionJsonLd(data.products, data.category, $storeSettings || undefined))}</script>`}
+	{@html `<script type="application/ld+json">${JSON.stringify(generateBreadcrumbJsonLd(breadcrumbs))}</script>`}
 </svelte:head>
 
 <div class="container mx-auto px-4 py-8">

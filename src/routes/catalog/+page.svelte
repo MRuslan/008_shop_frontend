@@ -4,6 +4,8 @@
 	import type { Product, ProductFilters as ProductFiltersType, Category } from '$lib/types/product';
 	import { page } from '$app/stores';
 	import { goto } from '$app/navigation';
+	import { storeSettings } from '$lib/stores/store';
+	import { generateCollectionJsonLd, generateBreadcrumbJsonLd } from '$lib/utils/seo';
 
 	interface Props {
 		data: {
@@ -50,11 +52,33 @@
 	}
 
 	const totalPages = Math.ceil(data.total / data.limit);
+	
+	const siteUrl = typeof window !== 'undefined' ? window.location.origin : '';
+	const siteName = $storeSettings?.name || 'Интернет-магазин';
+	const description = `Каталог товаров ${siteName}. Найдено товаров: ${data.total}. Широкий ассортимент по выгодным ценам.`;
 </script>
 
 <svelte:head>
-	<title>Каталог товаров</title>
-	<meta name="description" content="Каталог товаров нашего магазина" />
+	<title>Каталог товаров | {siteName}</title>
+	<meta name="description" content={description} />
+	<meta property="og:title" content={`Каталог товаров | ${siteName}`} />
+	<meta property="og:description" content={description} />
+	<meta property="og:type" content="website" />
+	<meta property="og:url" content={`${siteUrl}/catalog`} />
+	{#if $storeSettings?.logoUrl}
+		<meta property="og:image" content={$storeSettings.logoUrl} />
+	{/if}
+	<meta property="og:site_name" content={siteName} />
+	<meta name="twitter:card" content="summary" />
+	<meta name="twitter:title" content={`Каталог товаров | ${siteName}`} />
+	<meta name="twitter:description" content={description} />
+	<link rel="canonical" href={`${siteUrl}/catalog`} />
+	
+	{@html `<script type="application/ld+json">${JSON.stringify(generateCollectionJsonLd(data.products, undefined, $storeSettings || undefined))}</script>`}
+	{@html `<script type="application/ld+json">${JSON.stringify(generateBreadcrumbJsonLd([
+		{ name: 'Главная', url: '/' },
+		{ name: 'Каталог', url: '/catalog' }
+	]))}</script>`}
 </svelte:head>
 
 <div class="container mx-auto px-4 py-8">

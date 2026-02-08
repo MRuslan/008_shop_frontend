@@ -9,6 +9,7 @@
 	import { wishlistApi } from '$lib/api/wishlist';
 	import { getOrCreateSessionId } from '$lib/utils/session';
 	import ProductReviews from '$lib/components/product/ProductReviews.svelte';
+	import { generateProductJsonLd, generateBreadcrumbJsonLd } from '$lib/utils/seo';
 
 	interface Props {
 		data: {
@@ -111,31 +112,50 @@
 			isTogglingWishlist = false;
 		}
 	}
+
+	const siteUrl = typeof window !== 'undefined' ? window.location.origin : '';
+	const siteName = $storeSettings?.name || 'Магазин';
+	const productUrl = `${siteUrl}/products/${data.product.slug}`;
+	const productDescription = data.product.description || data.product.name;
+	
+	// Формируем breadcrumbs
+	const breadcrumbs = data.category
+		? [
+				{ name: 'Главная', url: '/' },
+				{ name: 'Каталог', url: '/catalog' },
+				{ name: data.category.name, url: `/categories/${data.category.slug}` },
+				{ name: data.product.name, url: `/products/${data.product.slug}` }
+		  ]
+		: [
+				{ name: 'Главная', url: '/' },
+				{ name: 'Каталог', url: '/catalog' },
+				{ name: data.product.name, url: `/products/${data.product.slug}` }
+		  ];
 </script>
 
 <svelte:head>
-	<title>{data.product.name} - {$storeSettings?.name || 'Магазин'}</title>
-	<meta name="description" content={data.product.description || data.product.name} />
+	<title>{data.product.name} | {siteName}</title>
+	<meta name="description" content={productDescription} />
+	<meta property="og:title" content={data.product.name} />
+	<meta property="og:description" content={productDescription} />
+	<meta property="og:type" content="product" />
+	<meta property="og:url" content={productUrl} />
 	{#if mainImage}
 		<meta property="og:image" content={mainImage} />
 	{/if}
-	<meta property="og:title" content={data.product.name} />
-	<meta property="og:description" content={data.product.description || data.product.name} />
+	<meta property="og:site_name" content={siteName} />
+	<meta name="twitter:card" content="summary_large_image" />
+	<meta name="twitter:title" content={data.product.name} />
+	<meta name="twitter:description" content={productDescription} />
+	{#if mainImage}
+		<meta name="twitter:image" content={mainImage} />
+	{/if}
+	<meta property="product:price:amount" content={data.product.price} />
+	<meta property="product:price:currency" content={$storeSettings?.currency || 'RUB'} />
+	<link rel="canonical" href={productUrl} />
 	
-	<!-- JSON-LD для структурированных данных -->
-	{@html `<script type="application/ld+json">${JSON.stringify({
-		"@context": "https://schema.org/",
-		"@type": "Product",
-		"name": data.product.name,
-		"description": data.product.description || data.product.name,
-		"image": images.length > 0 ? images.map(img => img.url) : [],
-		"offers": {
-			"@type": "Offer",
-			"price": data.product.price,
-			"priceCurrency": $storeSettings?.currency || "RUB",
-			"availability": data.product.quantity > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock"
-		}
-	})}</script>`}
+	{@html `<script type="application/ld+json">${JSON.stringify(generateProductJsonLd(data.product, $storeSettings || undefined))}</script>`}
+	{@html `<script type="application/ld+json">${JSON.stringify(generateBreadcrumbJsonLd(breadcrumbs))}</script>`}
 </svelte:head>
 
 <div class="container mx-auto px-4 py-8">
@@ -162,6 +182,8 @@
 						src={mainImage}
 						alt={data.product.name}
 						class="w-full h-full object-cover"
+						loading="eager"
+						fetchpriority="high"
 					/>
 				{:else}
 					<div class="w-full h-full flex items-center justify-center text-gray-400">
@@ -189,8 +211,9 @@
 						>
 							<img
 								src={image.url}
-								alt="{data.product.name} - изображение {index + 1}"
+								alt={`${data.product.name} - изображение ${index + 1}`}
 								class="w-full h-full object-cover"
+								loading="lazy"
 							/>
 						</button>
 					{/each}
