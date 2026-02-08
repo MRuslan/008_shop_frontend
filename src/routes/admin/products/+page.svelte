@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { goto } from '$app/navigation';
+	import { goto, invalidateAll } from '$app/navigation';
 	import { productsApi } from '$lib/api/products';
 	import type { Product, Category } from '$lib/types/product';
 	import { formatPrice } from '$lib/utils/format';
@@ -37,8 +37,7 @@
 
 		try {
 			await productsApi.deleteProduct(productId);
-			// Перезагружаем страницу
-			window.location.reload();
+			await invalidateAll();
 		} catch (error: any) {
 			alert(error.message || 'Ошибка удаления товара');
 		}
@@ -61,7 +60,7 @@
 
 	function handleFormSuccess() {
 		handleFormClose();
-		window.location.reload();
+		invalidateAll();
 	}
 </script>
 

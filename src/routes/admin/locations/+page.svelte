@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { invalidateAll } from '$app/navigation';
 	import { locationsApi } from '$lib/api/locations';
 	import type { Location } from '$lib/types/order';
 
@@ -60,7 +61,7 @@
 
 		try {
 			await locationsApi.deleteLocation(locationId);
-			window.location.reload();
+			await invalidateAll();
 		} catch (error: any) {
 			alert(error.message || 'Ошибка удаления точки');
 		}
@@ -96,7 +97,7 @@
 				await locationsApi.createLocation(locationData);
 			}
 
-			window.location.reload();
+			await invalidateAll();
 		} catch (err: any) {
 			const message = err.message || 'Ошибка сохранения точки';
 			if (Array.isArray(message)) {

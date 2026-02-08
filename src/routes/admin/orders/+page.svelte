@@ -3,7 +3,7 @@
 	import type { Order, OrderStatus } from '$lib/types/order';
 	import { formatPrice, formatDateTime } from '$lib/utils/format';
 	import { storeSettings } from '$lib/stores/store';
-	import { goto } from '$app/navigation';
+	import { goto, invalidateAll } from '$app/navigation';
 
 	interface Props {
 		data: {
@@ -44,7 +44,7 @@
 
 		try {
 			await ordersApi.updateOrderStatus(orderId, { status: newStatus });
-			window.location.reload();
+			await invalidateAll();
 		} catch (error: any) {
 			alert(error.message || 'Ошибка изменения статуса');
 		}

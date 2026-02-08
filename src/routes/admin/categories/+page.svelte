@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { invalidateAll } from '$app/navigation';
 	import { categoriesApi } from '$lib/api/categories';
 	import type { Category } from '$lib/types/product';
 
@@ -45,7 +46,7 @@
 
 		try {
 			await categoriesApi.deleteCategory(categoryId);
-			window.location.reload();
+			await invalidateAll();
 		} catch (error: any) {
 			alert(error.message || 'Ошибка удаления категории');
 		}
@@ -76,7 +77,14 @@
 				await categoriesApi.createCategory(categoryData);
 			}
 
-			window.location.reload();
+			await invalidateAll();
+			showCategoryForm = false;
+			editingCategory = null;
+			name = '';
+			slug = '';
+			parentId = null;
+			sortOrder = 0;
+			isActive = true;
 		} catch (err: any) {
 			const message = err.message || 'Ошибка сохранения категории';
 			if (Array.isArray(message)) {

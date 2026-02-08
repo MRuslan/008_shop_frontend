@@ -1,23 +1,24 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { authStore, hasRole, isAdminOrManager } from '$lib/stores/auth';
+	import type { Role } from '$lib/types/auth';
 	import { page } from '$app/stores';
 
-	onMount(() => {
-		// Проверка авторизации и роли
-		if (!$authStore.isAuthenticated) {
-			goto('/?redirect=/admin');
-			return;
-		}
-
-		if (!$isAdminOrManager) {
-			goto('/');
-			return;
+	// Редирект только после завершения инициализации авторизации (избегаем сброса при reload)
+	$effect(() => {
+		if (!$authStore.isLoading) {
+			if (!$authStore.isAuthenticated) {
+				goto('/?redirect=/admin');
+				return;
+			}
+			if (!$isAdminOrManager) {
+				goto('/');
+				return;
+			}
 		}
 	});
 
-	const menuItems = [
+	const menuItems: { href: string; label: string; icon: string; roles: Role[] }[] = [
 		{ href: '/admin/products', label: 'Товары', icon: '📦', roles: ['manager', 'admin'] },
 		{ href: '/admin/categories', label: 'Категории', icon: '📁', roles: ['manager', 'admin'] },
 		{ href: '/admin/orders', label: 'Заказы', icon: '🛒', roles: ['manager', 'admin'] },
@@ -27,7 +28,11 @@
 	];
 </script>
 
-{#if $authStore.isAuthenticated && $isAdminOrManager}
+{#if $authStore.isLoading}
+	<div class="container mx-auto px-4 py-8 text-center">
+		<p class="text-gray-500">Загрузка...</p>
+	</div>
+{:else if $authStore.isAuthenticated && $isAdminOrManager}
 	<div class="container mx-auto px-4 py-8">
 		<div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
 			<!-- Боковое меню -->

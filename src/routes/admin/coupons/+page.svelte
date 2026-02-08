@@ -1,6 +1,8 @@
 <script lang="ts">
-	import { couponsApi } from '$lib/api/coupons';
-	import type { Coupon, CreateCouponDto } from '$lib/types/common';
+	import { onMount } from 'svelte';
+	import { invalidateAll } from '$app/navigation';
+	import { couponsApi, type CreateCouponDto } from '$lib/api/coupons';
+	import type { Coupon } from '$lib/types/common';
 	import { formatDateTime } from '$lib/utils/format';
 
 	interface Props {
@@ -10,6 +12,25 @@
 	}
 
 	let { data }: Props = $props();
+
+	// Локальный список: синхронизируем с data и подгружаем на клиенте при полной перезагрузке
+	let coupons = $state<Coupon[]>([]);
+
+	$effect(() => {
+		if (Array.isArray(data.coupons)) {
+			coupons = data.coupons;
+		}
+	});
+
+	onMount(async () => {
+		if (coupons.length === 0) {
+			try {
+				coupons = await couponsApi.getCoupons();
+			} catch {
+				coupons = [];
+			}
+		}
+	});
 
 	let showCouponForm = $state(false);
 	let editingCoupon = $state<Coupon | null>(null);
@@ -49,7 +70,7 @@
 
 		try {
 			await couponsApi.deleteCoupon(couponId);
-			window.location.reload();
+			await invalidateAll();
 		} catch (error: any) {
 			alert(error.message || 'Ошибка удаления купона');
 		}
@@ -91,7 +112,7 @@
 				await couponsApi.createCoupon(couponData);
 			}
 
-			window.location.reload();
+			await invalidateAll();
 		} catch (err: any) {
 			const message = err.message || 'Ошибка сохранения купона';
 			if (Array.isArray(message)) {
@@ -251,7 +272,7 @@
 				</tr>
 			</thead>
 			<tbody class="bg-white divide-y divide-gray-200">
-				{#each data.coupons as coupon}
+				{#each coupons as coupon}
 					<tr class="hover:bg-gray-50">
 						<td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
 							{coupon.code}
@@ -302,7 +323,7 @@
 		</table>
 	</div>
 
-	{#if data.coupons.length === 0}
+	{#if coupons.length === 0}
 		<div class="text-center py-8 text-gray-500">
 			Купоны не найдены
 		</div>

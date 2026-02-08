@@ -1,12 +1,11 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { authStore } from '$lib/stores/auth';
 	import { page } from '$app/stores';
 
-	onMount(() => {
-		// Проверка авторизации
-		if (!$authStore.isAuthenticated) {
+	// Редирект только после завершения инициализации авторизации (избегаем сброса при reload)
+	$effect(() => {
+		if (!$authStore.isLoading && !$authStore.isAuthenticated) {
 			goto('/?redirect=/account');
 		}
 	});
@@ -19,7 +18,11 @@
 	];
 </script>
 
-{#if $authStore.isAuthenticated}
+{#if $authStore.isLoading}
+	<div class="container mx-auto px-4 py-8 text-center">
+		<p class="text-gray-500">Загрузка...</p>
+	</div>
+{:else if $authStore.isAuthenticated}
 	<div class="container mx-auto px-4 py-8">
 		<div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
 			<!-- Боковое меню -->
