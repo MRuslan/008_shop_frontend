@@ -8,6 +8,7 @@
 	import { authStore } from '$lib/stores/auth';
 	import { wishlistApi } from '$lib/api/wishlist';
 	import { getOrCreateSessionId } from '$lib/utils/session';
+	import ProductReviews from '$lib/components/product/ProductReviews.svelte';
 
 	interface Props {
 		data: {
@@ -333,5 +334,10 @@
 				{/if}
 			</div>
 		</div>
+	</div>
+
+	<!-- Отзывы -->
+	<div class="mt-12">
+		<ProductReviews productId={data.product.id} />
 	</div>
 </div>
