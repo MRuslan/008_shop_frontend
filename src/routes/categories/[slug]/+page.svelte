@@ -119,12 +119,12 @@
 
 	<!-- Пагинация -->
 	{#if totalPages > 1}
-		<nav class="mt-8 flex justify-center items-center space-x-2" aria-label="Страницы категории">
+		<nav class="mt-8 flex flex-wrap justify-center items-center gap-2" aria-label="Страницы категории">
 			<button
 				type="button"
 				onclick={() => goToPage(currentPage - 1)}
 				disabled={currentPage === 1}
-				class="px-4 py-2 border border-gray-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+				class="min-h-11 px-4 py-2 border border-gray-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
 			>
 				Назад
 			</button>
@@ -135,7 +135,7 @@
 						type="button"
 						onclick={() => goToPage(pageNum)}
 						aria-current={pageNum === currentPage ? 'page' : undefined}
-						class="px-4 py-2 border rounded-md transition-colors"
+						class="min-h-11 min-w-11 px-4 py-2 border rounded-md transition-colors tabular-nums"
 						class:bg-blue-600={pageNum === currentPage}
 						class:text-white={pageNum === currentPage}
 						class:border-blue-600={pageNum === currentPage}
@@ -153,7 +153,7 @@
 				type="button"
 				onclick={() => goToPage(currentPage + 1)}
 				disabled={currentPage === totalPages}
-				class="px-4 py-2 border border-gray-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+				class="min-h-11 px-4 py-2 border border-gray-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
 			>
 				Вперёд
 			</button>

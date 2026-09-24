@@ -37,7 +37,7 @@
 							Email:
 							<a
 								href="mailto:{$storeSettings.contactEmail}"
-								class="hover:text-white transition-colors"
+								class="inline-flex min-h-11 items-center hover:text-white transition-colors"
 							>
 								{$storeSettings.contactEmail}
 							</a>
@@ -48,7 +48,7 @@
 							Телефон:
 							<a
 								href="tel:{$storeSettings.contactPhone.replace(/[^\d+]/g, '')}"
-								class="hover:text-white transition-colors"
+								class="inline-flex min-h-11 items-center hover:text-white transition-colors"
 							>
 								{$storeSettings.contactPhone}
 							</a>
@@ -60,21 +60,21 @@
 			<!-- Навигация -->
 			<div>
 				<h2 class="text-lg font-semibold mb-4">Навигация</h2>
-				<ul class="space-y-2">
+				<ul class="-my-2">
 					<li>
-						<a href="/catalog" class="text-gray-400 hover:text-white transition-colors">
+						<a href="/catalog" class="inline-flex min-h-11 items-center text-gray-400 hover:text-white transition-colors">
 							Каталог
 						</a>
 					</li>
 					{#if pages.about}
 						<li>
-							<a href={pages.about.href} class="text-gray-400 hover:text-white transition-colors">
+							<a href={pages.about.href} class="inline-flex min-h-11 items-center text-gray-400 hover:text-white transition-colors">
 								{pages.about.label}
 							</a>
 						</li>
 					{/if}
 					<li>
-						<a href="/contacts" class="text-gray-400 hover:text-white transition-colors">
+						<a href="/contacts" class="inline-flex min-h-11 items-center text-gray-400 hover:text-white transition-colors">
 							Контакты
 						</a>
 					</li>
@@ -85,10 +85,10 @@
 			{#if pages.legal.length}
 				<div>
 					<h2 class="text-lg font-semibold mb-4">Информация</h2>
-					<ul class="space-y-2">
+					<ul class="-my-2">
 						{#each pages.legal as item (item.href)}
 							<li>
-								<a href={item.href} class="text-gray-400 hover:text-white transition-colors">
+								<a href={item.href} class="inline-flex min-h-11 items-center text-gray-400 hover:text-white transition-colors">
 									{item.label}
 								</a>
 							</li>

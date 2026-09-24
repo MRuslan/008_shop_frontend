@@ -246,13 +246,13 @@
 					<div class="flex space-x-2">
 						<button
 							onclick={() => handleEdit(category)}
-							class="px-3 py-1 text-indigo-600 hover:text-indigo-900 text-sm"
+							class="px-3 py-1 pointer-coarse:min-h-11 text-indigo-600 hover:text-indigo-900 text-sm"
 						>
 							Редактировать
 						</button>
 						<button
 							onclick={() => handleDelete(category)}
-							class="px-3 py-1 text-red-600 hover:text-red-900 text-sm"
+							class="px-3 py-1 pointer-coarse:min-h-11 text-red-600 hover:text-red-900 text-sm"
 						>
 							Удалить
 						</button>
@@ -280,13 +280,13 @@
 								<div class="flex space-x-2">
 									<button
 										onclick={() => handleEdit(child)}
-										class="px-3 py-1 text-indigo-600 hover:text-indigo-900 text-sm"
+										class="px-3 py-1 pointer-coarse:min-h-11 text-indigo-600 hover:text-indigo-900 text-sm"
 									>
 										Редактировать
 									</button>
 									<button
 										onclick={() => handleDelete(child)}
-										class="px-3 py-1 text-red-600 hover:text-red-900 text-sm"
+										class="px-3 py-1 pointer-coarse:min-h-11 text-red-600 hover:text-red-900 text-sm"
 									>
 										Удалить
 									</button>

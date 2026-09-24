@@ -74,7 +74,7 @@
 						<button
 							type="button"
 							onclick={() => rating = star}
-							class="focus:outline-none transition-transform hover:scale-110"
+							class="inline-flex h-11 w-11 items-center justify-center rounded transition-transform hover:scale-110 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none"
 							aria-label="Оценка {star}"
 						>
 							<svg

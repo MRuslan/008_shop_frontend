@@ -336,13 +336,13 @@
 							<div class="flex justify-end space-x-2">
 								<button
 									onclick={() => handleEdit(location)}
-									class="text-indigo-600 hover:text-indigo-900"
+									class="px-2 pointer-coarse:min-h-11 text-indigo-600 hover:text-indigo-900"
 								>
 									Редактировать
 								</button>
 								<button
 									onclick={() => handleDelete(location)}
-									class="text-red-600 hover:text-red-900"
+									class="px-2 pointer-coarse:min-h-11 text-red-600 hover:text-red-900"
 								>
 									Удалить
 								</button>

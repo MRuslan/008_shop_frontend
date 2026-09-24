@@ -18,6 +18,7 @@
 	let isChanging = $state(false);
 
 	const inputId = $props.id();
+	const currency = $derived($storeSettings?.currency || 'RUB');
 
 	async function handleQuantityChange(newQuantity: number) {
 		if (!Number.isFinite(newQuantity) || newQuantity < 1) {
@@ -48,7 +49,8 @@
 	}
 </script>
 
-<div class="flex items-center space-x-4 p-4 bg-white rounded-lg shadow-md">
+<!-- На узких экранах управление переносится под описание, на широких остаётся справа -->
+<div class="flex flex-wrap items-start gap-4 p-4 bg-white rounded-lg shadow-md">
 	<!-- Изображение -->
 	<a href="/products/{item.product.slug}" class="shrink-0" tabindex="-1" aria-hidden="true">
 		<div class="w-20 h-20 bg-gray-100 rounded overflow-hidden">
@@ -56,12 +58,14 @@
 				<img
 					src={item.product.images[0].url}
 					alt=""
+					width="80"
+					height="80"
 					class="w-full h-full object-cover"
 					loading="lazy"
 				/>
 			{:else}
 				<div class="w-full h-full flex items-center justify-center text-gray-400">
-					<svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+					<svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
 						<path
 							stroke-linecap="round"
 							stroke-linejoin="round"
@@ -75,9 +79,9 @@
 	</a>
 
 	<!-- Информация о товаре -->
-	<div class="flex-1 min-w-0">
+	<div class="flex-1 min-w-[10rem]">
 		<a href="/products/{item.product.slug}" class="block">
-			<h3 class="text-lg font-semibold text-gray-800 hover:text-blue-600 transition-colors">
+			<h3 class="text-lg font-semibold text-gray-800 hover:text-blue-600 transition-colors break-words">
 				{item.product.name}
 			</h3>
 		</a>
@@ -85,12 +89,12 @@
 			<p class="text-sm text-gray-500">{item.product.category.name}</p>
 		{/if}
 		<p class="text-lg font-bold text-gray-900 mt-2">
-			{formatPrice(item.product.price, $storeSettings?.currency || 'RUB')}
+			{formatPrice(item.product.price, currency)}
 		</p>
 	</div>
 
 	<!-- Количество и действия -->
-	<div class="flex items-center space-x-4">
+	<div class="flex w-full items-center justify-between gap-3 sm:w-auto sm:justify-end">
 		<!-- Изменение количества -->
 		<div class="flex items-center border border-gray-300 rounded">
 			<button
@@ -98,7 +102,7 @@
 				onclick={() => handleQuantityChange(localQuantity - 1)}
 				disabled={isChanging || isUpdating || localQuantity <= 1}
 				aria-label="Уменьшить количество"
-				class="px-3 py-2 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100"
+				class="inline-flex min-h-11 min-w-11 items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100"
 			>
 				−
 			</button>
@@ -112,35 +116,30 @@
 				aria-label="Количество"
 				onchange={(e) => handleQuantityChange(parseInt(e.currentTarget.value) || 1)}
 				disabled={isChanging || isUpdating}
-				class="w-16 text-center border-0 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500 disabled:opacity-50"
+				class="w-14 min-h-11 text-center border-0 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500 disabled:opacity-50"
 			/>
 			<button
 				type="button"
 				onclick={() => handleQuantityChange(localQuantity + 1)}
 				disabled={isChanging || isUpdating || localQuantity >= item.product.quantity}
 				aria-label="Увеличить количество"
-				class="px-3 py-2 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100"
+				class="inline-flex min-h-11 min-w-11 items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100"
 			>
 				+
 			</button>
 		</div>
 
 		<!-- Итоговая цена -->
-		<div class="text-right min-w-[100px]">
-			<p class="text-lg font-bold text-gray-900">
-				{formatPrice(
-					(parseFloat(item.product.price) * localQuantity).toFixed(2),
-					$storeSettings?.currency || 'RUB'
-				)}
-			</p>
-		</div>
+		<p class="text-lg font-bold text-gray-900 text-right sm:min-w-[6rem] tabular-nums">
+			{formatPrice((parseFloat(item.product.price) * localQuantity).toFixed(2), currency)}
+		</p>
 
 		<!-- Удаление -->
 		<button
 			type="button"
 			onclick={handleRemove}
 			disabled={isUpdating}
-			class="p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded transition-colors disabled:opacity-50"
+			class="inline-flex h-11 w-11 shrink-0 items-center justify-center text-red-600 hover:text-red-800 hover:bg-red-50 rounded transition-colors disabled:opacity-50"
 			aria-label="Удалить «{item.product.name}» из корзины"
 		>
 			<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">

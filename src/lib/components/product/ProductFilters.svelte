@@ -56,7 +56,7 @@
 	<!-- Кнопка показа/скрытия фильтров (для мобильных) -->
 	<button
 		onclick={() => showFilters = !showFilters}
-		class="md:hidden w-full flex items-center justify-between mb-4 p-2 bg-gray-100 rounded"
+		class="md:hidden w-full min-h-11 flex items-center justify-between mb-4 px-3 py-2 bg-gray-100 rounded"
 	>
 		<span class="font-medium">Фильтры</span>
 		<svg

@@ -92,7 +92,7 @@
 			/>
 			<button
 				type="submit"
-				class="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+				class="min-h-11 px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
 			>
 				Найти
 			</button>
@@ -107,7 +107,7 @@
 				type="button"
 				onclick={retry}
 				disabled={retrying}
-				class="mt-4 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+				class="mt-4 min-h-11 rounded-md bg-blue-600 px-5 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
 			>
 				{retrying ? 'Обновляем…' : 'Попробовать снова'}
 			</button>
@@ -145,12 +145,12 @@
 
 			<!-- Пагинация -->
 			{#if totalPages > 1}
-				<nav class="mt-8 flex justify-center items-center space-x-2" aria-label="Страницы результатов">
+				<nav class="mt-8 flex flex-wrap justify-center items-center gap-2" aria-label="Страницы результатов">
 					<button
 						type="button"
 						onclick={() => goToPage(currentPage - 1)}
 						disabled={currentPage === 1}
-						class="px-4 py-2 border border-gray-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+						class="min-h-11 px-4 py-2 border border-gray-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
 					>
 						Назад
 					</button>
@@ -161,7 +161,7 @@
 								type="button"
 								onclick={() => goToPage(pageNum)}
 								aria-current={pageNum === currentPage ? 'page' : undefined}
-								class="px-4 py-2 border rounded-md transition-colors"
+								class="min-h-11 min-w-11 px-4 py-2 border rounded-md transition-colors tabular-nums"
 								class:bg-blue-600={pageNum === currentPage}
 								class:text-white={pageNum === currentPage}
 								class:border-blue-600={pageNum === currentPage}
@@ -179,7 +179,7 @@
 						type="button"
 						onclick={() => goToPage(currentPage + 1)}
 						disabled={currentPage === totalPages}
-						class="px-4 py-2 border border-gray-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+						class="min-h-11 px-4 py-2 border border-gray-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
 					>
 						Вперёд
 					</button>

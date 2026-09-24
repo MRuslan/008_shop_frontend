@@ -316,7 +316,7 @@
 								onclick={decreaseQuantity}
 								disabled={quantity <= 1}
 								aria-label="Уменьшить количество"
-								class="px-3 py-2 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100"
+								class="inline-flex min-h-11 min-w-11 items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100"
 							>
 								−
 							</button>
@@ -328,14 +328,14 @@
 								min="1"
 								max={product.quantity}
 								inputmode="numeric"
-								class="w-16 text-center border-0 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500"
+								class="w-14 min-h-11 text-center border-0 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500"
 							/>
 							<button
 								type="button"
 								onclick={increaseQuantity}
 								disabled={quantity >= product.quantity}
 								aria-label="Увеличить количество"
-								class="px-3 py-2 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100"
+								class="inline-flex min-h-11 min-w-11 items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100"
 							>
 								+
 							</button>

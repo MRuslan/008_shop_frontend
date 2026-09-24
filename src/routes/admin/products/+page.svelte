@@ -81,12 +81,12 @@
 	</div>
 
 	<!-- Фильтры -->
-	<div class="mb-6 flex space-x-4">
+	<div class="mb-6 flex flex-wrap gap-3">
 		<input
 			type="text"
 			bind:value={searchQuery}
 			placeholder="Поиск товаров..."
-			class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+			class="flex-1 min-w-[12rem] min-h-11 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
 		/>
 		<select
 			bind:value={selectedCategoryId}
@@ -203,21 +203,21 @@
 									<a
 										href="/products/{product.slug}"
 										target="_blank"
-										class="text-blue-600 hover:text-blue-900"
+										class="inline-flex h-11 w-11 items-center justify-center rounded-md text-blue-600 hover:bg-blue-50 hover:text-blue-900"
 										title="Просмотр"
 									>
 										👁️
 									</a>
 									<button
 										onclick={() => handleEdit(product)}
-										class="text-indigo-600 hover:text-indigo-900"
+										class="inline-flex h-11 w-11 items-center justify-center rounded-md text-indigo-600 hover:bg-indigo-50 hover:text-indigo-900"
 										title="Редактировать"
 									>
 										✏️
 									</button>
 									<button
 										onclick={() => handleDelete(product)}
-										class="text-red-600 hover:text-red-900"
+										class="inline-flex h-11 w-11 items-center justify-center rounded-md text-red-600 hover:bg-red-50 hover:text-red-900"
 										title="Удалить"
 									>
 										🗑️

@@ -14,7 +14,7 @@
 </script>
 
 <div
-	class="pointer-events-none fixed inset-x-4 bottom-4 z-50 flex flex-col gap-2 sm:inset-x-auto sm:right-6 sm:bottom-6 sm:w-96"
+	class="pointer-events-none fixed inset-x-4 bottom-[max(1rem,env(safe-area-inset-bottom))] z-50 flex flex-col gap-2 sm:inset-x-auto sm:right-6 sm:bottom-6 sm:w-96"
 >
 	{#each $toasts as t (t.id)}
 		<div
@@ -67,7 +67,7 @@
 			<button
 				type="button"
 				onclick={() => toasts.dismiss(t.id)}
-				class="-m-1 rounded p-1 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none"
+				class="-my-2.5 -mr-2 inline-flex h-11 w-11 shrink-0 items-center justify-center rounded text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none"
 				aria-label="Закрыть уведомление"
 			>
 				<svg
