@@ -1,8 +1,11 @@
 <script lang="ts">
+	import '@fontsource-variable/onest';
 	import '../lib/styles/global.css';
 	import { onMount } from 'svelte';
+	import { page } from '$app/state';
 	import Header from '$lib/components/layout/Header.svelte';
 	import Footer from '$lib/components/layout/Footer.svelte';
+	import TabBar from '$lib/components/layout/TabBar.svelte';
 	import Toaster from '$lib/components/ui/Toaster.svelte';
 	import ConfirmDialog from '$lib/components/ui/ConfirmDialog.svelte';
 	import { storeSettings } from '$lib/stores/store';
@@ -17,6 +20,9 @@
 		storeSettings.set(data.store ?? null);
 	});
 
+	// Админка — рабочий инструмент: нижние вкладки покупателя ей не нужны
+	const showTabBar = $derived(!page.url.pathname.startsWith('/admin'));
+
 	onMount(async () => {
 		await authStore.init();
 		// Корзина зависит от того, авторизован ли пользователь
@@ -24,13 +30,21 @@
 	});
 </script>
 
-<div class="min-h-screen flex flex-col">
+<div
+	class="flex min-h-screen flex-col {showTabBar
+		? 'pb-[calc(var(--tabbar-height)+env(safe-area-inset-bottom))] md:pb-0'
+		: ''}"
+>
 	<Header />
 	<main class="flex-grow">
 		{@render children()}
 	</main>
 	<Footer />
 </div>
+
+{#if showTabBar}
+	<TabBar />
+{/if}
 
 <Toaster />
 <ConfirmDialog />

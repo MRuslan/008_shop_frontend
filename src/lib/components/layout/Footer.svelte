@@ -1,5 +1,7 @@
 <script lang="ts">
 	import { storeSettings } from '$lib/stores/store';
+	import Phone from '@lucide/svelte/icons/phone';
+	import Mail from '@lucide/svelte/icons/mail';
 
 	interface FooterLink {
 		href: string;
@@ -24,71 +26,66 @@
 	const year = new Date().getFullYear();
 </script>
 
-<footer class="bg-gray-800 text-white mt-auto">
-	<div class="container mx-auto px-4 py-8">
-		<div class="grid grid-cols-1 gap-8 md:grid-cols-2 {pages.legal.length ? 'lg:grid-cols-3' : ''}">
-			<!-- О магазине -->
+<!-- Подвал светлый: чёрный в этой системе закреплён за действиями, а не за второстепенным текстом -->
+<footer class="mt-12 border-t border-line bg-surface text-sm text-gray-600">
+	<div class="container py-8 md:py-10">
+		<div class="grid grid-cols-1 gap-8 sm:grid-cols-2 {pages.legal.length ? 'lg:grid-cols-3' : ''}">
 			<div>
-				<h2 class="text-lg font-semibold mb-4">О магазине</h2>
-				{#if $storeSettings}
-					<p class="text-gray-400">{$storeSettings.name}</p>
-					{#if $storeSettings.contactEmail}
-						<p class="text-gray-400 mt-2">
-							Email:
-							<a
-								href="mailto:{$storeSettings.contactEmail}"
-								class="inline-flex min-h-11 items-center hover:text-white transition-colors"
-							>
-								{$storeSettings.contactEmail}
-							</a>
-						</p>
-					{/if}
-					{#if $storeSettings.contactPhone}
-						<p class="text-gray-400 mt-2">
-							Телефон:
+				<h2 class="text-base font-semibold text-ink">{$storeSettings?.name || 'Магазин'}</h2>
+				<ul class="mt-2">
+					{#if $storeSettings?.contactPhone}
+						<li>
 							<a
 								href="tel:{$storeSettings.contactPhone.replace(/[^\d+]/g, '')}"
-								class="inline-flex min-h-11 items-center hover:text-white transition-colors"
+								class="inline-flex min-h-11 items-center gap-2 transition-colors hover:text-ink"
 							>
+								<Phone class="size-4 text-gray-400" aria-hidden="true" />
 								{$storeSettings.contactPhone}
 							</a>
-						</p>
+						</li>
 					{/if}
-				{/if}
+					{#if $storeSettings?.contactEmail}
+						<li>
+							<a
+								href="mailto:{$storeSettings.contactEmail}"
+								class="inline-flex min-h-11 items-center gap-2 transition-colors hover:text-ink"
+							>
+								<Mail class="size-4 text-gray-400" aria-hidden="true" />
+								{$storeSettings.contactEmail}
+							</a>
+						</li>
+					{/if}
+				</ul>
 			</div>
 
-			<!-- Навигация -->
 			<div>
-				<h2 class="text-lg font-semibold mb-4">Навигация</h2>
-				<ul class="-my-2">
+				<h2 class="text-base font-semibold text-ink">Покупателям</h2>
+				<ul class="mt-2">
 					<li>
-						<a href="/catalog" class="inline-flex min-h-11 items-center text-gray-400 hover:text-white transition-colors">
-							Каталог
+						<a href="/catalog" class="inline-flex min-h-11 items-center transition-colors hover:text-ink">Каталог</a>
+					</li>
+					<li>
+						<a href="/contacts" class="inline-flex min-h-11 items-center transition-colors hover:text-ink">
+							Контакты и пункты выдачи
 						</a>
 					</li>
 					{#if pages.about}
 						<li>
-							<a href={pages.about.href} class="inline-flex min-h-11 items-center text-gray-400 hover:text-white transition-colors">
+							<a href={pages.about.href} class="inline-flex min-h-11 items-center transition-colors hover:text-ink">
 								{pages.about.label}
 							</a>
 						</li>
 					{/if}
-					<li>
-						<a href="/contacts" class="inline-flex min-h-11 items-center text-gray-400 hover:text-white transition-colors">
-							Контакты
-						</a>
-					</li>
 				</ul>
 			</div>
 
-			<!-- Правовая информация -->
 			{#if pages.legal.length}
 				<div>
-					<h2 class="text-lg font-semibold mb-4">Информация</h2>
-					<ul class="-my-2">
+					<h2 class="text-base font-semibold text-ink">Информация</h2>
+					<ul class="mt-2">
 						{#each pages.legal as item (item.href)}
 							<li>
-								<a href={item.href} class="inline-flex min-h-11 items-center text-gray-400 hover:text-white transition-colors">
+								<a href={item.href} class="inline-flex min-h-11 items-center transition-colors hover:text-ink">
 									{item.label}
 								</a>
 							</li>
@@ -98,8 +95,8 @@
 			{/if}
 		</div>
 
-		<div class="border-t border-gray-700 mt-8 pt-8 text-center text-gray-400">
-			<p>&copy; {year} {$storeSettings?.legalName || $storeSettings?.name || ''} Все права защищены</p>
-		</div>
+		<p class="mt-8 border-t border-line pt-6 text-gray-500">
+			© {year} {$storeSettings?.legalName || $storeSettings?.name || ''}
+		</p>
 	</div>
 </footer>

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
-	import { authStore } from '$lib/stores/auth';
+	import { authStore, hasRole } from '$lib/stores/auth';
 
 	let { children } = $props();
 
@@ -18,6 +18,11 @@
 		{ href: '/account/addresses', label: 'Адреса', icon: '📍' },
 		{ href: '/account/wishlist', label: 'Избранное', icon: '❤️' }
 	];
+
+	async function handleLogout() {
+		await authStore.logout();
+		goto('/');
+	}
 
 	function isCurrent(href: string): boolean {
 		return page.url.pathname === href;
@@ -52,7 +57,21 @@
 								</a>
 							</li>
 						{/each}
+						{#if $hasRole(['admin', 'manager'])}
+							<li>
+								<a href="/admin" class="flex min-h-11 items-center rounded-md px-4 text-gray-700 transition-colors hover:bg-gray-100">
+									Админ-панель
+								</a>
+							</li>
+						{/if}
 					</ul>
+					<button
+						type="button"
+						onclick={handleLogout}
+						class="mt-4 flex min-h-11 w-full items-center rounded-md px-4 text-left text-gray-700 transition-colors hover:bg-gray-100"
+					>
+						Выйти
+					</button>
 				</nav>
 			</aside>
 
