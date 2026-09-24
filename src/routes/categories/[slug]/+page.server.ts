@@ -31,12 +31,17 @@ export async function load({ params, url }) {
 		sortOrder
 	};
 
-	const productsResponse = await productsApi
-		.getProducts(filters)
-		.catch((err) => throwHttpError(err));
+	// Соседние разделы нужны для чипсов, когда у категории нет своих подкатегорий
+	const [productsResponse, parent] = await Promise.all([
+		productsApi.getProducts(filters).catch((err) => throwHttpError(err)),
+		!category.children?.length && category.parentId
+			? categoriesApi.getCategoryById(category.parentId).catch(() => null)
+			: Promise.resolve(null)
+	]);
 
 	return {
 		category,
+		parent,
 		products: productsResponse.data,
 		total: productsResponse.total,
 		page: productsResponse.page,

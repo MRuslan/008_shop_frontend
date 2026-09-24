@@ -4,19 +4,20 @@
 
 	interface Props {
 		products: Product[];
+		/** Сколько колонок на широком экране: 4 без боковой панели, 3 рядом с фильтрами */
+		columns?: 3 | 4;
 	}
 
-	let { products }: Props = $props();
+	let { products, columns = 4 }: Props = $props();
 </script>
 
-{#if products.length === 0}
-	<div class="text-center py-12">
-		<p class="text-gray-500 text-lg">Товары не найдены</p>
-	</div>
-{:else}
-	<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-		{#each products as product (product.id)}
-			<ProductCard {product} />
-		{/each}
-	</div>
-{/if}
+<ul
+	class="grid grid-cols-2 gap-2 sm:gap-3 md:grid-cols-3 {columns === 4 ? 'xl:grid-cols-4' : ''}"
+	aria-label="Товары"
+>
+	{#each products as product, index (product.id)}
+		<li>
+			<ProductCard {product} eager={index < 4} />
+		</li>
+	{/each}
+</ul>

@@ -15,6 +15,29 @@ export function formatPrice(price: string | number, currency: string = 'RUB'): s
 }
 
 /**
+ * Русская форма слова для числа: pluralize(5, ['товар', 'товара', 'товаров']) → 'товаров'
+ */
+export function pluralize(count: number, forms: [string, string, string]): string {
+	const n = Math.abs(count) % 100;
+	const n1 = n % 10;
+	if (n > 10 && n < 20) return forms[2];
+	if (n1 > 1 && n1 < 5) return forms[1];
+	if (n1 === 1) return forms[0];
+	return forms[2];
+}
+
+/**
+ * Процент скидки от старой цены; 0, если старой цены нет или она не выше текущей
+ */
+export function discountPercent(price: string, compareAtPrice: string | null): number {
+	if (!compareAtPrice) return 0;
+	const now = parseFloat(price);
+	const before = parseFloat(compareAtPrice);
+	if (!(before > now) || !(before > 0)) return 0;
+	return Math.round((1 - now / before) * 100);
+}
+
+/**
  * Форматирует дату
  */
 export function formatDate(date: string | Date, locale: string = 'ru-RU'): string {

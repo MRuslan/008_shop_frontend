@@ -2,12 +2,18 @@
 	import { onMount } from 'svelte';
 	import { wishlistApi } from '$lib/api/wishlist';
 	import type { WishlistItem } from '$lib/types/common';
-	import ProductCard from '$lib/components/product/ProductCard.svelte';
+	import ProductList from '$lib/components/product/ProductList.svelte';
+	import { wishlistStore, wishlistReady } from '$lib/stores/wishlist';
 	import { getErrorMessage } from '$lib/utils/errors';
 
 	let wishlistItems = $state<WishlistItem[]>([]);
 	let isLoading = $state(true);
 	let error = $state<string | null>(null);
+
+	// Пока общий store избранного не загрузился, показываем список как пришёл с сервера
+	const visibleItems = $derived(
+		$wishlistReady ? wishlistItems.filter((item) => $wishlistStore.has(item.productId)) : wishlistItems
+	);
 
 	onMount(async () => {
 		await loadWishlist();
@@ -26,14 +32,6 @@
 		}
 	}
 
-	async function handleRemove(productId: number) {
-		try {
-			await wishlistApi.removeFromWishlist(productId);
-			await loadWishlist();
-		} catch (err) {
-			error = getErrorMessage(err, 'Ошибка удаления из избранного');
-		}
-	}
 </script>
 
 <svelte:head>
@@ -54,7 +52,7 @@
 		<div class="text-center py-12">
 			<p class="text-gray-500">Загрузка избранного...</p>
 		</div>
-	{:else if wishlistItems.length === 0}
+	{:else if visibleItems.length === 0}
 		<div class="text-center py-12">
 			<svg
 				class="mx-auto h-24 w-24 text-gray-400 mb-4"
@@ -73,25 +71,7 @@
 			<a href="/catalog" class="text-blue-600 hover:text-blue-800">Перейти в каталог</a>
 		</div>
 	{:else}
-		<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-			{#each wishlistItems as item (item.id)}
-				<div class="relative">
-					<ProductCard product={item.product} />
-					<button
-						onclick={() => handleRemove(item.productId)}
-						class="absolute top-2 right-2 p-2 bg-white rounded-full shadow-md hover:bg-red-50 text-red-600 transition-colors"
-						aria-label="Удалить из избранного"
-					>
-						<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-							<path
-								fill-rule="evenodd"
-								d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z"
-								clip-rule="evenodd"
-							/>
-						</svg>
-					</button>
-				</div>
-			{/each}
-		</div>
+		<!-- Сердечко на карточке убирает товар из избранного: список сразу это отражает -->
+		<ProductList products={visibleItems.map((item) => item.product)} />
 	{/if}
 </div>

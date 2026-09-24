@@ -1,6 +1,6 @@
 // Store для управления корзиной
 
-import { writable, derived } from 'svelte/store';
+import { writable, derived, get } from 'svelte/store';
 import { browser } from '$app/environment';
 import { cartApi } from '$lib/api/cart';
 import { authStore } from './auth';
@@ -10,8 +10,32 @@ import type { Cart } from '$lib/types/cart';
 function createCartStore() {
 	const { subscribe, set, update } = writable<Cart | null>(null);
 
+	// Гостевая корзина живёт по X-Session-Id, пользовательская по JWT
+	const isGuest = () => !get(authStore).isAuthenticated;
+
 	return {
 		subscribe,
+
+		/**
+		 * Положить товар в корзину. Ошибку (например, нехватку остатка) пробрасываем вызывающему
+		 */
+		async add(productId: number, quantity = 1) {
+			const cart = await cartApi.addItem({ productId, quantity }, isGuest());
+			set(cart);
+			return cart;
+		},
+
+		/**
+		 * Изменить количество позиции; ноль убирает позицию из корзины
+		 */
+		async setQuantity(itemId: number, quantity: number) {
+			const cart =
+				quantity > 0
+					? await cartApi.updateItem(itemId, { quantity }, isGuest())
+					: await cartApi.removeItem(itemId, isGuest());
+			set(cart);
+			return cart;
+		},
 
 		/**
 		 * Инициализация: загрузка корзины
@@ -107,6 +131,17 @@ export const cartStore = createCartStore();
 export const cartItemsCount = derived(cartStore, ($cart) => {
 	if (!$cart) return 0;
 	return $cart.items.reduce((sum, item) => sum + item.quantity, 0);
+});
+
+/**
+ * Позиции корзины по id товара: карточки узнают, лежит ли товар в корзине и в каком количестве
+ */
+export const cartLines = derived(cartStore, ($cart) => {
+	const lines = new Map<number, { itemId: number; quantity: number }>();
+	for (const item of $cart?.items ?? []) {
+		lines.set(item.productId, { itemId: item.id, quantity: item.quantity });
+	}
+	return lines;
 });
 
 /**

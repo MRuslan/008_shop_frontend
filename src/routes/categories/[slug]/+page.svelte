@@ -1,17 +1,20 @@
 <script lang="ts">
-	import { goto } from '$app/navigation';
-	import { page } from '$app/state';
+	import { page, navigating } from '$app/state';
 	import ProductList from '$lib/components/product/ProductList.svelte';
+	import Breadcrumbs from '$lib/components/catalog/Breadcrumbs.svelte';
+	import CategoryChips, { type Chip } from '$lib/components/catalog/CategoryChips.svelte';
+	import SortTabs, { type SortValue } from '$lib/components/catalog/SortTabs.svelte';
+	import Pagination from '$lib/components/catalog/Pagination.svelte';
 	import type { Product, Category, ProductFilters } from '$lib/types/product';
 	import { storeSettings } from '$lib/stores/store';
+	import { pluralize } from '$lib/utils/format';
 	import { generateCollectionJsonLd, generateBreadcrumbJsonLd } from '$lib/utils/seo';
-
-	type SortBy = 'price' | 'createAt' | 'name';
-	type SortOrder = 'ASC' | 'DESC';
+	import SlidersHorizontal from '@lucide/svelte/icons/sliders-horizontal';
 
 	interface Props {
 		data: {
 			category: Category;
+			parent: Category | null;
 			products: Product[];
 			total: number;
 			page: number;
@@ -23,40 +26,57 @@
 	let { data }: Props = $props();
 
 	// Состояние страницы живёт в URL, поэтому всё выводим из data: при переходе между категориями ничего не устаревает
-	const currentPage = $derived(data.page);
 	const totalPages = $derived(Math.max(1, Math.ceil(data.total / data.limit)));
-	const sortBy = $derived((data.filters.sortBy || 'createAt') as SortBy);
-	const sortOrder = $derived((data.filters.sortOrder || 'DESC') as SortOrder);
+	const sortValue = $derived(`${data.filters.sortBy || 'createAt'}-${data.filters.sortOrder || 'DESC'}`);
+	const totalLabel = $derived(`${data.total} ${pluralize(data.total, ['товар', 'товара', 'товаров'])}`);
+	const parentCategory = $derived(data.category.parent ?? data.parent);
+
+	// Чипсы: подкатегории раздела, а у конечной категории — её соседи по разделу
+	const chips = $derived.by((): Chip[] => {
+		const children = data.category.children ?? [];
+		if (children.length) {
+			return [
+				{ label: 'Все в разделе', href: `/categories/${data.category.slug}`, active: true },
+				...children.map((child) => ({ label: child.name, href: `/categories/${child.slug}`, active: false }))
+			];
+		}
+		if (data.parent?.children?.length) {
+			return [
+				{ label: 'Все в разделе', href: `/categories/${data.parent.slug}`, active: false },
+				...data.parent.children.map((child) => ({
+					label: child.name,
+					href: `/categories/${child.slug}`,
+					active: child.id === data.category.id
+				}))
+			];
+		}
+		return [];
+	});
 
 	const siteUrl = $derived(page.url.origin);
 	const siteName = $derived($storeSettings?.name || 'Интернет-магазин');
 	const categoryUrl = $derived(`${siteUrl}/categories/${data.category.slug}`);
-	const description = $derived(
-		`Товары категории ${data.category.name}. Найдено товаров: ${data.total}. Широкий ассортимент по выгодным ценам.`
-	);
+	const description = $derived(`${data.category.name} в магазине ${siteName}: ${totalLabel}. Цены и наличие на сегодня.`);
 	const breadcrumbs = $derived([
 		{ name: 'Главная', url: '/' },
 		{ name: 'Каталог', url: '/catalog' },
+		...(parentCategory ? [{ name: parentCategory.name, url: `/categories/${parentCategory.slug}` }] : []),
 		{ name: data.category.name, url: `/categories/${data.category.slug}` }
 	]);
 
-	function buildUrl(pageNumber: number, by: SortBy, order: SortOrder): string {
+	function buildUrl(pageNumber: number, sort: string): string {
 		const params = new URLSearchParams();
+		if (sort !== 'createAt-DESC') {
+			const [sortBy, sortOrder] = sort.split('-');
+			params.set('sortBy', sortBy);
+			params.set('sortOrder', sortOrder);
+		}
 		if (pageNumber > 1) params.set('page', pageNumber.toString());
-		if (by !== 'createAt') params.set('sortBy', by);
-		if (order !== 'DESC') params.set('sortOrder', order);
 		const query = params.toString();
 		return `/categories/${data.category.slug}${query ? `?${query}` : ''}`;
 	}
 
-	function updateSorting(value: string) {
-		const [by, order] = value.split('-') as [SortBy, SortOrder];
-		goto(buildUrl(1, by, order), { noScroll: false });
-	}
-
-	function goToPage(newPage: number) {
-		goto(buildUrl(newPage, sortBy, sortOrder), { noScroll: false });
-	}
+	const isUpdating = $derived(navigating.to?.url.pathname === page.url.pathname);
 </script>
 
 <svelte:head>
@@ -79,84 +99,55 @@
 	{@html `<script type="application/ld+json">${JSON.stringify(generateBreadcrumbJsonLd(breadcrumbs, siteUrl))}</script>`}
 </svelte:head>
 
-<div class="container mx-auto px-4 py-8">
-	<!-- Хлебные крошки -->
-	<nav class="text-sm text-gray-600 mb-4" aria-label="Вы здесь">
-		<a href="/" class="hover:text-gray-900">Главная</a>
-		<span class="mx-2" aria-hidden="true">/</span>
-		<a href="/catalog" class="hover:text-gray-900">Каталог</a>
-		<span class="mx-2" aria-hidden="true">/</span>
-		<span class="text-gray-900" aria-current="page">{data.category.name}</span>
-	</nav>
+<div class="container py-4 md:py-6">
+	<Breadcrumbs items={breadcrumbs.map((crumb) => ({ name: crumb.name, href: crumb.url }))} />
 
-	<!-- Заголовок -->
-	<h1 class="text-3xl font-bold text-gray-800 mb-6">{data.category.name}</h1>
-
-	<!-- Сортировка -->
-	<div class="mb-6 flex flex-wrap items-center justify-between gap-3">
-		<p class="text-sm text-gray-600" role="status">
-			Найдено товаров: {data.total}
-		</p>
-		<div class="flex items-center space-x-2">
-			<label for="sort" class="text-sm text-gray-700">Сортировка:</label>
-			<select
-				id="sort"
-				value={`${sortBy}-${sortOrder}`}
-				onchange={(e) => updateSorting(e.currentTarget.value)}
-				class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-			>
-				<option value="createAt-DESC">Новинки</option>
-				<option value="price-ASC">Цена: по возрастанию</option>
-				<option value="price-DESC">Цена: по убыванию</option>
-				<option value="name-ASC">Название: А-Я</option>
-				<option value="name-DESC">Название: Я-А</option>
-			</select>
-		</div>
+	<div class="mt-2 flex flex-wrap items-baseline gap-x-3 gap-y-1">
+		<h1 class="text-2xl font-semibold tracking-tight text-balance text-ink md:text-3xl">{data.category.name}</h1>
+		<p class="text-gray-500" role="status">{totalLabel}</p>
 	</div>
 
-	<!-- Список товаров -->
-	<ProductList products={data.products} />
+	{#if chips.length}
+		<div class="mt-4">
+			<CategoryChips {chips} />
+		</div>
+	{/if}
 
-	<!-- Пагинация -->
-	{#if totalPages > 1}
-		<nav class="mt-8 flex flex-wrap justify-center items-center gap-2" aria-label="Страницы категории">
-			<button
-				type="button"
-				onclick={() => goToPage(currentPage - 1)}
-				disabled={currentPage === 1}
-				class="min-h-11 px-4 py-2 border border-gray-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
-			>
-				Назад
-			</button>
+	<div class="mt-3 mb-3 flex items-center gap-2 lg:mt-5">
+		<SortTabs value={sortValue} href={(value: SortValue) => buildUrl(1, value)} />
+		<a
+			href="/catalog?categoryId={data.category.id}"
+			class="ml-auto inline-flex h-11 shrink-0 items-center gap-2 rounded-xl bg-surface px-3.5 text-sm font-medium text-ink hover:bg-gray-50"
+		>
+			<SlidersHorizontal class="size-4" aria-hidden="true" />
+			Фильтры
+		</a>
+	</div>
 
-			{#each Array.from({ length: totalPages }, (_, i) => i + 1) as pageNum (pageNum)}
-				{#if pageNum === 1 || pageNum === totalPages || (pageNum >= currentPage - 2 && pageNum <= currentPage + 2)}
-					<button
-						type="button"
-						onclick={() => goToPage(pageNum)}
-						aria-current={pageNum === currentPage ? 'page' : undefined}
-						class="min-h-11 min-w-11 px-4 py-2 border rounded-md transition-colors tabular-nums"
-						class:bg-blue-600={pageNum === currentPage}
-						class:text-white={pageNum === currentPage}
-						class:border-blue-600={pageNum === currentPage}
-						class:border-gray-300={pageNum !== currentPage}
-						class:hover:bg-gray-50={pageNum !== currentPage}
-					>
-						{pageNum}
-					</button>
-				{:else if pageNum === currentPage - 3 || pageNum === currentPage + 3}
-					<span class="px-2" aria-hidden="true">...</span>
-				{/if}
-			{/each}
-
-			<button
-				type="button"
-				onclick={() => goToPage(currentPage + 1)}
-				disabled={currentPage === totalPages}
-				class="min-h-11 px-4 py-2 border border-gray-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
-			>
-				Вперёд
-			</button>
-		</nav>
+	{#if data.products.length === 0}
+		<div class="rounded-2xl bg-surface px-6 py-12 text-center">
+			{#if data.category.children?.length}
+				<p class="font-semibold text-ink">Товары этого раздела лежат в подкатегориях</p>
+				<p class="mt-1 text-sm text-gray-600">Выберите подкатегорию выше.</p>
+			{:else}
+				<p class="font-semibold text-ink">В этой категории пока нет товаров</p>
+				<a
+					href="/catalog"
+					class="mt-5 inline-flex h-11 items-center rounded-xl bg-ink px-5 text-sm font-medium text-white transition-colors hover:bg-ink-hover"
+				>
+					Весь каталог
+				</a>
+			{/if}
+		</div>
+	{:else}
+		<div class="transition-opacity duration-200 {isUpdating ? 'opacity-60' : ''}" aria-busy={isUpdating}>
+			<ProductList products={data.products} />
+		</div>
+		<Pagination
+			current={data.page}
+			total={totalPages}
+			href={(pageNumber) => buildUrl(pageNumber, sortValue)}
+			label="Страницы категории"
+		/>
 	{/if}
 </div>

@@ -1,197 +1,154 @@
 <script lang="ts">
 	import type { Category, ProductFilters } from '$lib/types/product';
-	import { categoriesApi } from '$lib/api/categories';
-	import { onMount } from 'svelte';
 
 	interface Props {
 		filters: ProductFilters;
+		categories: Category[];
 		onFiltersChange: (filters: ProductFilters) => void;
 	}
 
-	let { filters, onFiltersChange }: Props = $props();
+	let { filters, categories, onFiltersChange }: Props = $props();
 
-	let categories = $state<Category[]>([]);
-	let showFilters = $state(false);
+	const uid = $props.id();
 
-	onMount(async () => {
-		try {
-			categories = await categoriesApi.getCategories({ tree: true, isActive: true });
-		} catch (error) {
-			console.error('Failed to load categories:', error);
-		}
-	});
+	// Поля цены редактируются локально и применяются по Enter или уходу с поля,
+	// чтобы каталог не перезагружался на каждую нажатую цифру
+	let minDraft = $derived(filters.minPrice?.toString() ?? '');
+	let maxDraft = $derived(filters.maxPrice?.toString() ?? '');
 
-	function updateFilter<K extends keyof ProductFilters>(key: K, value: ProductFilters[K]) {
-		onFiltersChange({ ...filters, [key]: value, page: 1 });
+	const hasActiveFilters = $derived(
+		filters.categoryId !== undefined ||
+			filters.minPrice !== undefined ||
+			filters.maxPrice !== undefined ||
+			!!filters.inStock
+	);
+
+	function update(patch: Partial<ProductFilters>) {
+		onFiltersChange({ ...filters, ...patch, page: 1 });
 	}
 
-	function clearFilters() {
-		onFiltersChange({
-			search: undefined,
-			categoryId: undefined,
-			minPrice: undefined,
-			maxPrice: undefined,
-			inStock: undefined,
-			isActive: true,
-			sortBy: 'createAt',
-			sortOrder: 'DESC',
-			page: 1,
-			limit: 20
-		});
+	function parsePrice(value: string): number | undefined {
+		const parsed = Number.parseFloat(value.replace(/\s/g, '').replace(',', '.'));
+		return Number.isFinite(parsed) && parsed >= 0 ? parsed : undefined;
 	}
 
-	// Рекурсивная функция для получения всех категорий (включая дочерние)
-	function getAllCategoryIds(category: Category): number[] {
-		const ids = [category.id];
-		if (category.children) {
-			category.children.forEach((child) => {
-				ids.push(...getAllCategoryIds(child));
-			});
-		}
-		return ids;
+	function applyPrice() {
+		const minPrice = parsePrice(minDraft);
+		const maxPrice = parsePrice(maxDraft);
+		if (minPrice === filters.minPrice && maxPrice === filters.maxPrice) return;
+		update({ minPrice, maxPrice });
 	}
+
+	function reset() {
+		update({ categoryId: undefined, minPrice: undefined, maxPrice: undefined, inStock: undefined });
+	}
+
+	const itemClass = (active: boolean) =>
+		`flex min-h-10 w-full items-center rounded-lg px-3 text-left text-sm transition-colors ${
+			active ? 'bg-gray-100 font-semibold text-ink' : 'text-gray-700 hover:bg-gray-50 hover:text-ink'
+		}`;
 </script>
 
-<div class="bg-white rounded-lg shadow-md p-4 mb-6">
-	<!-- Кнопка показа/скрытия фильтров (для мобильных) -->
-	<button
-		onclick={() => showFilters = !showFilters}
-		class="md:hidden w-full min-h-11 flex items-center justify-between mb-4 px-3 py-2 bg-gray-100 rounded"
-	>
-		<span class="font-medium">Фильтры</span>
-		<svg
-			class="w-5 h-5 transition-transform"
-			class:rotate-180={showFilters}
-			fill="none"
-			stroke="currentColor"
-			viewBox="0 0 24 24"
-		>
-			<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-		</svg>
-	</button>
-
-	<div class:hidden={!showFilters} class="md:block space-y-4">
-		<!-- Поиск -->
-		<div>
-			<label for="search" class="block text-sm font-medium text-gray-700 mb-1">
-				Поиск
-			</label>
-			<input
-				id="search"
-				type="text"
-				value={filters.search || ''}
-				oninput={(e) => updateFilter('search', e.currentTarget.value || undefined)}
-				placeholder="Название товара..."
-				class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-			/>
-		</div>
-
-		<!-- Категория -->
-		<div>
-			<label for="category" class="block text-sm font-medium text-gray-700 mb-1">
-				Категория
-			</label>
-			<select
-				id="category"
-				value={filters.categoryId?.toString() || ''}
-				onchange={(e) => {
-					const value = e.currentTarget.value;
-					updateFilter('categoryId', value ? parseInt(value) : undefined);
-				}}
-				class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-			>
-				<option value="">Все категории</option>
-				{#each categories as category}
-					<option value={category.id}>{category.name}</option>
-					{#if category.children}
-						{#each category.children as child}
-							<option value={child.id}>— {child.name}</option>
-						{/each}
-					{/if}
-				{/each}
-			</select>
-		</div>
-
-		<!-- Цена -->
+<div class="space-y-6">
+	<fieldset>
+		<legend class="mb-2 text-sm font-semibold text-ink">Цена, ₽</legend>
 		<div class="grid grid-cols-2 gap-2">
-			<div>
-				<label for="minPrice" class="block text-sm font-medium text-gray-700 mb-1">
-					Мин. цена
-				</label>
+			<label class="block">
+				<span class="sr-only">Цена от</span>
 				<input
-					id="minPrice"
-					type="number"
-					value={filters.minPrice || ''}
-					oninput={(e) => {
-						const value = e.currentTarget.value;
-						updateFilter('minPrice', value ? parseFloat(value) : undefined);
-					}}
-					placeholder="0"
-					min="0"
-					class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+					type="text"
+					inputmode="numeric"
+					placeholder="от"
+					bind:value={minDraft}
+					onchange={applyPrice}
+					onkeydown={(event) => event.key === 'Enter' && applyPrice()}
+					class="h-11 w-full rounded-xl border-0 bg-gray-100 px-3 text-sm text-ink tabular-nums placeholder:text-gray-500 focus:bg-white focus:ring-2 focus:ring-ink focus:outline-none"
 				/>
-			</div>
-			<div>
-				<label for="maxPrice" class="block text-sm font-medium text-gray-700 mb-1">
-					Макс. цена
-				</label>
+			</label>
+			<label class="block">
+				<span class="sr-only">Цена до</span>
 				<input
-					id="maxPrice"
-					type="number"
-					value={filters.maxPrice || ''}
-					oninput={(e) => {
-						const value = e.currentTarget.value;
-						updateFilter('maxPrice', value ? parseFloat(value) : undefined);
-					}}
-					placeholder="∞"
-					min="0"
-					class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+					type="text"
+					inputmode="numeric"
+					placeholder="до"
+					bind:value={maxDraft}
+					onchange={applyPrice}
+					onkeydown={(event) => event.key === 'Enter' && applyPrice()}
+					class="h-11 w-full rounded-xl border-0 bg-gray-100 px-3 text-sm text-ink tabular-nums placeholder:text-gray-500 focus:bg-white focus:ring-2 focus:ring-ink focus:outline-none"
 				/>
-			</div>
-		</div>
-
-		<!-- Наличие -->
-		<div>
-			<label class="flex items-center space-x-2">
-				<input
-					type="checkbox"
-					checked={filters.inStock || false}
-					onchange={(e) => updateFilter('inStock', e.currentTarget.checked || undefined)}
-					class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-				/>
-				<span class="text-sm text-gray-700">Только в наличии</span>
 			</label>
 		</div>
+	</fieldset>
 
-		<!-- Сортировка -->
-		<div>
-			<label for="sortBy" class="block text-sm font-medium text-gray-700 mb-1">
-				Сортировка
-			</label>
-			<select
-				id="sortBy"
-				value={`${filters.sortBy || 'createAt'}-${filters.sortOrder || 'DESC'}`}
-				onchange={(e) => {
-					const [sortBy, sortOrder] = e.currentTarget.value.split('-');
-					updateFilter('sortBy', sortBy as 'price' | 'createAt' | 'name');
-					updateFilter('sortOrder', sortOrder as 'ASC' | 'DESC');
-				}}
-				class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-			>
-				<option value="createAt-DESC">Новинки</option>
-				<option value="price-ASC">Цена: по возрастанию</option>
-				<option value="price-DESC">Цена: по убыванию</option>
-				<option value="name-ASC">Название: А-Я</option>
-				<option value="name-DESC">Название: Я-А</option>
-			</select>
-		</div>
+	<label class="flex min-h-11 cursor-pointer items-center justify-between gap-3">
+		<span class="text-sm font-semibold text-ink">Только в наличии</span>
+		<input
+			type="checkbox"
+			role="switch"
+			checked={!!filters.inStock}
+			onchange={(event) => update({ inStock: event.currentTarget.checked || undefined })}
+			class="peer sr-only"
+		/>
+		<span
+			class="relative h-7 w-12 shrink-0 rounded-full bg-gray-300 transition-colors duration-200 peer-checked:bg-ink peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-ink after:absolute after:top-1 after:left-1 after:size-5 after:rounded-full after:bg-white after:transition-transform after:duration-200 after:ease-out after:content-[''] peer-checked:after:translate-x-5"
+			aria-hidden="true"
+		></span>
+	</label>
 
-		<!-- Кнопка сброса -->
+	<!-- Категории после цены и наличия: в листе на телефоне короткие фильтры видны без прокрутки -->
+	{#if categories.length}
+		<section aria-labelledby="{uid}-categories">
+			<h2 id="{uid}-categories" class="mb-2 text-sm font-semibold text-ink">Категории</h2>
+			<ul class="-mx-3 space-y-0.5">
+				<li>
+					<button
+						type="button"
+						class={itemClass(filters.categoryId === undefined)}
+						aria-pressed={filters.categoryId === undefined}
+						onclick={() => update({ categoryId: undefined })}
+					>
+						Все товары
+					</button>
+				</li>
+				{#each categories as category (category.id)}
+					<li>
+						<button
+							type="button"
+							class={itemClass(filters.categoryId === category.id)}
+							aria-pressed={filters.categoryId === category.id}
+							onclick={() => update({ categoryId: category.id })}
+						>
+							{category.name}
+						</button>
+						{#if category.children?.length}
+							<ul class="ml-3 space-y-0.5 border-l border-line pl-2">
+								{#each category.children as child (child.id)}
+									<li>
+										<button
+											type="button"
+											class={itemClass(filters.categoryId === child.id)}
+											aria-pressed={filters.categoryId === child.id}
+											onclick={() => update({ categoryId: child.id })}
+										>
+											{child.name}
+										</button>
+									</li>
+								{/each}
+							</ul>
+						{/if}
+					</li>
+				{/each}
+			</ul>
+		</section>
+	{/if}
+
+	{#if hasActiveFilters}
 		<button
-			onclick={clearFilters}
-			class="w-full px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors"
+			type="button"
+			onclick={reset}
+			class="inline-flex min-h-11 items-center text-sm font-medium text-gray-600 underline decoration-gray-300 underline-offset-4 hover:text-ink hover:decoration-ink"
 		>
 			Сбросить фильтры
 		</button>
-	</div>
+	{/if}
 </div>
