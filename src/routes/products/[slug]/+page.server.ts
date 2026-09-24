@@ -3,6 +3,8 @@
 import { error } from '@sveltejs/kit';
 import { productsApi } from '$lib/api/products';
 import { categoriesApi } from '$lib/api/categories';
+import { reviewsApi } from '$lib/api/reviews';
+import { locationsApi } from '$lib/api/locations';
 import { throwHttpError } from '$lib/utils/errors';
 import type { Category } from '$lib/types/product';
 
@@ -16,15 +18,25 @@ export async function load({ params }) {
 		error(404, 'Товар не найден');
 	}
 
-	// Категория нужна только для крошек: её отсутствие не должно ломать страницу
-	let category: Category | null = null;
-	if (product.categoryId) {
-		try {
-			category = await categoriesApi.getCategoryById(product.categoryId);
-		} catch {
-			category = null;
-		}
-	}
+	// Категория, отзывы и точки самовывоза дополняют страницу: без них она всё равно открывается
+	const [category, reviews, locations] = await Promise.all([
+		product.categoryId
+			? categoriesApi.getCategoryById(product.categoryId).catch(() => null)
+			: Promise.resolve(null),
+		reviewsApi.getReviewsByProduct(product.id).catch(() => null),
+		locationsApi.getLocations({ isActive: true }).catch(() => null)
+	]);
 
-	return { product, category };
+	const visibleReviews = reviews?.filter((review) => review.isVisible) ?? null;
+	const rating = visibleReviews?.length
+		? {
+				average: visibleReviews.reduce((sum, review) => sum + review.rating, 0) / visibleReviews.length,
+				count: visibleReviews.length
+			}
+		: null;
+
+	// Склад не выдаёт заказы покупателям: считаем только пункты выдачи и магазины
+	const pickupPoints = locations?.filter((location) => location.type !== 'warehouse').length ?? null;
+
+	return { product, category: category as Category | null, rating, pickupPoints };
 }
