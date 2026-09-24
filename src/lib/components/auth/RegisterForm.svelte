@@ -2,6 +2,7 @@
 	import { authApi } from '$lib/api/auth';
 	import { authStore } from '$lib/stores/auth';
 	import type { RegisterDto } from '$lib/types/auth';
+	import { getErrorMessage } from '$lib/utils/errors';
 
 	let email = $state('');
 	let username = $state('');
@@ -38,13 +39,8 @@
 			
 			// Закрываем модальное окно через событие
 			window.dispatchEvent(new CustomEvent('auth:success'));
-		} catch (err: any) {
-			const message = err.message;
-			if (Array.isArray(message)) {
-				error = message.join(', ');
-			} else {
-				error = message || 'Ошибка регистрации. Возможно, email уже используется.';
-			}
+		} catch (err) {
+			error = getErrorMessage(err, 'Не удалось зарегистрироваться. Возможно, этот email уже используется.');
 		} finally {
 			isLoading = false;
 		}
@@ -53,7 +49,7 @@
 
 <form onsubmit={(e) => { e.preventDefault(); handleSubmit(); }} class="space-y-4">
 	{#if error}
-		<div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+		<div role="alert" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
 			{error}
 		</div>
 	{/if}
@@ -67,6 +63,7 @@
 			type="email"
 			bind:value={email}
 			required
+			autocomplete="email"
 			disabled={isLoading}
 			class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
 			placeholder="your@email.com"
@@ -83,6 +80,7 @@
 			bind:value={username}
 			required
 			minlength="3"
+			autocomplete="username"
 			disabled={isLoading}
 			class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
 			placeholder="username"
@@ -99,6 +97,7 @@
 			bind:value={password}
 			required
 			minlength="6"
+			autocomplete="new-password"
 			disabled={isLoading}
 			class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
 			placeholder="••••••••"
@@ -115,6 +114,7 @@
 			bind:value={confirmPassword}
 			required
 			minlength="6"
+			autocomplete="new-password"
 			disabled={isLoading}
 			class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
 			placeholder="••••••••"

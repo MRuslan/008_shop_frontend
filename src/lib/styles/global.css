@@ -1,11 +1,17 @@
 /* Глобальные стили */
 @import "tailwindcss";
 
+:root {
+	/* Явная светлая схема: без неё холст страницы зависит от темы браузера/вебвью */
+	color-scheme: light;
+}
+
 * {
 	box-sizing: border-box;
 }
 
 body {
+	@apply bg-white text-gray-900;
 	margin: 0;
 	font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
 		'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;

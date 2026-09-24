@@ -1,41 +1,42 @@
 // Server-side загрузка данных для страницы поиска
 
 import { productsApi } from '$lib/api/products';
+import { getErrorMessage } from '$lib/utils/errors';
 import type { ProductFilters } from '$lib/types/product';
 
+function parsePositiveInt(value: string | null, fallback: number, max = Number.MAX_SAFE_INTEGER) {
+	const parsed = Number.parseInt(value ?? '', 10);
+	if (!Number.isFinite(parsed) || parsed < 1) return fallback;
+	return Math.min(parsed, max);
+}
+
 export async function load({ url }) {
-	const query = url.searchParams.get('q') || '';
-	const page = parseInt(url.searchParams.get('page') || '1');
-	const limit = parseInt(url.searchParams.get('limit') || '20');
+	const query = (url.searchParams.get('q') || '').trim();
+	const page = parsePositiveInt(url.searchParams.get('page'), 1);
+	const limit = parsePositiveInt(url.searchParams.get('limit'), 20, 100);
 	const sortBy = (url.searchParams.get('sortBy') as 'price' | 'createAt' | 'name') || 'createAt';
 	const sortOrder = (url.searchParams.get('sortOrder') as 'ASC' | 'DESC') || 'DESC';
 
-	if (!query.trim()) {
-		return {
-			query: '',
-			products: [],
-			total: 0,
-			page: 1,
-			limit: 20,
-			filters: {
-				search: undefined,
-				page: 1,
-				limit: 20,
-				isActive: true,
-				sortBy: 'createAt',
-				sortOrder: 'DESC'
-			}
-		};
-	}
-
 	const filters: ProductFilters = {
-		search: query,
+		search: query || undefined,
 		page,
 		limit,
 		isActive: true,
 		sortBy,
 		sortOrder
 	};
+
+	if (!query) {
+		return {
+			query: '',
+			products: [],
+			total: 0,
+			page: 1,
+			limit,
+			filters,
+			loadError: null as string | null
+		};
+	}
 
 	try {
 		const productsResponse = await productsApi.getProducts(filters);
@@ -46,17 +47,19 @@ export async function load({ url }) {
 			total: productsResponse.total,
 			page: productsResponse.page,
 			limit: productsResponse.limit,
-			filters
+			filters,
+			loadError: null as string | null
 		};
-	} catch (error) {
-		console.error('Failed to search products:', error);
+	} catch (err) {
+		console.error('Failed to search products:', err);
 		return {
 			query,
 			products: [],
 			total: 0,
-			page: 1,
-			limit: 20,
-			filters
+			page,
+			limit,
+			filters,
+			loadError: getErrorMessage(err, 'Поиск временно недоступен. Попробуйте обновить страницу.')
 		};
 	}
 }

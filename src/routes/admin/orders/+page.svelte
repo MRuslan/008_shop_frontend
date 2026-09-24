@@ -4,6 +4,9 @@
 	import { formatPrice, formatDateTime } from '$lib/utils/format';
 	import { storeSettings } from '$lib/stores/store';
 	import { goto, invalidateAll } from '$app/navigation';
+	import { getErrorMessage } from '$lib/utils/errors';
+	import { toast } from '$lib/stores/toast';
+	import { confirmDialog } from '$lib/stores/confirm';
 
 	interface Props {
 		data: {
@@ -39,14 +42,32 @@
 		return colors[status] || 'bg-gray-100 text-gray-800';
 	}
 
-	async function handleStatusChange(orderId: number, newStatus: OrderStatus) {
-		if (!confirm(`Изменить статус заказа на "${getStatusLabel(newStatus)}"?`)) return;
+	async function handleStatusChange(order: Order, select: HTMLSelectElement) {
+		const newStatus = select.value as OrderStatus;
+		if (newStatus === order.status) return;
+
+		const confirmed = await confirmDialog({
+			title: `Изменить статус заказа №${order.id}?`,
+			message: `Новый статус: ${getStatusLabel(newStatus)}.${
+				newStatus === 'cancelled' ? ' Остатки по позициям вернутся на склад.' : ''
+			}`,
+			confirmLabel: 'Изменить',
+			danger: newStatus === 'cancelled'
+		});
+
+		if (!confirmed) {
+			// Пользователь передумал: возвращаем селект к текущему статусу
+			select.value = order.status;
+			return;
+		}
 
 		try {
-			await ordersApi.updateOrderStatus(orderId, { status: newStatus });
+			await ordersApi.updateOrderStatus(order.id, { status: newStatus });
 			await invalidateAll();
-		} catch (error: any) {
-			alert(error.message || 'Ошибка изменения статуса');
+			toast.success(`Статус заказа №${order.id}: ${getStatusLabel(newStatus)}`);
+		} catch (err) {
+			select.value = order.status;
+			toast.error(getErrorMessage(err, 'Не удалось изменить статус заказа'));
 		}
 	}
 
@@ -113,7 +134,7 @@
 				</tr>
 			</thead>
 			<tbody class="bg-white divide-y divide-gray-200">
-				{#each data.orders as order}
+				{#each data.orders as order (order.id)}
 					<tr class="hover:bg-gray-50">
 						<td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
 							#{order.id}
@@ -124,7 +145,8 @@
 						<td class="px-6 py-4 whitespace-nowrap">
 							<select
 								value={order.status}
-								onchange={(e) => handleStatusChange(order.id, e.currentTarget.value as OrderStatus)}
+								aria-label="Статус заказа №{order.id}"
+								onchange={(e) => handleStatusChange(order, e.currentTarget)}
 								class="text-sm px-2 py-1 rounded {getStatusColor(order.status)} border-0 focus:outline-none focus:ring-2 focus:ring-blue-500"
 							>
 								<option value="pending">Ожидает подтверждения</option>

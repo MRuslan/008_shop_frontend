@@ -5,6 +5,8 @@
 	import type { Review } from '$lib/types/common';
 	import { formatDateTime } from '$lib/utils/format';
 	import ReviewForm from './ReviewForm.svelte';
+	import { getErrorMessage } from '$lib/utils/errors';
+	import { confirmDialog } from '$lib/stores/confirm';
 
 	interface Props {
 		productId: number;
@@ -29,21 +31,27 @@
 			const allReviews = await reviewsApi.getReviewsByProduct(productId);
 			// Показываем только видимые отзывы
 			reviews = allReviews.filter((review) => review.isVisible);
-		} catch (err: any) {
-			error = err.message || 'Ошибка загрузки отзывов';
+		} catch (err) {
+			error = getErrorMessage(err, 'Ошибка загрузки отзывов');
 		} finally {
 			isLoading = false;
 		}
 	}
 
 	async function handleDeleteReview(reviewId: number) {
-		if (!confirm('Удалить отзыв?')) return;
+		const confirmed = await confirmDialog({
+			title: 'Удалить отзыв?',
+			message: 'Отзыв исчезнет со страницы товара. Это действие нельзя отменить.',
+			confirmLabel: 'Удалить',
+			danger: true
+		});
+		if (!confirmed) return;
 
 		try {
 			await reviewsApi.deleteReview(reviewId);
 			await loadReviews();
-		} catch (err: any) {
-			error = err.message || 'Ошибка удаления отзыва';
+		} catch (err) {
+			error = getErrorMessage(err, 'Ошибка удаления отзыва');
 		}
 	}
 
@@ -51,8 +59,8 @@
 		try {
 			await reviewsApi.moderateReview(reviewId, isVisible);
 			await loadReviews();
-		} catch (err: any) {
-			error = err.message || 'Ошибка модерации отзыва';
+		} catch (err) {
+			error = getErrorMessage(err, 'Ошибка модерации отзыва');
 		}
 	}
 
@@ -94,7 +102,7 @@
 			<p class="text-gray-500">Загрузка отзывов...</p>
 		</div>
 	{:else if error}
-		<div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+		<div role="alert" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
 			{error}
 		</div>
 	{:else if reviews.length === 0}

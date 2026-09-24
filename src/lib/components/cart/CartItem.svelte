@@ -2,21 +2,25 @@
 	import type { CartItem } from '$lib/types/cart';
 	import { formatPrice } from '$lib/utils/format';
 	import { storeSettings } from '$lib/stores/store';
+	import { confirmDialog } from '$lib/stores/confirm';
 
 	interface Props {
 		item: CartItem;
-		onUpdateQuantity: (itemId: number, quantity: number) => void;
+		onUpdateQuantity: (itemId: number, quantity: number) => void | Promise<void>;
 		onRemove: (itemId: number) => void;
 		isUpdating?: boolean;
 	}
 
 	let { item, onUpdateQuantity, onRemove, isUpdating = false }: Props = $props();
 
-	let localQuantity = $state(item.quantity);
+	// Writable derived: локальное значение, которое сервер может перезаписать (например, урезав до остатка)
+	let localQuantity = $derived(item.quantity);
 	let isChanging = $state(false);
 
+	const inputId = $props.id();
+
 	async function handleQuantityChange(newQuantity: number) {
-		if (newQuantity < 1) {
+		if (!Number.isFinite(newQuantity) || newQuantity < 1) {
 			newQuantity = 1;
 		}
 		if (newQuantity > item.product.quantity) {
@@ -33,22 +37,27 @@
 		}
 	}
 
-	function handleRemove() {
-		if (confirm('Удалить товар из корзины?')) {
-			onRemove(item.id);
-		}
+	async function handleRemove() {
+		const confirmed = await confirmDialog({
+			title: 'Удалить товар из корзины?',
+			message: item.product.name,
+			confirmLabel: 'Удалить',
+			danger: true
+		});
+		if (confirmed) onRemove(item.id);
 	}
 </script>
 
 <div class="flex items-center space-x-4 p-4 bg-white rounded-lg shadow-md">
 	<!-- Изображение -->
-	<a href="/products/{item.product.slug}" class="flex-shrink-0">
+	<a href="/products/{item.product.slug}" class="shrink-0" tabindex="-1" aria-hidden="true">
 		<div class="w-20 h-20 bg-gray-100 rounded overflow-hidden">
 			{#if item.product.images && item.product.images.length > 0}
 				<img
 					src={item.product.images[0].url}
-					alt={item.product.name}
+					alt=""
 					class="w-full h-full object-cover"
+					loading="lazy"
 				/>
 			{:else}
 				<div class="w-full h-full flex items-center justify-center text-gray-400">
@@ -85,24 +94,31 @@
 		<!-- Изменение количества -->
 		<div class="flex items-center border border-gray-300 rounded">
 			<button
+				type="button"
 				onclick={() => handleQuantityChange(localQuantity - 1)}
 				disabled={isChanging || isUpdating || localQuantity <= 1}
+				aria-label="Уменьшить количество"
 				class="px-3 py-2 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100"
 			>
 				−
 			</button>
 			<input
+				id={inputId}
 				type="number"
 				bind:value={localQuantity}
 				min="1"
 				max={item.product.quantity}
+				inputmode="numeric"
+				aria-label="Количество"
 				onchange={(e) => handleQuantityChange(parseInt(e.currentTarget.value) || 1)}
 				disabled={isChanging || isUpdating}
-				class="w-16 text-center border-0 focus:outline-none disabled:opacity-50"
+				class="w-16 text-center border-0 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500 disabled:opacity-50"
 			/>
 			<button
+				type="button"
 				onclick={() => handleQuantityChange(localQuantity + 1)}
 				disabled={isChanging || isUpdating || localQuantity >= item.product.quantity}
+				aria-label="Увеличить количество"
 				class="px-3 py-2 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100"
 			>
 				+
@@ -121,12 +137,13 @@
 
 		<!-- Удаление -->
 		<button
+			type="button"
 			onclick={handleRemove}
 			disabled={isUpdating}
 			class="p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded transition-colors disabled:opacity-50"
-			aria-label="Удалить товар"
+			aria-label="Удалить «{item.product.name}» из корзины"
 		>
-			<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+			<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
 				<path
 					stroke-linecap="round"
 					stroke-linejoin="round"

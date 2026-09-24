@@ -1,37 +1,30 @@
 // Server-side загрузка данных для страницы товара (SSR для SEO)
 
+import { error } from '@sveltejs/kit';
 import { productsApi } from '$lib/api/products';
 import { categoriesApi } from '$lib/api/categories';
-import { error } from '@sveltejs/kit';
+import { throwHttpError } from '$lib/utils/errors';
+import type { Category } from '$lib/types/product';
 
 export async function load({ params }) {
-	const slug = params.slug;
+	// 404 остаётся 404, недоступный бэкенд превращается в 503, а не в «500 Ошибка загрузки»
+	const product = await productsApi
+		.getProductBySlug(params.slug)
+		.catch((err) => throwHttpError(err, { notFound: 'Товар не найден' }));
 
-	try {
-		const product = await productsApi.getProductBySlug(slug);
-
-		if (!product.isActive) {
-			throw error(404, 'Товар не найден');
-		}
-
-		// Загружаем категорию, если есть
-		let category = null;
-		if (product.categoryId) {
-			try {
-				category = await categoriesApi.getCategoryById(product.categoryId);
-			} catch (err) {
-				// Игнорируем ошибку, если категория не найдена
-			}
-		}
-
-		return {
-			product,
-			category
-		};
-	} catch (err: any) {
-		if (err.statusCode === 404) {
-			throw error(404, 'Товар не найден');
-		}
-		throw error(500, 'Ошибка загрузки товара');
+	if (!product.isActive) {
+		error(404, 'Товар не найден');
 	}
+
+	// Категория нужна только для крошек: её отсутствие не должно ломать страницу
+	let category: Category | null = null;
+	if (product.categoryId) {
+		try {
+			category = await categoriesApi.getCategoryById(product.categoryId);
+		} catch {
+			category = null;
+		}
+	}
+
+	return { product, category };
 }

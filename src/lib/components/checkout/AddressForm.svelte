@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { CreateAddressDto, UpdateAddressDto, Address } from '$lib/types/common';
+	import { getErrorMessage } from '$lib/utils/errors';
 
 	interface Props {
 		address?: Address | null;
@@ -44,8 +45,8 @@
 			};
 
 			await onSave(data);
-		} catch (err: any) {
-			error = err.message || 'Ошибка сохранения адреса';
+		} catch (err) {
+			error = getErrorMessage(err, 'Ошибка сохранения адреса');
 		} finally {
 			isSaving = false;
 		}
@@ -54,7 +55,7 @@
 
 <form onsubmit={(e) => { e.preventDefault(); handleSubmit(); }} class="space-y-4">
 	{#if error}
-		<div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+		<div role="alert" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
 			{error}
 		</div>
 	{/if}

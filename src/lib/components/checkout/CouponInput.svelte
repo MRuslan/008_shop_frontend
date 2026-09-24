@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { getErrorMessage } from '$lib/utils/errors';
 	interface Props {
 		couponCode: string | null;
 		discountAmount: string | null;
@@ -24,8 +25,8 @@
 		try {
 			await onApply(inputCode.trim().toUpperCase());
 			inputCode = '';
-		} catch (err: any) {
-			error = err.message || 'Неверный код купона';
+		} catch (err) {
+			error = getErrorMessage(err, 'Неверный код купона');
 		} finally {
 			isApplying = false;
 		}

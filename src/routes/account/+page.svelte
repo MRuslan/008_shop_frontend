@@ -3,6 +3,7 @@
 	import { authStore } from '$lib/stores/auth';
 	import { authApi } from '$lib/api/auth';
 	import { goto } from '$app/navigation';
+	import { getErrorMessage } from '$lib/utils/errors';
 
 	let isDeleting = $state(false);
 	let showDeleteConfirm = $state(false);
@@ -22,8 +23,8 @@
 			await authApi.deleteAccount({ password: deletePassword });
 			await authStore.logout();
 			goto('/');
-		} catch (err: any) {
-			deleteError = err.message || 'Ошибка удаления аккаунта';
+		} catch (err) {
+			deleteError = getErrorMessage(err, 'Ошибка удаления аккаунта');
 		} finally {
 			isDeleting = false;
 		}
@@ -81,7 +82,7 @@
 						</p>
 						
 						{#if deleteError}
-							<div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+							<div role="alert" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
 								{deleteError}
 							</div>
 						{/if}

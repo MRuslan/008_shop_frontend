@@ -4,6 +4,9 @@
 	import { couponsApi, type CreateCouponDto } from '$lib/api/coupons';
 	import type { Coupon } from '$lib/types/common';
 	import { formatDateTime } from '$lib/utils/format';
+	import { getErrorMessage } from '$lib/utils/errors';
+	import { toast } from '$lib/stores/toast';
+	import { confirmDialog } from '$lib/stores/confirm';
 
 	interface Props {
 		data: {
@@ -65,14 +68,21 @@
 		showCouponForm = true;
 	}
 
-	async function handleDelete(couponId: number) {
-		if (!confirm('Удалить купон?')) return;
+	async function handleDelete(coupon: Coupon) {
+		const confirmed = await confirmDialog({
+			title: `Удалить купон ${coupon.code}?`,
+			message: 'Покупатели больше не смогут применить этот код.',
+			confirmLabel: 'Удалить',
+			danger: true
+		});
+		if (!confirmed) return;
 
 		try {
-			await couponsApi.deleteCoupon(couponId);
+			await couponsApi.deleteCoupon(coupon.id);
 			await invalidateAll();
-		} catch (error: any) {
-			alert(error.message || 'Ошибка удаления купона');
+			toast.success(`Купон ${coupon.code} удалён`);
+		} catch (err) {
+			toast.error(getErrorMessage(err, 'Не удалось удалить купон'));
 		}
 	}
 
@@ -106,6 +116,7 @@
 				isActive
 			};
 
+			const wasEditing = Boolean(editingCoupon);
 			if (editingCoupon) {
 				await couponsApi.updateCoupon(editingCoupon.id, couponData);
 			} else {
@@ -113,13 +124,11 @@
 			}
 
 			await invalidateAll();
-		} catch (err: any) {
-			const message = err.message || 'Ошибка сохранения купона';
-			if (Array.isArray(message)) {
-				error = message.join(', ');
-			} else {
-				error = message;
-			}
+			showCouponForm = false;
+			editingCoupon = null;
+			toast.success(wasEditing ? `Купон ${couponData.code} обновлён` : `Купон ${couponData.code} создан`);
+		} catch (err) {
+			error = getErrorMessage(err, 'Не удалось сохранить купон');
 		} finally {
 			isSubmitting = false;
 		}
@@ -150,7 +159,7 @@
 
 			<form onsubmit={(e) => { e.preventDefault(); handleSubmit(); }} class="space-y-4">
 				{#if error}
-					<div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+					<div role="alert" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
 						{error}
 					</div>
 				{/if}
@@ -310,7 +319,7 @@
 									Редактировать
 								</button>
 								<button
-									onclick={() => handleDelete(coupon.id)}
+									onclick={() => handleDelete(coupon)}
 									class="text-red-600 hover:text-red-900"
 								>
 									Удалить

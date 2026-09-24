@@ -1,82 +1,129 @@
 <script lang="ts">
-	import { onMount, onDestroy } from 'svelte';
+	import { tick } from 'svelte';
 	import LoginForm from './LoginForm.svelte';
 	import RegisterForm from './RegisterForm.svelte';
 
+	type Mode = 'login' | 'register';
+
 	interface Props {
-		mode?: 'login' | 'register';
+		mode?: Mode;
 		open?: boolean;
 	}
 
 	let { mode = $bindable('login'), open = $bindable(false) }: Props = $props();
 
+	// Нативный <dialog>: ловушка фокуса, Escape, верхний слой и возврат фокуса на кнопку-триггер бесплатно
+	let dialog: HTMLDialogElement | undefined = $state();
+
+	const tabs: Array<{ id: Mode; label: string }> = [
+		{ id: 'login', label: 'Вход' },
+		{ id: 'register', label: 'Регистрация' }
+	];
+
+	async function focusFirstField() {
+		await tick();
+		dialog?.querySelector<HTMLInputElement>('input')?.focus();
+	}
+
+	$effect(() => {
+		if (!dialog) return;
+		if (open) {
+			if (!dialog.open) {
+				dialog.showModal();
+				focusFirstField();
+			}
+		} else if (dialog.open) {
+			dialog.close();
+		}
+	});
+
+	$effect(() => {
+		const handleSuccess = () => {
+			open = false;
+		};
+		window.addEventListener('auth:success', handleSuccess);
+		return () => window.removeEventListener('auth:success', handleSuccess);
+	});
+
 	function close() {
 		open = false;
 	}
 
-	function switchMode(newMode: 'login' | 'register') {
-		mode = newMode;
+	function handleBackdropClick(event: MouseEvent) {
+		if (event.target === dialog) close();
 	}
 
-	function handleAuthSuccess() {
-		close();
+	// Escape закрывает окно и там, где браузер не шлёт нативный cancel (например, во встроенных webview)
+	function handleDialogKeydown(event: KeyboardEvent) {
+		if (event.key === 'Escape') {
+			event.preventDefault();
+			close();
+		}
 	}
 
-	// Слушаем событие успешной авторизации
-	onMount(() => {
-		if (typeof window !== 'undefined') {
-			window.addEventListener('auth:success', handleAuthSuccess);
-		}
-	});
+	function switchMode(next: Mode) {
+		mode = next;
+		focusFirstField();
+	}
 
-	onDestroy(() => {
-		if (typeof window !== 'undefined') {
-			window.removeEventListener('auth:success', handleAuthSuccess);
-		}
-	});
+	// Стрелки переключают вкладки, как положено tablist
+	function handleTabKeydown(event: KeyboardEvent) {
+		if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
+		event.preventDefault();
+		const next: Mode = mode === 'login' ? 'register' : 'login';
+		mode = next;
+		dialog?.querySelector<HTMLButtonElement>(`#auth-tab-${next}`)?.focus();
+	}
 </script>
 
-{#if open}
-	<div
-		class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4"
-		onclick={close}
-		role="dialog"
-		aria-modal="true"
-	>
-		<div
-			class="bg-white rounded-lg shadow-xl max-w-md w-full p-6"
-			onclick={(e) => e.stopPropagation()}
-		>
-			<!-- Header -->
-			<div class="flex items-center justify-between mb-6">
-				<div class="flex space-x-4">
-					<button
-						onclick={() => switchMode('login')}
-						class="px-4 py-2 font-medium transition-colors"
-						class:text-blue-600={mode === 'login'}
-						class:text-gray-500={mode !== 'login'}
-						class:border-b-2={mode === 'login'}
-						class:border-blue-600={mode === 'login'}
-					>
-						Вход
-					</button>
-					<button
-						onclick={() => switchMode('register')}
-						class="px-4 py-2 font-medium transition-colors"
-						class:text-blue-600={mode === 'register'}
-						class:text-gray-500={mode !== 'register'}
-						class:border-b-2={mode === 'register'}
-						class:border-blue-600={mode === 'register'}
-					>
-						Регистрация
-					</button>
+<dialog
+	bind:this={dialog}
+	onclose={close}
+	onclick={handleBackdropClick}
+	onkeydown={handleDialogKeydown}
+	aria-label={mode === 'login' ? 'Вход в аккаунт' : 'Регистрация'}
+	class="m-auto w-[calc(100%-2rem)] max-w-md rounded-lg bg-white p-0 text-gray-900 shadow-xl backdrop:bg-black/50"
+>
+	{#if open}
+		<div class="p-6">
+			<div class="mb-6 flex items-center justify-between gap-4">
+				<div
+					role="tablist"
+					aria-label="Вход или регистрация"
+					class="flex gap-4"
+					onkeydown={handleTabKeydown}
+				>
+					{#each tabs as tab (tab.id)}
+						<button
+							type="button"
+							role="tab"
+							id="auth-tab-{tab.id}"
+							aria-selected={mode === tab.id}
+							aria-controls="auth-panel"
+							tabindex={mode === tab.id ? 0 : -1}
+							onclick={() => switchMode(tab.id)}
+							class="rounded-t border-b-2 px-4 py-2 font-medium transition-colors focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none {mode ===
+							tab.id
+								? 'border-blue-600 text-blue-600'
+								: 'border-transparent text-gray-500 hover:text-gray-700'}"
+						>
+							{tab.label}
+						</button>
+					{/each}
 				</div>
 				<button
+					type="button"
 					onclick={close}
-					class="text-gray-400 hover:text-gray-600 transition-colors"
+					class="rounded p-1 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none"
 					aria-label="Закрыть"
 				>
-					<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+					<svg
+						class="w-6 h-6"
+						fill="none"
+						stroke="currentColor"
+						viewBox="0 0 24 24"
+						aria-hidden="true"
+					>
 						<path
 							stroke-linecap="round"
 							stroke-linejoin="round"
@@ -87,12 +134,13 @@
 				</button>
 			</div>
 
-			<!-- Form -->
-			{#if mode === 'login'}
-				<LoginForm />
-			{:else}
-				<RegisterForm />
-			{/if}
+			<div id="auth-panel" role="tabpanel" aria-labelledby="auth-tab-{mode}">
+				{#if mode === 'login'}
+					<LoginForm />
+				{:else}
+					<RegisterForm />
+				{/if}
+			</div>
 		</div>
-	</div>
-{/if}
+	{/if}
+</dialog>

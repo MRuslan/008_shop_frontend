@@ -1,12 +1,12 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { cartStore, cartTotal } from '$lib/stores/cart';
+	import { cartStore } from '$lib/stores/cart';
 	import { authStore } from '$lib/stores/auth';
 	import { cartApi } from '$lib/api/cart';
-	import { getOrCreateSessionId } from '$lib/utils/session';
+	import { confirmDialog } from '$lib/stores/confirm';
 	import CartItem from '$lib/components/cart/CartItem.svelte';
 	import CartSummary from '$lib/components/cart/CartSummary.svelte';
-	import { goto } from '$app/navigation';
+	import { getErrorMessage } from '$lib/utils/errors';
 
 	let isLoading = $state(true);
 	let isUpdating = $state(false);
@@ -24,8 +24,8 @@
 			const useSessionId = !$authStore.isAuthenticated;
 			const cart = await cartApi.getCart(useSessionId);
 			cartStore.setCart(cart);
-		} catch (err: any) {
-			error = err.message || 'Ошибка загрузки корзины';
+		} catch (err) {
+			error = getErrorMessage(err, 'Ошибка загрузки корзины');
 			cartStore.clear();
 		} finally {
 			isLoading = false;
@@ -42,8 +42,8 @@
 			const useSessionId = !$authStore.isAuthenticated;
 			const cart = await cartApi.updateItem(itemId, { quantity }, useSessionId);
 			cartStore.setCart(cart);
-		} catch (err: any) {
-			error = err.message || 'Ошибка обновления количества';
+		} catch (err) {
+			error = getErrorMessage(err, 'Ошибка обновления количества');
 			await loadCart(); // Перезагружаем корзину при ошибке
 		} finally {
 			isUpdating = false;
@@ -58,8 +58,8 @@
 			const useSessionId = !$authStore.isAuthenticated;
 			const cart = await cartApi.removeItem(itemId, useSessionId);
 			cartStore.setCart(cart);
-		} catch (err: any) {
-			error = err.message || 'Ошибка удаления товара';
+		} catch (err) {
+			error = getErrorMessage(err, 'Ошибка удаления товара');
 			await loadCart(); // Перезагружаем корзину при ошибке
 		} finally {
 			isUpdating = false;
@@ -67,7 +67,13 @@
 	}
 
 	async function handleClearCart() {
-		if (!confirm('Очистить корзину?')) return;
+		const confirmed = await confirmDialog({
+			title: 'Очистить корзину?',
+			message: 'Все товары будут удалены из корзины.',
+			confirmLabel: 'Очистить',
+			danger: true
+		});
+		if (!confirmed) return;
 
 		isUpdating = true;
 		error = null;
@@ -76,8 +82,8 @@
 			const useSessionId = !$authStore.isAuthenticated;
 			await cartApi.clearCart(useSessionId);
 			cartStore.clear();
-		} catch (err: any) {
-			error = err.message || 'Ошибка очистки корзины';
+		} catch (err) {
+			error = getErrorMessage(err, 'Ошибка очистки корзины');
 		} finally {
 			isUpdating = false;
 		}
@@ -97,10 +103,11 @@
 			<p class="text-gray-500">Загрузка корзины...</p>
 		</div>
 	{:else if error}
-		<div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+		<div role="alert" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
 			{error}
 		</div>
 		<button
+			type="button"
 			onclick={loadCart}
 			class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
 		>
@@ -145,6 +152,7 @@
 				<!-- Кнопка очистки корзины -->
 				<div class="flex justify-end pt-4">
 					<button
+						type="button"
 						onclick={handleClearCart}
 						disabled={isUpdating}
 						class="px-4 py-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded transition-colors disabled:opacity-50"

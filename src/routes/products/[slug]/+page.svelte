@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import { page } from '$app/state';
 	import type { Product, Category } from '$lib/types/product';
 	import { formatPrice } from '$lib/utils/format';
 	import { storeSettings } from '$lib/stores/store';
@@ -7,7 +7,8 @@
 	import { cartStore } from '$lib/stores/cart';
 	import { authStore } from '$lib/stores/auth';
 	import { wishlistApi } from '$lib/api/wishlist';
-	import { getOrCreateSessionId } from '$lib/utils/session';
+	import { toast } from '$lib/stores/toast';
+	import { getErrorMessage } from '$lib/utils/errors';
 	import ProductReviews from '$lib/components/product/ProductReviews.svelte';
 	import { generateProductJsonLd, generateBreadcrumbJsonLd } from '$lib/utils/seo';
 
@@ -27,11 +28,52 @@
 	let isInWishlist = $state(false);
 	let isTogglingWishlist = $state(false);
 
-	const images = data.product.images || [];
-	const mainImage = images[selectedImageIndex]?.url || images[0]?.url;
+	// Всё, что зависит от товара, выводим из data: при переходе между товарами без перезагрузки ничего не устаревает
+	const product = $derived(data.product);
+	const images = $derived(product.images ?? []);
+	const mainImage = $derived(images[selectedImageIndex]?.url ?? images[0]?.url);
+	const hasDiscount = $derived(
+		!!product.compareAtPrice && parseFloat(product.compareAtPrice) > parseFloat(product.price)
+	);
+	const discountPercent = $derived(
+		hasDiscount && product.compareAtPrice
+			? Math.round((1 - parseFloat(product.price) / parseFloat(product.compareAtPrice)) * 100)
+			: 0
+	);
+	const currency = $derived($storeSettings?.currency || 'RUB');
+
+	// Открыли другой товар: сбрасываем галерею, количество и ошибки
+	$effect(() => {
+		if (product.id) {
+			selectedImageIndex = 0;
+			quantity = 1;
+			addToCartError = null;
+		}
+	});
+
+	// Проверяем, есть ли товар в избранном (при смене товара и при входе/выходе)
+	$effect(() => {
+		if (!$authStore.isAuthenticated) {
+			isInWishlist = false;
+			return;
+		}
+		const productId = product.id;
+		let cancelled = false;
+		wishlistApi
+			.getWishlist()
+			.then((items) => {
+				if (!cancelled) isInWishlist = items.some((item) => item.productId === productId);
+			})
+			.catch(() => {
+				// Избранное не критично для страницы: молча оставляем состояние по умолчанию
+			});
+		return () => {
+			cancelled = true;
+		};
+	});
 
 	async function addToCart() {
-		if (data.product.quantity < quantity) {
+		if (product.quantity < quantity) {
 			addToCartError = 'Недостаточно товара на складе';
 			return;
 		}
@@ -40,59 +82,38 @@
 		addToCartError = null;
 
 		try {
-			// Используем JWT если пользователь авторизован, иначе sessionId
-			const useSessionId = !$authStore.isAuthenticated;
-			
+			// JWT для авторизованного пользователя, X-Session-Id для гостя
 			const cart = await cartApi.addItem(
-				{ productId: data.product.id, quantity },
-				useSessionId
+				{ productId: product.id, quantity },
+				!$authStore.isAuthenticated
 			);
-			
 			cartStore.setCart(cart);
-			
-			// Показываем уведомление (можно добавить toast)
-			alert('Товар добавлен в корзину!');
-		} catch (error: any) {
-			const message = error.message || 'Ошибка при добавлении товара в корзину';
-			if (Array.isArray(message)) {
-				addToCartError = message.join(', ');
-			} else {
-				addToCartError = message;
-			}
+			toast.success(`«${product.name}» добавлен в корзину`, {
+				action: { label: 'Перейти в корзину', href: '/cart' }
+			});
+		} catch (err) {
+			addToCartError = getErrorMessage(err, 'Не удалось добавить товар в корзину');
 		} finally {
 			isAddingToCart = false;
 		}
 	}
 
 	function increaseQuantity() {
-		if (quantity < data.product.quantity) {
-			quantity++;
-		}
+		if (quantity < product.quantity) quantity++;
 	}
 
 	function decreaseQuantity() {
-		if (quantity > 1) {
-			quantity--;
-		}
+		if (quantity > 1) quantity--;
 	}
 
-	// Проверяем, есть ли товар в избранном
-	onMount(async () => {
-		if ($authStore.isAuthenticated) {
-			try {
-				const wishlist = await wishlistApi.getWishlist();
-				isInWishlist = wishlist.some((item) => item.productId === data.product.id);
-			} catch (error) {
-				// Игнорируем ошибку
-			}
-		}
-	});
+	function clampQuantity() {
+		if (!Number.isFinite(quantity) || quantity < 1) quantity = 1;
+		if (quantity > product.quantity) quantity = product.quantity;
+	}
 
 	async function toggleWishlist() {
 		if (!$authStore.isAuthenticated) {
-			// Показываем модальное окно авторизации
-			const event = new CustomEvent('open-auth-modal');
-			window.dispatchEvent(event);
+			window.dispatchEvent(new CustomEvent('open-auth-modal'));
 			return;
 		}
 
@@ -100,43 +121,42 @@
 
 		try {
 			if (isInWishlist) {
-				await wishlistApi.removeFromWishlist(data.product.id);
+				await wishlistApi.removeFromWishlist(product.id);
 				isInWishlist = false;
+				toast.info('Товар убран из избранного');
 			} else {
-				await wishlistApi.addToWishlist(data.product.id);
+				await wishlistApi.addToWishlist(product.id);
 				isInWishlist = true;
+				toast.success('Товар добавлен в избранное', {
+					action: { label: 'Открыть избранное', href: '/account/wishlist' }
+				});
 			}
-		} catch (error: any) {
-			console.error('Wishlist error:', error);
+		} catch (err) {
+			toast.error(getErrorMessage(err, 'Не удалось обновить избранное'));
 		} finally {
 			isTogglingWishlist = false;
 		}
 	}
 
-	const siteUrl = typeof window !== 'undefined' ? window.location.origin : '';
-	const siteName = $storeSettings?.name || 'Магазин';
-	const productUrl = `${siteUrl}/products/${data.product.slug}`;
-	const productDescription = data.product.description || data.product.name;
-	
-	// Формируем breadcrumbs
-	const breadcrumbs = data.category
-		? [
-				{ name: 'Главная', url: '/' },
-				{ name: 'Каталог', url: '/catalog' },
-				{ name: data.category.name, url: `/categories/${data.category.slug}` },
-				{ name: data.product.name, url: `/products/${data.product.slug}` }
-		  ]
-		: [
-				{ name: 'Главная', url: '/' },
-				{ name: 'Каталог', url: '/catalog' },
-				{ name: data.product.name, url: `/products/${data.product.slug}` }
-		  ];
+	const siteUrl = $derived(page.url.origin);
+	const siteName = $derived($storeSettings?.name || 'Магазин');
+	const productUrl = $derived(`${siteUrl}/products/${product.slug}`);
+	const productDescription = $derived(product.description || product.name);
+
+	const breadcrumbs = $derived([
+		{ name: 'Главная', url: '/' },
+		{ name: 'Каталог', url: '/catalog' },
+		...(data.category
+			? [{ name: data.category.name, url: `/categories/${data.category.slug}` }]
+			: []),
+		{ name: product.name, url: `/products/${product.slug}` }
+	]);
 </script>
 
 <svelte:head>
-	<title>{data.product.name} | {siteName}</title>
+	<title>{product.name} | {siteName}</title>
 	<meta name="description" content={productDescription} />
-	<meta property="og:title" content={data.product.name} />
+	<meta property="og:title" content={product.name} />
 	<meta property="og:description" content={productDescription} />
 	<meta property="og:type" content="product" />
 	<meta property="og:url" content={productUrl} />
@@ -145,31 +165,31 @@
 	{/if}
 	<meta property="og:site_name" content={siteName} />
 	<meta name="twitter:card" content="summary_large_image" />
-	<meta name="twitter:title" content={data.product.name} />
+	<meta name="twitter:title" content={product.name} />
 	<meta name="twitter:description" content={productDescription} />
 	{#if mainImage}
 		<meta name="twitter:image" content={mainImage} />
 	{/if}
-	<meta property="product:price:amount" content={data.product.price} />
-	<meta property="product:price:currency" content={$storeSettings?.currency || 'RUB'} />
+	<meta property="product:price:amount" content={product.price} />
+	<meta property="product:price:currency" content={currency} />
 	<link rel="canonical" href={productUrl} />
-	
-	{@html `<script type="application/ld+json">${JSON.stringify(generateProductJsonLd(data.product, $storeSettings || undefined))}</script>`}
-	{@html `<script type="application/ld+json">${JSON.stringify(generateBreadcrumbJsonLd(breadcrumbs))}</script>`}
+
+	{@html `<script type="application/ld+json">${JSON.stringify(generateProductJsonLd(product, $storeSettings, siteUrl))}</script>`}
+	{@html `<script type="application/ld+json">${JSON.stringify(generateBreadcrumbJsonLd(breadcrumbs, siteUrl))}</script>`}
 </svelte:head>
 
 <div class="container mx-auto px-4 py-8">
 	<!-- Хлебные крошки -->
-	<nav class="text-sm text-gray-600 mb-4">
+	<nav class="text-sm text-gray-600 mb-4" aria-label="Вы здесь">
 		<a href="/" class="hover:text-gray-900">Главная</a>
-		<span class="mx-2">/</span>
+		<span class="mx-2" aria-hidden="true">/</span>
 		<a href="/catalog" class="hover:text-gray-900">Каталог</a>
 		{#if data.category}
-			<span class="mx-2">/</span>
+			<span class="mx-2" aria-hidden="true">/</span>
 			<a href="/categories/{data.category.slug}" class="hover:text-gray-900">{data.category.name}</a>
 		{/if}
-		<span class="mx-2">/</span>
-		<span class="text-gray-900">{data.product.name}</span>
+		<span class="mx-2" aria-hidden="true">/</span>
+		<span class="text-gray-900" aria-current="page">{product.name}</span>
 	</nav>
 
 	<div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -180,14 +200,14 @@
 				{#if mainImage}
 					<img
 						src={mainImage}
-						alt={data.product.name}
+						alt={product.name}
 						class="w-full h-full object-cover"
 						loading="eager"
 						fetchpriority="high"
 					/>
 				{:else}
 					<div class="w-full h-full flex items-center justify-center text-gray-400">
-						<svg class="w-24 h-24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<svg class="w-24 h-24" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
 							<path
 								stroke-linecap="round"
 								stroke-linejoin="round"
@@ -202,16 +222,19 @@
 			<!-- Миниатюры -->
 			{#if images.length > 1}
 				<div class="grid grid-cols-4 gap-2">
-					{#each images as image, index}
+					{#each images as image, index (image.url)}
 						<button
-							onclick={() => selectedImageIndex = index}
-							class="aspect-square bg-gray-100 rounded overflow-hidden border-2 transition-colors"
+							type="button"
+							onclick={() => (selectedImageIndex = index)}
+							aria-label="Показать изображение {index + 1} из {images.length}"
+							aria-pressed={selectedImageIndex === index}
+							class="aspect-square bg-gray-100 rounded overflow-hidden border-2 transition-colors focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:outline-none"
 							class:border-blue-600={selectedImageIndex === index}
 							class:border-gray-300={selectedImageIndex !== index}
 						>
 							<img
 								src={image.url}
-								alt={`${data.product.name} - изображение ${index + 1}`}
+								alt=""
 								class="w-full h-full object-cover"
 								loading="lazy"
 							/>
@@ -227,32 +250,32 @@
 				<p class="text-sm text-gray-500 mb-2">{data.category.name}</p>
 			{/if}
 
-			<h1 class="text-3xl font-bold text-gray-800 mb-4">{data.product.name}</h1>
+			<h1 class="text-3xl font-bold text-gray-800 mb-4 text-balance">{product.name}</h1>
 
 			<!-- Цена -->
 			<div class="mb-6">
 				<div class="flex items-center space-x-4 mb-2">
 					<span class="text-3xl font-bold text-gray-900">
-						{formatPrice(data.product.price, $storeSettings?.currency || 'RUB')}
+						{formatPrice(product.price, currency)}
 					</span>
-					{#if data.product.compareAtPrice && parseFloat(data.product.compareAtPrice) > parseFloat(data.product.price)}
+					{#if hasDiscount && product.compareAtPrice}
 						<span class="text-xl text-gray-500 line-through">
-							{formatPrice(data.product.compareAtPrice, $storeSettings?.currency || 'RUB')}
+							{formatPrice(product.compareAtPrice, currency)}
 						</span>
 					{/if}
 				</div>
-				{#if data.product.compareAtPrice && parseFloat(data.product.compareAtPrice) > parseFloat(data.product.price)}
-					<span class="text-sm text-green-600 font-medium">
-						Скидка {Math.round((1 - parseFloat(data.product.price) / parseFloat(data.product.compareAtPrice)) * 100)}%
+				{#if hasDiscount}
+					<span class="text-sm text-green-700 font-medium">
+						Скидка {discountPercent}%
 					</span>
 				{/if}
 			</div>
 
 			<!-- Наличие -->
 			<div class="mb-6">
-				{#if data.product.quantity > 0}
+				{#if product.quantity > 0}
 					<span class="inline-block px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">
-						В наличии ({data.product.quantity} шт.)
+						В наличии ({product.quantity} шт.)
 					</span>
 				{:else}
 					<span class="inline-block px-3 py-1 bg-red-100 text-red-800 rounded-full text-sm font-medium">
@@ -262,49 +285,56 @@
 			</div>
 
 			<!-- Описание -->
-			{#if data.product.description}
+			{#if product.description}
 				<div class="mb-6">
 					<h2 class="text-lg font-semibold text-gray-800 mb-2">Описание</h2>
-					<p class="text-gray-600 whitespace-pre-line">{data.product.description}</p>
+					<p class="text-gray-600 whitespace-pre-line break-words">{product.description}</p>
 				</div>
 			{/if}
 
 			<!-- Артикул -->
-			{#if data.product.sku}
+			{#if product.sku}
 				<div class="mb-6">
-					<p class="text-sm text-gray-500">Артикул: <span class="font-medium">{data.product.sku}</span></p>
+					<p class="text-sm text-gray-500">Артикул: <span class="font-medium">{product.sku}</span></p>
 				</div>
 			{/if}
 
 			<!-- Добавление в корзину -->
 			<div class="border-t pt-6">
 				{#if addToCartError}
-					<div class="mb-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+					<div role="alert" class="mb-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
 						{addToCartError}
 					</div>
 				{/if}
 
-				{#if data.product.quantity > 0}
+				{#if product.quantity > 0}
 					<div class="flex items-center space-x-4 mb-4">
-						<label class="text-sm font-medium text-gray-700">Количество:</label>
+						<label for="product-quantity" class="text-sm font-medium text-gray-700">Количество:</label>
 						<div class="flex items-center border border-gray-300 rounded">
 							<button
+								type="button"
 								onclick={decreaseQuantity}
 								disabled={quantity <= 1}
+								aria-label="Уменьшить количество"
 								class="px-3 py-2 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100"
 							>
 								−
 							</button>
 							<input
+								id="product-quantity"
 								type="number"
 								bind:value={quantity}
+								onchange={clampQuantity}
 								min="1"
-								max={data.product.quantity}
-								class="w-16 text-center border-0 focus:outline-none"
+								max={product.quantity}
+								inputmode="numeric"
+								class="w-16 text-center border-0 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500"
 							/>
 							<button
+								type="button"
 								onclick={increaseQuantity}
-								disabled={quantity >= data.product.quantity}
+								disabled={quantity >= product.quantity}
+								aria-label="Увеличить количество"
 								class="px-3 py-2 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100"
 							>
 								+
@@ -314,6 +344,7 @@
 
 					<div class="flex space-x-2">
 						<button
+							type="button"
 							onclick={addToCart}
 							disabled={isAddingToCart}
 							class="flex-1 bg-blue-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
@@ -321,6 +352,7 @@
 							{isAddingToCart ? 'Добавление...' : 'Добавить в корзину'}
 						</button>
 						<button
+							type="button"
 							onclick={toggleWishlist}
 							disabled={isTogglingWishlist}
 							class="p-3 border-2 rounded-lg transition-colors disabled:opacity-50"
@@ -330,6 +362,7 @@
 							class:text-gray-600={!isInWishlist}
 							class:hover:bg-red-50={isInWishlist}
 							class:hover:bg-gray-50={!isInWishlist}
+							aria-pressed={isInWishlist}
 							aria-label={isInWishlist ? 'Удалить из избранного' : 'Добавить в избранное'}
 						>
 							<svg
@@ -337,6 +370,7 @@
 								fill={isInWishlist ? 'currentColor' : 'none'}
 								stroke="currentColor"
 								viewBox="0 0 24 24"
+								aria-hidden="true"
 							>
 								<path
 									stroke-linecap="round"
@@ -349,6 +383,7 @@
 					</div>
 				{:else}
 					<button
+						type="button"
 						disabled
 						class="w-full bg-gray-300 text-gray-500 py-3 px-6 rounded-lg font-medium cursor-not-allowed"
 					>
@@ -361,6 +396,8 @@
 
 	<!-- Отзывы -->
 	<div class="mt-12">
-		<ProductReviews productId={data.product.id} />
+		{#key product.id}
+			<ProductReviews productId={product.id} />
+		{/key}
 	</div>
 </div>

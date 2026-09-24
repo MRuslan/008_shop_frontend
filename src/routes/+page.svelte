@@ -1,32 +1,38 @@
 <script lang="ts">
+	import { page } from '$app/state';
 	import { storeSettings } from '$lib/stores/store';
 	import { generateOrganizationJsonLd } from '$lib/utils/seo';
-	import { page } from '$app/stores';
 
-	const siteUrl = typeof window !== 'undefined' ? window.location.origin : '';
+	const siteUrl = $derived(page.url.origin);
+	const siteName = $derived($storeSettings?.name || 'Интернет-магазин');
+	const description = $derived(
+		$storeSettings?.name
+			? `Добро пожаловать в ${$storeSettings.name}! Широкий ассортимент товаров по выгодным ценам.`
+			: 'Добро пожаловать в наш интернет-магазин'
+	);
 </script>
 
 <svelte:head>
-	<title>{$storeSettings?.name || 'Интернет-магазин'}</title>
-	<meta name="description" content={$storeSettings?.name ? `Добро пожаловать в ${$storeSettings.name}! Широкий ассортимент товаров по выгодным ценам.` : 'Добро пожаловать в наш интернет-магазин'} />
-	<meta property="og:title" content={$storeSettings?.name || 'Интернет-магазин'} />
-	<meta property="og:description" content={$storeSettings?.name ? `Добро пожаловать в ${$storeSettings.name}! Широкий ассортимент товаров по выгодным ценам.` : 'Добро пожаловать в наш интернет-магазин'} />
+	<title>{siteName}</title>
+	<meta name="description" content={description} />
+	<meta property="og:title" content={siteName} />
+	<meta property="og:description" content={description} />
 	<meta property="og:type" content="website" />
-	<meta property="og:url" content={siteUrl} />
+	<meta property="og:url" content="{siteUrl}/" />
 	{#if $storeSettings?.logoUrl}
 		<meta property="og:image" content={$storeSettings.logoUrl} />
 	{/if}
-	<meta property="og:site_name" content={$storeSettings?.name || 'Интернет-магазин'} />
+	<meta property="og:site_name" content={siteName} />
 	<meta name="twitter:card" content="summary_large_image" />
-	<meta name="twitter:title" content={$storeSettings?.name || 'Интернет-магазин'} />
-	<meta name="twitter:description" content={$storeSettings?.name ? `Добро пожаловать в ${$storeSettings.name}! Широкий ассортимент товаров по выгодным ценам.` : 'Добро пожаловать в наш интернет-магазин'} />
+	<meta name="twitter:title" content={siteName} />
+	<meta name="twitter:description" content={description} />
 	{#if $storeSettings?.logoUrl}
 		<meta name="twitter:image" content={$storeSettings.logoUrl} />
 	{/if}
-	<link rel="canonical" href={siteUrl} />
-	
+	<link rel="canonical" href="{siteUrl}/" />
+
 	{#if $storeSettings}
-		{@html `<script type="application/ld+json">${JSON.stringify(generateOrganizationJsonLd($storeSettings))}</script>`}
+		{@html `<script type="application/ld+json">${JSON.stringify(generateOrganizationJsonLd($storeSettings, siteUrl))}</script>`}
 	{/if}
 </svelte:head>
 

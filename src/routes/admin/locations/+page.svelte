@@ -2,6 +2,9 @@
 	import { invalidateAll } from '$app/navigation';
 	import { locationsApi } from '$lib/api/locations';
 	import type { Location } from '$lib/types/order';
+	import { getErrorMessage } from '$lib/utils/errors';
+	import { toast } from '$lib/stores/toast';
+	import { confirmDialog } from '$lib/stores/confirm';
 
 	interface Props {
 		data: {
@@ -56,14 +59,21 @@
 		showLocationForm = true;
 	}
 
-	async function handleDelete(locationId: number) {
-		if (!confirm('Удалить точку продаж?')) return;
+	async function handleDelete(location: Location) {
+		const confirmed = await confirmDialog({
+			title: `Удалить точку «${location.name}»?`,
+			message: 'Покупатели больше не смогут выбрать её для самовывоза.',
+			confirmLabel: 'Удалить',
+			danger: true
+		});
+		if (!confirmed) return;
 
 		try {
-			await locationsApi.deleteLocation(locationId);
+			await locationsApi.deleteLocation(location.id);
 			await invalidateAll();
-		} catch (error: any) {
-			alert(error.message || 'Ошибка удаления точки');
+			toast.success(`Точка «${location.name}» удалена`);
+		} catch (err) {
+			toast.error(getErrorMessage(err, 'Не удалось удалить точку'));
 		}
 	}
 
@@ -91,6 +101,7 @@
 				isActive
 			};
 
+			const wasEditing = Boolean(editingLocation);
 			if (editingLocation) {
 				await locationsApi.updateLocation(editingLocation.id, locationData);
 			} else {
@@ -98,13 +109,11 @@
 			}
 
 			await invalidateAll();
-		} catch (err: any) {
-			const message = err.message || 'Ошибка сохранения точки';
-			if (Array.isArray(message)) {
-				error = message.join(', ');
-			} else {
-				error = message;
-			}
+			showLocationForm = false;
+			editingLocation = null;
+			toast.success(wasEditing ? `Точка «${locationData.name}» обновлена` : `Точка «${locationData.name}» создана`);
+		} catch (err) {
+			error = getErrorMessage(err, 'Не удалось сохранить точку');
 		} finally {
 			isSubmitting = false;
 		}
@@ -135,7 +144,7 @@
 
 			<form onsubmit={(e) => { e.preventDefault(); handleSubmit(); }} class="space-y-4">
 				{#if error}
-					<div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+					<div role="alert" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
 						{error}
 					</div>
 				{/if}
@@ -332,7 +341,7 @@
 									Редактировать
 								</button>
 								<button
-									onclick={() => handleDelete(location.id)}
+									onclick={() => handleDelete(location)}
 									class="text-red-600 hover:text-red-900"
 								>
 									Удалить

@@ -1,67 +1,44 @@
-// Утилиты для SEO
+// Утилиты для SEO (JSON-LD).
+// Абсолютные URL строятся от origin, который страницы берут из page.url: так сервер и клиент
+// отдают одинаковую разметку, а краулер получает полные адреса.
 
 import type { Product, Category } from '$lib/types/product';
 import type { Store } from '$lib/types/common';
 
-export interface MetaTags {
-	title: string;
-	description: string;
-	image?: string;
-	url?: string;
-	type?: string;
+const DEFAULT_CURRENCY = 'RUB';
+
+function absoluteUrl(origin: string, path: string): string {
+	return `${origin.replace(/\/$/, '')}${path}`;
 }
 
 /**
- * Генерирует полный набор мета-тегов для страницы
+ * JSON-LD для товара
  */
-export function generateMetaTags(meta: MetaTags, store?: Store): string {
-	const siteName = store?.name || 'Интернет-магазин';
-	const siteUrl = typeof window !== 'undefined' ? window.location.origin : '';
-	const fullTitle = meta.title.includes(siteName) ? meta.title : `${meta.title} | ${siteName}`;
-	const image = meta.image || store?.logoUrl || '';
-	const url = meta.url || (typeof window !== 'undefined' ? window.location.href : '');
-
-	return `
-		<title>${fullTitle}</title>
-		<meta name="description" content="${meta.description}" />
-		<meta property="og:title" content="${fullTitle}" />
-		<meta property="og:description" content="${meta.description}" />
-		<meta property="og:type" content="${meta.type || 'website'}" />
-		${url ? `<meta property="og:url" content="${url}" />` : ''}
-		${image ? `<meta property="og:image" content="${image}" />` : ''}
-		<meta property="og:site_name" content="${siteName}" />
-		<meta name="twitter:card" content="summary_large_image" />
-		<meta name="twitter:title" content="${fullTitle}" />
-		<meta name="twitter:description" content="${meta.description}" />
-		${image ? `<meta name="twitter:image" content="${image}" />` : ''}
-		${url ? `<link rel="canonical" href="${url}" />` : ''}
-	`.trim();
-}
-
-/**
- * Генерирует JSON-LD для товара
- */
-export function generateProductJsonLd(product: Product, store?: Store): object {
-	const images = product.images?.map(img => img.url) || [];
-	const currency = store?.currency || 'RUB';
-	const siteUrl = typeof window !== 'undefined' ? window.location.origin : '';
+export function generateProductJsonLd(
+	product: Product,
+	store?: Store | null,
+	origin = ''
+): object {
+	const images = product.images?.map((img) => img.url) || [];
+	const currency = store?.currency || DEFAULT_CURRENCY;
 
 	return {
 		'@context': 'https://schema.org/',
 		'@type': 'Product',
 		name: product.name,
 		description: product.description || product.name,
-		image: images.length > 0 ? images : [],
+		image: images,
 		sku: product.sku || undefined,
 		offers: {
 			'@type': 'Offer',
 			price: product.price,
 			priceCurrency: currency,
-			availability: product.quantity > 0 
-				? 'https://schema.org/InStock' 
-				: 'https://schema.org/OutOfStock',
-			url: `${siteUrl}/products/${product.slug}`,
-			priceValidUntil: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+			availability:
+				product.quantity > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
+			url: absoluteUrl(origin, `/products/${product.slug}`),
+			priceValidUntil: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000)
+				.toISOString()
+				.split('T')[0]
 		},
 		...(product.category && {
 			category: product.category.name
@@ -70,16 +47,14 @@ export function generateProductJsonLd(product: Product, store?: Store): object {
 }
 
 /**
- * Генерирует JSON-LD для организации (магазина)
+ * JSON-LD для организации (магазина)
  */
-export function generateOrganizationJsonLd(store: Store): object {
-	const siteUrl = typeof window !== 'undefined' ? window.location.origin : '';
-
+export function generateOrganizationJsonLd(store: Store, origin = ''): object {
 	return {
 		'@context': 'https://schema.org/',
 		'@type': 'Organization',
 		name: store.name,
-		url: siteUrl,
+		url: origin || undefined,
 		logo: store.logoUrl || undefined,
 		contactPoint: {
 			'@type': 'ContactPoint',
@@ -87,20 +62,23 @@ export function generateOrganizationJsonLd(store: Store): object {
 			email: store.contactEmail || undefined,
 			contactType: 'customer service'
 		},
-		address: store.legalAddress ? {
-			'@type': 'PostalAddress',
-			addressCountry: 'RU',
-			addressLocality: store.legalAddress
-		} : undefined
+		address: store.legalAddress
+			? {
+					'@type': 'PostalAddress',
+					addressCountry: 'RU',
+					addressLocality: store.legalAddress
+				}
+			: undefined
 	};
 }
 
 /**
- * Генерирует JSON-LD для BreadcrumbList
+ * JSON-LD для BreadcrumbList
  */
-export function generateBreadcrumbJsonLd(items: Array<{ name: string; url: string }>): object {
-	const siteUrl = typeof window !== 'undefined' ? window.location.origin : '';
-
+export function generateBreadcrumbJsonLd(
+	items: Array<{ name: string; url: string }>,
+	origin = ''
+): object {
 	return {
 		'@context': 'https://schema.org/',
 		'@type': 'BreadcrumbList',
@@ -108,30 +86,30 @@ export function generateBreadcrumbJsonLd(items: Array<{ name: string; url: strin
 			'@type': 'ListItem',
 			position: index + 1,
 			name: item.name,
-			item: `${siteUrl}${item.url}`
+			item: absoluteUrl(origin, item.url)
 		}))
 	};
 }
 
 /**
- * Генерирует JSON-LD для коллекции товаров (каталог)
+ * JSON-LD для коллекции товаров (каталог или категория)
  */
 export function generateCollectionJsonLd(
 	products: Product[],
-	category?: Category,
-	store?: Store
+	category?: Category | null,
+	store?: Store | null,
+	origin = ''
 ): object {
-	const siteUrl = typeof window !== 'undefined' ? window.location.origin : '';
-	const currency = store?.currency || 'RUB';
+	const currency = store?.currency || DEFAULT_CURRENCY;
 
 	return {
 		'@context': 'https://schema.org/',
 		'@type': 'CollectionPage',
 		name: category ? category.name : 'Каталог товаров',
-		description: category 
-			? `Товары категории ${category.name}` 
+		description: category
+			? `Товары категории ${category.name}`
 			: 'Каталог товаров нашего магазина',
-		url: `${siteUrl}${category ? `/categories/${category.slug}` : '/catalog'}`,
+		url: absoluteUrl(origin, category ? `/categories/${category.slug}` : '/catalog'),
 		mainEntity: {
 			'@type': 'ItemList',
 			numberOfItems: products.length,
@@ -141,14 +119,16 @@ export function generateCollectionJsonLd(
 				item: {
 					'@type': 'Product',
 					name: product.name,
+					url: absoluteUrl(origin, `/products/${product.slug}`),
 					image: product.images?.[0]?.url || undefined,
 					offers: {
 						'@type': 'Offer',
 						price: product.price,
 						priceCurrency: currency,
-						availability: product.quantity > 0 
-							? 'https://schema.org/InStock' 
-							: 'https://schema.org/OutOfStock'
+						availability:
+							product.quantity > 0
+								? 'https://schema.org/InStock'
+								: 'https://schema.org/OutOfStock'
 					}
 				}
 			}))

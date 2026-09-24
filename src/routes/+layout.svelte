@@ -1,22 +1,25 @@
 <script lang="ts">
 	import '../lib/styles/global.css';
+	import { onMount } from 'svelte';
 	import Header from '$lib/components/layout/Header.svelte';
 	import Footer from '$lib/components/layout/Footer.svelte';
+	import Toaster from '$lib/components/ui/Toaster.svelte';
+	import ConfirmDialog from '$lib/components/ui/ConfirmDialog.svelte';
 	import { storeSettings } from '$lib/stores/store';
-	import { onMount } from 'svelte';
+	import { authStore } from '$lib/stores/auth';
+	import { cartStore } from '$lib/stores/cart';
 
 	let { data, children } = $props();
 
-	// Устанавливаем настройки магазина в store
-	$storeSettings = data.store;
+	// Настройки магазина: сразу для SSR и первого рендера, и дальше при каждой инвалидации данных
+	storeSettings.set(data.store ?? null);
+	$effect(() => {
+		storeSettings.set(data.store ?? null);
+	});
 
 	onMount(async () => {
-		// Инициализируем auth store на клиенте
-		const { authStore } = await import('$lib/stores/auth');
 		await authStore.init();
-		
-		// Инициализируем корзину после авторизации
-		const { cartStore } = await import('$lib/stores/cart');
+		// Корзина зависит от того, авторизован ли пользователь
 		await cartStore.init();
 	});
 </script>
@@ -28,3 +31,6 @@
 	</main>
 	<Footer />
 </div>
+
+<Toaster />
+<ConfirmDialog />

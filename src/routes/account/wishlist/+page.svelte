@@ -3,6 +3,7 @@
 	import { wishlistApi } from '$lib/api/wishlist';
 	import type { WishlistItem } from '$lib/types/common';
 	import ProductCard from '$lib/components/product/ProductCard.svelte';
+	import { getErrorMessage } from '$lib/utils/errors';
 
 	let wishlistItems = $state<WishlistItem[]>([]);
 	let isLoading = $state(true);
@@ -18,8 +19,8 @@
 
 		try {
 			wishlistItems = await wishlistApi.getWishlist();
-		} catch (err: any) {
-			error = err.message || 'Ошибка загрузки избранного';
+		} catch (err) {
+			error = getErrorMessage(err, 'Ошибка загрузки избранного');
 		} finally {
 			isLoading = false;
 		}
@@ -29,8 +30,8 @@
 		try {
 			await wishlistApi.removeFromWishlist(productId);
 			await loadWishlist();
-		} catch (err: any) {
-			error = err.message || 'Ошибка удаления из избранного';
+		} catch (err) {
+			error = getErrorMessage(err, 'Ошибка удаления из избранного');
 		}
 	}
 </script>
@@ -44,7 +45,7 @@
 	<h1 class="text-2xl font-bold text-gray-800 mb-6">Избранное</h1>
 
 	{#if error}
-		<div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+		<div role="alert" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
 			{error}
 		</div>
 	{/if}

@@ -1,24 +1,20 @@
 // Server-side загрузка деталей заказа
 
-import { ordersApi } from '$lib/api/orders';
 import { error } from '@sveltejs/kit';
+import { ordersApi } from '$lib/api/orders';
+import { throwHttpError } from '$lib/utils/errors';
 
 export async function load({ params }) {
-	const id = parseInt(params.id);
+	const id = Number.parseInt(params.id, 10);
 
-	if (isNaN(id)) {
-		throw error(404, 'Заказ не найден');
+	if (!Number.isInteger(id) || id <= 0) {
+		error(404, 'Заказ не найден');
 	}
 
-	try {
-		const order = await ordersApi.getOrderById(id);
-		return {
-			order
-		};
-	} catch (err: any) {
-		if (err.statusCode === 404 || err.statusCode === 403) {
-			throw error(404, 'Заказ не найден');
-		}
-		throw error(500, 'Ошибка загрузки заказа');
-	}
+	// Чужой заказ (403) показываем как 404, чтобы не раскрывать его существование
+	const order = await ordersApi
+		.getOrderById(id)
+		.catch((err) => throwHttpError(err, { notFound: 'Заказ не найден', forbiddenAsNotFound: true }));
+
+	return { order };
 }

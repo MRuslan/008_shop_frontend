@@ -2,6 +2,7 @@
 	import { storeApi } from '$lib/api/store';
 	import { storeSettings } from '$lib/stores/store';
 	import type { Store } from '$lib/types/common';
+	import { getErrorMessage } from '$lib/utils/errors';
 
 	interface Props {
 		data: {
@@ -70,8 +71,8 @@
 			setTimeout(() => {
 				success = false;
 			}, 3000);
-		} catch (err: any) {
-			const message = err.message || 'Ошибка сохранения настроек';
+		} catch (err) {
+			const message = getErrorMessage(err, 'Ошибка сохранения настроек');
 			if (Array.isArray(message)) {
 				error = message.join(', ');
 			} else {
@@ -92,13 +93,13 @@
 
 	<form onsubmit={(e) => { e.preventDefault(); handleSubmit(); }} class="space-y-6">
 		{#if error}
-			<div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+			<div role="alert" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
 				{error}
 			</div>
 		{/if}
 
 		{#if success}
-			<div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded">
+			<div role="status" class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded">
 				Настройки успешно сохранены!
 			</div>
 		{/if}

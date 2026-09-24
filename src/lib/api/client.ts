@@ -91,9 +91,9 @@ class ApiClient {
 		const { skipAuth = false, useSessionId = false, headers = {}, ...restOptions } = options;
 
 		// Формируем заголовки
-		const requestHeaders: HeadersInit = {
+		const requestHeaders: Record<string, string> = {
 			'Content-Type': 'application/json',
-			...headers
+			...(headers as Record<string, string>)
 		};
 
 		// Добавляем авторизацию

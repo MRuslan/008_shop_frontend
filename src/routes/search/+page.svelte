@@ -1,8 +1,10 @@
 <script lang="ts">
+	import { goto, invalidateAll } from '$app/navigation';
 	import ProductList from '$lib/components/product/ProductList.svelte';
 	import type { Product, ProductFilters } from '$lib/types/product';
-	import { goto } from '$app/navigation';
-	import { page } from '$app/stores';
+
+	type SortBy = 'price' | 'createAt' | 'name';
+	type SortOrder = 'ASC' | 'DESC';
 
 	interface Props {
 		data: {
@@ -12,55 +14,59 @@
 			page: number;
 			limit: number;
 			filters: ProductFilters;
+			loadError: string | null;
 		};
 	}
 
 	let { data }: Props = $props();
 
-	let searchQuery = $state(data.query);
-	let currentPage = $state(data.page);
-	let sortBy = $state(data.filters.sortBy || 'createAt');
-	let sortOrder = $state(data.filters.sortOrder || 'DESC');
+	// Writable derived: поле ввода редактируется локально, но подхватывает запрос из URL при навигации
+	let searchQuery = $derived(data.query);
 
-	function handleSearch() {
+	const currentPage = $derived(data.page);
+	const totalPages = $derived(Math.max(1, Math.ceil(data.total / data.limit)));
+	const sortBy = $derived((data.filters.sortBy || 'createAt') as SortBy);
+	const sortOrder = $derived((data.filters.sortOrder || 'DESC') as SortOrder);
+
+	function buildUrl(query: string, pageNumber: number, by: SortBy, order: SortOrder): string {
 		const params = new URLSearchParams();
-		if (searchQuery.trim()) {
-			params.set('q', searchQuery.trim());
-		}
-		if (sortBy !== 'createAt') params.set('sortBy', sortBy);
-		if (sortOrder !== 'DESC') params.set('sortOrder', sortOrder);
-
-		const query = params.toString();
-		goto(`/search${query ? `?${query}` : ''}`, { noScroll: false });
+		if (query.trim()) params.set('q', query.trim());
+		if (pageNumber > 1) params.set('page', pageNumber.toString());
+		if (by !== 'createAt') params.set('sortBy', by);
+		if (order !== 'DESC') params.set('sortOrder', order);
+		const search = params.toString();
+		return `/search${search ? `?${search}` : ''}`;
 	}
 
-	function updateSorting(newSortBy: 'price' | 'createAt' | 'name', newSortOrder: 'ASC' | 'DESC') {
-		sortBy = newSortBy;
-		sortOrder = newSortOrder;
-		currentPage = 1;
-		handleSearch();
+	function handleSearch() {
+		goto(buildUrl(searchQuery, 1, sortBy, sortOrder), { noScroll: false });
+	}
+
+	function updateSorting(value: string) {
+		const [by, order] = value.split('-') as [SortBy, SortOrder];
+		goto(buildUrl(data.query, 1, by, order), { noScroll: false });
 	}
 
 	function goToPage(newPage: number) {
-		currentPage = newPage;
-		const params = new URLSearchParams();
-		if (searchQuery.trim()) {
-			params.set('q', searchQuery.trim());
-		}
-		if (currentPage > 1) params.set('page', currentPage.toString());
-		if (sortBy !== 'createAt') params.set('sortBy', sortBy);
-		if (sortOrder !== 'DESC') params.set('sortOrder', sortOrder);
-
-		const query = params.toString();
-		goto(`/search${query ? `?${query}` : ''}`, { noScroll: false });
+		goto(buildUrl(data.query, newPage, sortBy, sortOrder), { noScroll: false });
 	}
 
-	const totalPages = Math.ceil(data.total / data.limit);
+	let retrying = $state(false);
+
+	async function retry() {
+		retrying = true;
+		try {
+			await invalidateAll();
+		} finally {
+			retrying = false;
+		}
+	}
 </script>
 
 <svelte:head>
-	<title>Поиск {data.query ? `"${data.query}"` : ''} - Каталог</title>
+	<title>{data.query ? `Поиск «${data.query}»` : 'Поиск товаров'} | Каталог</title>
 	<meta name="description" content="Результаты поиска товаров" />
+	<meta name="robots" content="noindex, follow" />
 </svelte:head>
 
 <div class="container mx-auto px-4 py-8">
@@ -68,6 +74,7 @@
 
 	<!-- Поисковая форма -->
 	<form
+		role="search"
 		onsubmit={(e) => {
 			e.preventDefault();
 			handleSearch();
@@ -76,10 +83,12 @@
 	>
 		<div class="flex gap-2">
 			<input
-				type="text"
+				type="search"
 				bind:value={searchQuery}
 				placeholder="Введите название товара..."
-				class="flex-1 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+				aria-label="Поисковый запрос"
+				enterkeyhint="search"
+				class="flex-1 min-w-0 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
 			/>
 			<button
 				type="submit"
@@ -90,27 +99,31 @@
 		</div>
 	</form>
 
-	{#if data.query}
+	{#if data.loadError}
+		<div role="alert" class="rounded-lg border border-red-200 bg-red-50 p-6 text-center">
+			<p class="font-medium text-red-800">Не удалось выполнить поиск</p>
+			<p class="mt-1 text-sm text-red-700">{data.loadError}</p>
+			<button
+				type="button"
+				onclick={retry}
+				disabled={retrying}
+				class="mt-4 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+			>
+				{retrying ? 'Обновляем…' : 'Попробовать снова'}
+			</button>
+		</div>
+	{:else if data.query}
 		<!-- Результаты поиска -->
-		<div class="mb-4 flex items-center justify-between">
-			<div class="text-sm text-gray-600">
-				Найдено товаров: {data.total}
-				{#if data.query}
-					по запросу "<span class="font-medium">{data.query}</span>"
-				{/if}
-			</div>
+		<div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+			<p class="text-sm text-gray-600" role="status">
+				Найдено товаров: {data.total} по запросу «<span class="font-medium">{data.query}</span>»
+			</p>
 			<div class="flex items-center space-x-2">
 				<label for="sort" class="text-sm text-gray-700">Сортировка:</label>
 				<select
 					id="sort"
 					value={`${sortBy}-${sortOrder}`}
-					onchange={(e) => {
-						const [newSortBy, newSortOrder] = e.currentTarget.value.split('-');
-						updateSorting(
-							newSortBy as 'price' | 'createAt' | 'name',
-							newSortOrder as 'ASC' | 'DESC'
-						);
-					}}
+					onchange={(e) => updateSorting(e.currentTarget.value)}
 					class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
 				>
 					<option value="createAt-DESC">Новинки</option>
@@ -125,15 +138,16 @@
 		{#if data.products.length === 0}
 			<div class="text-center py-12">
 				<p class="text-gray-500 text-lg mb-2">Товары не найдены</p>
-				<p class="text-gray-400 text-sm">Попробуйте изменить поисковый запрос</p>
+				<p class="text-gray-500 text-sm">Попробуйте изменить поисковый запрос</p>
 			</div>
 		{:else}
 			<ProductList products={data.products} />
 
 			<!-- Пагинация -->
 			{#if totalPages > 1}
-				<div class="mt-8 flex justify-center items-center space-x-2">
+				<nav class="mt-8 flex justify-center items-center space-x-2" aria-label="Страницы результатов">
 					<button
+						type="button"
 						onclick={() => goToPage(currentPage - 1)}
 						disabled={currentPage === 1}
 						class="px-4 py-2 border border-gray-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
@@ -141,10 +155,12 @@
 						Назад
 					</button>
 
-					{#each Array.from({ length: totalPages }, (_, i) => i + 1) as pageNum}
+					{#each Array.from({ length: totalPages }, (_, i) => i + 1) as pageNum (pageNum)}
 						{#if pageNum === 1 || pageNum === totalPages || (pageNum >= currentPage - 2 && pageNum <= currentPage + 2)}
 							<button
+								type="button"
 								onclick={() => goToPage(pageNum)}
+								aria-current={pageNum === currentPage ? 'page' : undefined}
 								class="px-4 py-2 border rounded-md transition-colors"
 								class:bg-blue-600={pageNum === currentPage}
 								class:text-white={pageNum === currentPage}
@@ -155,18 +171,19 @@
 								{pageNum}
 							</button>
 						{:else if pageNum === currentPage - 3 || pageNum === currentPage + 3}
-							<span class="px-2">...</span>
+							<span class="px-2" aria-hidden="true">...</span>
 						{/if}
 					{/each}
 
 					<button
+						type="button"
 						onclick={() => goToPage(currentPage + 1)}
 						disabled={currentPage === totalPages}
 						class="px-4 py-2 border border-gray-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
 					>
 						Вперёд
 					</button>
-				</div>
+				</nav>
 			{/if}
 		{/if}
 	{:else}

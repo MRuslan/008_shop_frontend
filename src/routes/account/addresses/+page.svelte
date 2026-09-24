@@ -4,6 +4,7 @@
 	import type { Address, CreateAddressDto, UpdateAddressDto } from '$lib/types/common';
 	import AddressList from '$lib/components/checkout/AddressList.svelte';
 	import AddressForm from '$lib/components/checkout/AddressForm.svelte';
+	import { getErrorMessage } from '$lib/utils/errors';
 
 	let addresses = $state<Address[]>([]);
 	let isLoading = $state(true);
@@ -21,8 +22,8 @@
 
 		try {
 			addresses = await addressesApi.getAddresses();
-		} catch (err: any) {
-			error = err.message || 'Ошибка загрузки адресов';
+		} catch (err) {
+			error = getErrorMessage(err, 'Ошибка загрузки адресов');
 		} finally {
 			isLoading = false;
 		}
@@ -39,8 +40,8 @@
 			await loadAddresses();
 			showAddressForm = false;
 			editingAddress = null;
-		} catch (err: any) {
-			throw new Error(err.message || 'Ошибка сохранения адреса');
+		} catch (err) {
+			throw new Error(getErrorMessage(err, 'Ошибка сохранения адреса'));
 		}
 	}
 
@@ -48,8 +49,8 @@
 		try {
 			await addressesApi.deleteAddress(addressId);
 			await loadAddresses();
-		} catch (err: any) {
-			error = err.message || 'Ошибка удаления адреса';
+		} catch (err) {
+			error = getErrorMessage(err, 'Ошибка удаления адреса');
 		}
 	}
 
@@ -57,8 +58,8 @@
 		try {
 			await addressesApi.setDefaultAddress(addressId);
 			await loadAddresses();
-		} catch (err: any) {
-			error = err.message || 'Ошибка установки адреса по умолчанию';
+		} catch (err) {
+			error = getErrorMessage(err, 'Ошибка установки адреса по умолчанию');
 		}
 	}
 </script>
@@ -73,6 +74,7 @@
 		<h1 class="text-2xl font-bold text-gray-800">Адреса доставки</h1>
 		{#if !showAddressForm}
 			<button
+				type="button"
 				onclick={() => {
 					editingAddress = null;
 					showAddressForm = true;
@@ -85,7 +87,7 @@
 	</div>
 
 	{#if error}
-		<div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+		<div role="alert" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
 			{error}
 		</div>
 	{/if}
@@ -107,6 +109,7 @@
 		<div class="text-center py-12">
 			<p class="text-gray-500 mb-4">У вас пока нет сохранённых адресов</p>
 			<button
+				type="button"
 				onclick={() => {
 					editingAddress = null;
 					showAddressForm = true;
@@ -119,7 +122,8 @@
 	{:else}
 		<AddressList
 			{addresses}
-			selectedAddressId={null}
+			selectedAddressId={addresses.find((a) => a.isDefault)?.id ?? null}
+			legend="Адрес по умолчанию для заказов"
 			onSelect={(id) => handleSetDefault(id)}
 			onEdit={(address) => {
 				editingAddress = address;
@@ -132,8 +136,8 @@
 			}}
 		/>
 		
-		<div class="mt-4 text-sm text-gray-600">
-			<p>💡 Нажмите на адрес, чтобы установить его по умолчанию</p>
-		</div>
+		<p class="mt-4 text-sm text-gray-600">
+			Выберите адрес, чтобы сделать его адресом по умолчанию для новых заказов.
+		</p>
 	{/if}
 </div>

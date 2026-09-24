@@ -5,6 +5,9 @@
 	import { formatPrice } from '$lib/utils/format';
 	import { storeSettings } from '$lib/stores/store';
 	import ProductForm from '$lib/components/admin/ProductForm.svelte';
+	import { getErrorMessage } from '$lib/utils/errors';
+	import { toast } from '$lib/stores/toast';
+	import { confirmDialog } from '$lib/stores/confirm';
 
 	interface Props {
 		data: {
@@ -18,28 +21,26 @@
 
 	let { data }: Props = $props();
 
-	// Отладочная информация
-	$effect(() => {
-		console.log('Products data:', {
-			products: data.products,
-			count: data.products?.length || 0,
-			total: data.total
-		});
-	});
-
 	let showProductForm = $state(false);
 	let editingProduct = $state<Product | null>(null);
 	let searchQuery = $state('');
 	let selectedCategoryId = $state<string | number>('');
 
-	async function handleDelete(productId: number) {
-		if (!confirm('Удалить товар? Это действие нельзя отменить.')) return;
+	async function handleDelete(product: Product) {
+		const confirmed = await confirmDialog({
+			title: `Удалить товар «${product.name}»?`,
+			message: 'Товар исчезнет из каталога. Это действие нельзя отменить.',
+			confirmLabel: 'Удалить',
+			danger: true
+		});
+		if (!confirmed) return;
 
 		try {
-			await productsApi.deleteProduct(productId);
+			await productsApi.deleteProduct(product.id);
 			await invalidateAll();
-		} catch (error: any) {
-			alert(error.message || 'Ошибка удаления товара');
+			toast.success(`Товар «${product.name}» удалён`);
+		} catch (err) {
+			toast.error(getErrorMessage(err, 'Не удалось удалить товар'));
 		}
 	}
 
@@ -215,7 +216,7 @@
 										✏️
 									</button>
 									<button
-										onclick={() => handleDelete(product.id)}
+										onclick={() => handleDelete(product)}
 										class="text-red-600 hover:text-red-900"
 										title="Удалить"
 									>

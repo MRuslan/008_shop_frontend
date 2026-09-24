@@ -2,6 +2,9 @@
 	import { invalidateAll } from '$app/navigation';
 	import { categoriesApi } from '$lib/api/categories';
 	import type { Category } from '$lib/types/product';
+	import { getErrorMessage } from '$lib/utils/errors';
+	import { toast } from '$lib/stores/toast';
+	import { confirmDialog } from '$lib/stores/confirm';
 
 	interface Props {
 		data: {
@@ -41,14 +44,21 @@
 		showCategoryForm = true;
 	}
 
-	async function handleDelete(categoryId: number) {
-		if (!confirm('Удалить категорию? Дочерние категории станут корневыми.')) return;
+	async function handleDelete(category: Category) {
+		const confirmed = await confirmDialog({
+			title: `Удалить категорию «${category.name}»?`,
+			message: 'Дочерние категории станут корневыми, товары останутся без категории.',
+			confirmLabel: 'Удалить',
+			danger: true
+		});
+		if (!confirmed) return;
 
 		try {
-			await categoriesApi.deleteCategory(categoryId);
+			await categoriesApi.deleteCategory(category.id);
 			await invalidateAll();
-		} catch (error: any) {
-			alert(error.message || 'Ошибка удаления категории');
+			toast.success(`Категория «${category.name}» удалена`);
+		} catch (err) {
+			toast.error(getErrorMessage(err, 'Не удалось удалить категорию'));
 		}
 	}
 
@@ -85,13 +95,8 @@
 			parentId = null;
 			sortOrder = 0;
 			isActive = true;
-		} catch (err: any) {
-			const message = err.message || 'Ошибка сохранения категории';
-			if (Array.isArray(message)) {
-				error = message.join(', ');
-			} else {
-				error = message;
-			}
+		} catch (err) {
+			error = getErrorMessage(err, 'Не удалось сохранить категорию');
 		} finally {
 			isSubmitting = false;
 		}
@@ -122,7 +127,7 @@
 
 			<form onsubmit={(e) => { e.preventDefault(); handleSubmit(); }} class="space-y-4">
 				{#if error}
-					<div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+					<div role="alert" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
 						{error}
 					</div>
 				{/if}
@@ -246,7 +251,7 @@
 							Редактировать
 						</button>
 						<button
-							onclick={() => handleDelete(category.id)}
+							onclick={() => handleDelete(category)}
 							class="px-3 py-1 text-red-600 hover:text-red-900 text-sm"
 						>
 							Удалить
@@ -280,7 +285,7 @@
 										Редактировать
 									</button>
 									<button
-										onclick={() => handleDelete(child.id)}
+										onclick={() => handleDelete(child)}
 										class="px-3 py-1 text-red-600 hover:text-red-900 text-sm"
 									>
 										Удалить

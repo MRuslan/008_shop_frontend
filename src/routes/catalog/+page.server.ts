@@ -2,21 +2,28 @@
 
 import { productsApi } from '$lib/api/products';
 import { categoriesApi } from '$lib/api/categories';
+import { getErrorMessage } from '$lib/utils/errors';
 import type { ProductFilters } from '$lib/types/product';
 
+function parsePositiveInt(value: string | null, fallback: number, max = Number.MAX_SAFE_INTEGER) {
+	const parsed = Number.parseInt(value ?? '', 10);
+	if (!Number.isFinite(parsed) || parsed < 1) return fallback;
+	return Math.min(parsed, max);
+}
+
+function parseNumber(value: string | null): number | undefined {
+	if (value === null || value === '') return undefined;
+	const parsed = Number.parseFloat(value);
+	return Number.isFinite(parsed) && parsed >= 0 ? parsed : undefined;
+}
+
 export async function load({ url }) {
-	const page = parseInt(url.searchParams.get('page') || '1');
-	const limit = parseInt(url.searchParams.get('limit') || '20');
-	const search = url.searchParams.get('search') || undefined;
-	const categoryId = url.searchParams.get('categoryId')
-		? parseInt(url.searchParams.get('categoryId')!)
-		: undefined;
-	const minPrice = url.searchParams.get('minPrice')
-		? parseFloat(url.searchParams.get('minPrice')!)
-		: undefined;
-	const maxPrice = url.searchParams.get('maxPrice')
-		? parseFloat(url.searchParams.get('maxPrice')!)
-		: undefined;
+	const page = parsePositiveInt(url.searchParams.get('page'), 1);
+	const limit = parsePositiveInt(url.searchParams.get('limit'), 20, 100);
+	const search = url.searchParams.get('search')?.trim() || undefined;
+	const categoryId = parsePositiveInt(url.searchParams.get('categoryId'), 0) || undefined;
+	const minPrice = parseNumber(url.searchParams.get('minPrice'));
+	const maxPrice = parseNumber(url.searchParams.get('maxPrice'));
 	const inStock = url.searchParams.get('inStock') === 'true' ? true : undefined;
 	const sortBy = (url.searchParams.get('sortBy') as 'price' | 'createAt' | 'name') || 'createAt';
 	const sortOrder = (url.searchParams.get('sortOrder') as 'ASC' | 'DESC') || 'DESC';
@@ -46,17 +53,20 @@ export async function load({ url }) {
 			page: productsResponse.page,
 			limit: productsResponse.limit,
 			categories,
-			filters
+			filters,
+			loadError: null as string | null
 		};
-	} catch (error) {
-		console.error('Failed to load catalog:', error);
+	} catch (err) {
+		console.error('Failed to load catalog:', err);
+		// Не выдаём пустую страницу «Товары не найдены» за успех: страница покажет ошибку и кнопку повтора
 		return {
 			products: [],
 			total: 0,
-			page: 1,
-			limit: 20,
+			page,
+			limit,
 			categories: [],
-			filters
+			filters,
+			loadError: getErrorMessage(err, 'Каталог временно недоступен. Попробуйте обновить страницу.')
 		};
 	}
 }

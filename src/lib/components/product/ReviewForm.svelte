@@ -2,6 +2,7 @@
 	import { reviewsApi } from '$lib/api/reviews';
 	import { authStore } from '$lib/stores/auth';
 	import type { CreateReviewDto } from '$lib/types/common';
+	import { getErrorMessage } from '$lib/utils/errors';
 
 	interface Props {
 		productId: number;
@@ -39,8 +40,8 @@
 			
 			// Обновляем список отзывов
 			onReviewAdded();
-		} catch (err: any) {
-			const message = err.message || 'Ошибка при добавлении отзыва';
+		} catch (err) {
+			const message = getErrorMessage(err, 'Ошибка при добавлении отзыва');
 			if (Array.isArray(message)) {
 				error = message.join(', ');
 			} else {
@@ -58,7 +59,7 @@
 
 		<form onsubmit={(e) => { e.preventDefault(); handleSubmit(); }} class="space-y-4">
 			{#if error}
-				<div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+				<div role="alert" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
 					{error}
 				</div>
 			{/if}
