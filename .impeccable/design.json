@@ -1,0 +1,190 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-25T12:00:00+03:00",
+  "title": "Design System: Витрина магазина",
+  "extensions": {
+    "colorMeta": {
+      "canvas": { "role": "neutral", "displayName": "Туманный холст", "canonical": "var(--color-gray-100)", "tonalRamp": ["#0b0b0c", "#2a2a2f", "#414147", "#6a6a71", "#a1a1a8", "#d1d1d6", "#f0f0f2", "#f7f7f8"] },
+      "surface": { "role": "neutral", "displayName": "Белая карточка", "canonical": "#ffffff", "tonalRamp": ["#18181b", "#414147", "#6a6a71", "#a1a1a8", "#d1d1d6", "#e4e4e7", "#f7f7f8", "#ffffff"] },
+      "ink": { "role": "primary", "displayName": "Графитовая тушь", "canonical": "var(--color-gray-950)", "tonalRamp": ["#0b0b0c", "#18181b", "#2a2a2f", "#414147", "#57575e", "#6a6a71", "#a1a1a8", "#d1d1d6"] },
+      "ink-hover": { "role": "primary", "displayName": "Тушь под рукой", "canonical": "var(--color-gray-800)", "tonalRamp": ["#0b0b0c", "#18181b", "#2a2a2f", "#414147", "#57575e", "#6a6a71", "#a1a1a8", "#d1d1d6"] },
+      "line": { "role": "neutral", "displayName": "Тонкая линия", "canonical": "var(--color-gray-200)", "tonalRamp": ["#18181b", "#414147", "#6a6a71", "#a1a1a8", "#d1d1d6", "#e4e4e7", "#f0f0f2", "#f7f7f8"] },
+      "muted": { "role": "neutral", "displayName": "Приглушённый графит", "canonical": "var(--color-gray-500)", "tonalRamp": ["#0b0b0c", "#2a2a2f", "#414147", "#57575e", "#6a6a71", "#a1a1a8", "#d1d1d6", "#f0f0f2"] },
+      "positive": { "role": "status", "displayName": "Есть на складе", "canonical": "#1d7a47", "tonalRamp": ["#0c2e1b", "#124a2c", "#1d7a47", "#2e9a5e", "#5cb885", "#93d2ae", "#c7e8d4", "#eaf6ef"] },
+      "caution": { "role": "status", "displayName": "Мало", "canonical": "#9a5b00", "tonalRamp": ["#3a2200", "#5e3800", "#9a5b00", "#bd7a14", "#d9a04d", "#ebc68c", "#f6e3c4", "#fcf4e6"] },
+      "negative": { "role": "status", "displayName": "Ошибка", "canonical": "#b42318", "tonalRamp": ["#450d09", "#7a1811", "#b42318", "#d4442f", "#e8786a", "#f3aca3", "#fad6d1", "#fdf0ee"] },
+      "gray-50": { "role": "neutral", "displayName": "Колодец", "canonical": "#f7f7f8" },
+      "gray-100": { "role": "neutral", "displayName": "Подложка контрола", "canonical": "#f0f0f2" },
+      "gray-200": { "role": "neutral", "displayName": "Наведение контрола", "canonical": "#e4e4e7" },
+      "gray-300": { "role": "neutral", "displayName": "Выключенный тумблер", "canonical": "#d1d1d6" },
+      "gray-400": { "role": "neutral", "displayName": "Иконка-заглушка", "canonical": "#a1a1a8" },
+      "gray-500": { "role": "neutral", "displayName": "Вторичный текст", "canonical": "#6a6a71" },
+      "gray-600": { "role": "neutral", "displayName": "Текст интерфейса", "canonical": "#57575e" },
+      "gray-700": { "role": "neutral", "displayName": "Текст описания", "canonical": "#414147" },
+      "gray-800": { "role": "neutral", "displayName": "Текст названия", "canonical": "#2a2a2f" },
+      "gray-900": { "role": "neutral", "displayName": "Текст страницы", "canonical": "#18181b" },
+      "gray-950": { "role": "neutral", "displayName": "Почти чёрный", "canonical": "#0b0b0c" }
+    },
+    "deprecatedBridge": {
+      "purpose": "Временный мост: --color-blue-* в @theme отображены в графит, чтобы непереведённые экраны (корзина, оформление, кабинет, админка) совпадали с витриной. В новой работе не использовать; удалить, когда последний экран переведён на семантические роли.",
+      "values": {
+        "blue-50": "#f4f4f5",
+        "blue-100": "#e9e9ec",
+        "blue-200": "#d6d6db",
+        "blue-300": "#b9b9c0",
+        "blue-400": "#8b8b93",
+        "blue-500": "#41414a",
+        "blue-600": "var(--color-gray-950)",
+        "blue-700": "var(--color-gray-800)",
+        "blue-800": "var(--color-gray-900)",
+        "blue-900": "var(--color-gray-950)"
+      }
+    },
+    "typographyMeta": {
+      "headline": { "displayName": "Headline", "purpose": "Заголовок страницы каталога, раздела и название товара с 768px; text-balance." },
+      "headline-mobile": { "displayName": "Headline (телефон)", "purpose": "Заголовок каталога и раздела до 768px; название товара на телефоне — 1.25rem / 1.25." },
+      "price-lg": { "displayName": "Цена крупно", "purpose": "Цена в блоке покупки карточки товара. Пропорциональные цифры." },
+      "price": { "displayName": "Цена", "purpose": "Цена в карточке списка (1.125rem до 640px) и в полосе покупки. Пропорциональные цифры." },
+      "title": { "displayName": "Title", "purpose": "Заголовки панелей: «Описание», «Отзывы», «Фильтры»." },
+      "body": { "displayName": "Body", "purpose": "Описание товара, ширина до 36rem." },
+      "body-sm": { "displayName": "Body small", "purpose": "Название в карточке (две строки), крошки, строки фильтров, тосты." },
+      "control": { "displayName": "Control", "purpose": "Подписи кнопок, чипсов, пагинации; большая кнопка — 1rem." },
+      "label": { "displayName": "Label", "purpose": "Остаток, старая цена, плашка скидки (600), подписи иконок шапки." },
+      "tab-label": { "displayName": "Tab label", "purpose": "Подписи нижних вкладок и цифра счётчика корзины (600, tabular-nums)." }
+    },
+    "numerals": {
+      "default": "proportional",
+      "tabularOnly": ["число в степпере", "счётчик корзины", "номера пагинации", "счётчик активных фильтров", "поля цены при наборе"],
+      "reason": "Табличная «1» у Onest разрывает «15 990» визуально."
+    },
+    "shadows": [
+      { "name": "card-hover", "value": "0 4px 16px rgb(0 0 0 / 0.06)", "purpose": "Только при наведении на карточку товара, переход 200ms. В покое теней нет." },
+      { "name": "toast", "value": "0 8px 24px rgb(0 0 0 / 0.18)", "purpose": "Тёмная плашка уведомления над контентом." },
+      { "name": "sheet-backdrop", "value": "rgb(0 0 0 / 0.4)", "purpose": "Затемнение под нижним листом фильтров." }
+    ],
+    "motion": [
+      { "name": "ease-out-quart", "value": "cubic-bezier(0.25, 1, 0.5, 1)", "purpose": "Основная кривая: морф, толчок, выезд листа и полосы покупки." },
+      { "name": "animate-swap-in", "value": "swap-in 200ms var(--ease-out-quart)", "purpose": "Кнопка «В корзину» ↔ степпер и «Перейти в корзину»: opacity 0→1, scale 0.96→1." },
+      { "name": "animate-bump", "value": "bump 320ms var(--ease-out-quart)", "purpose": "Счётчик корзины при росте числа: scale 1→1.22→1; не при первой загрузке." },
+      { "name": "state-color", "value": "150ms", "purpose": "Смена цвета кнопок и чипсов при наведении." },
+      { "name": "surface-slide", "value": "300ms var(--ease-out-quart)", "purpose": "Нижний лист фильтров снизу, полоса покупки на телефоне." },
+      { "name": "toast-fly", "value": "fly y 16px, 220ms", "purpose": "Появление тоста; при reduced motion — 0." },
+      { "name": "reduced-motion", "value": "animation-duration: 1ms; transition-duration: 1ms; scroll-behavior: auto", "purpose": "Глобально при prefers-reduced-motion: reduce." }
+    ],
+    "breakpoints": [
+      { "name": "sm", "value": "640px" },
+      { "name": "md", "value": "768px" },
+      { "name": "lg", "value": "1024px" },
+      { "name": "xl", "value": "1280px" }
+    ],
+    "focus": { "value": "outline: 2px solid var(--color-ink); outline-offset: 2px", "purpose": "Глобальный видимый фокус; на тосте — белый." },
+    "layoutReference": "citilink.ru — компоновка и плотность; без баннеров, ярлыков акций, бонусов и оранжевого."
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Чёрная плитка основного действия: «В корзину», «Каталог», «Показать N товаров».",
+      "html": "<button class=\"ds-btn-primary\"><svg viewBox=\"0 0 24 24\" width=\"16\" height=\"16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><circle cx=\"8\" cy=\"21\" r=\"1\"/><circle cx=\"19\" cy=\"21\" r=\"1\"/><path d=\"M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12\"/></svg>В корзину</button>",
+      "css": ".ds-btn-primary { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 44px; padding: 0 20px; border: 0; border-radius: 12px; background: var(--color-ink, #0b0b0c); color: #ffffff; font-family: 'Onest Variable', system-ui, sans-serif; font-size: 14px; font-weight: 500; cursor: pointer; transition: background-color 150ms, transform 150ms; } .ds-btn-primary:hover { background: var(--color-ink-hover, #2a2a2f); } .ds-btn-primary:active { transform: scale(0.98); } .ds-btn-primary:focus-visible { outline: 2px solid var(--color-ink, #0b0b0c); outline-offset: 2px; }"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Серая плитка второстепенного действия: «Написать отзыв», «в избранное» рядом с покупкой.",
+      "html": "<button class=\"ds-btn-secondary\">Написать отзыв</button>",
+      "css": ".ds-btn-secondary { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 44px; padding: 0 16px; border: 0; border-radius: 12px; background: var(--color-gray-100, #f0f0f2); color: var(--color-ink, #0b0b0c); font-family: 'Onest Variable', system-ui, sans-serif; font-size: 14px; font-weight: 500; cursor: pointer; transition: background-color 150ms; } .ds-btn-secondary:hover { background: var(--color-gray-200, #e4e4e7); } .ds-btn-secondary:focus-visible { outline: 2px solid var(--color-ink, #0b0b0c); outline-offset: 2px; }"
+    },
+    {
+      "name": "Search Field",
+      "kind": "input",
+      "refersTo": "input-field",
+      "description": "Поле поиска в шапке: серая подложка без обводки, при фокусе белеет и получает кольцо ink.",
+      "html": "<form class=\"ds-search\" role=\"search\"><input class=\"ds-search-input\" type=\"search\" placeholder=\"Поиск товаров\" aria-label=\"Поиск товаров\"><button class=\"ds-search-btn\" type=\"submit\" aria-label=\"Найти\"><svg viewBox=\"0 0 24 24\" width=\"20\" height=\"20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><circle cx=\"11\" cy=\"11\" r=\"8\"/><path d=\"m21 21-4.3-4.3\"/></svg></button></form>",
+      "css": ".ds-search { position: relative; width: 100%; max-width: 480px; } .ds-search-input { width: 100%; height: 44px; padding: 0 48px 0 16px; border: 0; border-radius: 12px; background: var(--color-gray-100, #f0f0f2); color: var(--color-ink, #0b0b0c); font-family: 'Onest Variable', system-ui, sans-serif; font-size: 15px; } .ds-search-input::placeholder { color: var(--color-gray-500, #6a6a71); } .ds-search-input:focus { outline: none; background: #ffffff; box-shadow: 0 0 0 2px var(--color-ink, #0b0b0c); } .ds-search-btn { position: absolute; top: 0; right: 0; display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; border: 0; border-radius: 12px; background: transparent; color: var(--color-gray-500, #6a6a71); cursor: pointer; } .ds-search-btn:hover { color: var(--color-ink, #0b0b0c); }"
+    },
+    {
+      "name": "Category Chips",
+      "kind": "chip",
+      "refersTo": "chip",
+      "description": "Ряд круглых чипсов разделов; активный залит ink.",
+      "html": "<ul class=\"ds-chips\"><li><a class=\"ds-chip ds-chip-active\" href=\"#\" aria-current=\"page\">Все товары</a></li><li><a class=\"ds-chip\" href=\"#\">Смартфоны и гаджеты</a></li><li><a class=\"ds-chip\" href=\"#\">Ноутбуки</a></li></ul>",
+      "css": ".ds-chips { display: flex; gap: 8px; margin: 0; padding: 16px; list-style: none; background: var(--color-canvas, #f0f0f2); white-space: nowrap; overflow-x: auto; } .ds-chip { display: inline-flex; align-items: center; height: 44px; padding: 0 16px; border-radius: 9999px; background: #ffffff; color: var(--color-gray-800, #2a2a2f); font-family: 'Onest Variable', system-ui, sans-serif; font-size: 14px; font-weight: 500; text-decoration: none; transition: background-color 150ms; } .ds-chip:hover { background: var(--color-gray-200, #e4e4e7); } .ds-chip-active, .ds-chip-active:hover { background: var(--color-ink, #0b0b0c); color: #ffffff; } .ds-chip:focus-visible { outline: 2px solid var(--color-ink, #0b0b0c); outline-offset: 2px; }"
+    },
+    {
+      "name": "Product Card",
+      "kind": "card",
+      "refersTo": "product-card",
+      "description": "Белая карточка 16px на холсте: колодец с фото, старая цена и плашка скидки, цена, название в две строки, остаток словом и точкой, «В корзину».",
+      "html": "<div class=\"ds-card-canvas\"><article class=\"ds-card\"><div class=\"ds-card-well\"><div class=\"ds-card-photo\"></div><button class=\"ds-card-fav\" type=\"button\" aria-label=\"В избранное\"><svg viewBox=\"0 0 24 24\" width=\"20\" height=\"20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z\"/></svg></button></div><p class=\"ds-card-old\"><s>49 990 ₽</s><span class=\"ds-card-plate\">−14%</span></p><p class=\"ds-card-price\">42 990 ₽</p><h3 class=\"ds-card-name\"><a href=\"#\">Смартфон Nova X2 8/256 ГБ, графит</a></h3><p class=\"ds-card-stock\"><span class=\"ds-card-dot\"></span>В наличии 14 шт.</p><button class=\"ds-card-buy\" type=\"button\">В корзину</button></article></div>",
+      "css": ".ds-card-canvas { padding: 16px; background: var(--color-canvas, #f0f0f2); } .ds-card { position: relative; display: flex; flex-direction: column; width: 180px; padding: 12px; border-radius: 16px; background: #ffffff; font-family: 'Onest Variable', system-ui, sans-serif; transition: box-shadow 200ms; } .ds-card:hover { box-shadow: 0 4px 16px rgb(0 0 0 / 0.06); } .ds-card-well { position: relative; aspect-ratio: 1; border-radius: 12px; background: var(--color-gray-50, #f7f7f8); } .ds-card-photo { position: absolute; inset: 28% 36%; border-radius: 10px; background: #2a2a2f; } .ds-card-fav { position: absolute; top: 0; right: 0; display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; border: 0; border-radius: 9999px; background: transparent; color: var(--color-gray-400, #a1a1a8); cursor: pointer; } .ds-card-fav:hover { color: var(--color-ink, #0b0b0c); } .ds-card-old { display: flex; align-items: center; gap: 6px; height: 20px; margin: 10px 0 0; font-size: 12px; color: var(--color-gray-500, #6a6a71); } .ds-card-plate { padding: 2px 6px; border-radius: 6px; background: var(--color-ink, #0b0b0c); color: #ffffff; font-weight: 600; } .ds-card-price { margin: 0; font-size: 20px; line-height: 28px; font-weight: 600; letter-spacing: -0.025em; color: var(--color-ink, #0b0b0c); } .ds-card-name { margin: 4px 0 0; font-size: 14px; line-height: 20px; font-weight: 400; } .ds-card-name a { color: var(--color-gray-800, #2a2a2f); text-decoration: none; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; } .ds-card:hover .ds-card-name a { color: var(--color-ink, #0b0b0c); } .ds-card-stock { display: flex; align-items: center; gap: 6px; margin: 6px 0 0; font-size: 12px; color: var(--color-gray-600, #57575e); } .ds-card-dot { width: 6px; height: 6px; border-radius: 9999px; background: var(--color-positive, #1d7a47); } .ds-card-buy { margin-top: 12px; height: 44px; border: 0; border-radius: 12px; background: var(--color-ink, #0b0b0c); color: #ffffff; font: inherit; font-size: 14px; font-weight: 500; cursor: pointer; transition: background-color 150ms; } .ds-card-buy:hover { background: var(--color-ink-hover, #2a2a2f); } .ds-card-buy:focus-visible, .ds-card-fav:focus-visible { outline: 2px solid var(--color-ink, #0b0b0c); outline-offset: 2px; }"
+    },
+    {
+      "name": "Cart Stepper",
+      "kind": "custom",
+      "refersTo": "cart-stepper",
+      "description": "Сигнатура: «В корзину» на месте превращается в «− N +» (swap-in 200ms), фокус переезжает на «+»; число tabular-nums.",
+      "html": "<div class=\"ds-stepper\" role=\"group\" aria-label=\"Количество в корзине\"><button class=\"ds-stepper-btn\" type=\"button\" aria-label=\"Уменьшить количество\"><svg viewBox=\"0 0 24 24\" width=\"16\" height=\"16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" aria-hidden=\"true\"><path d=\"M5 12h14\"/></svg></button><span class=\"ds-stepper-count\">2</span><button class=\"ds-stepper-btn\" type=\"button\" aria-label=\"Увеличить количество\"><svg viewBox=\"0 0 24 24\" width=\"16\" height=\"16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" aria-hidden=\"true\"><path d=\"M5 12h14\"/><path d=\"M12 5v14\"/></svg></button></div>",
+      "css": "@keyframes ds-swap-in { from { opacity: 0; transform: scale(0.96); } to { opacity: 1; transform: scale(1); } } .ds-stepper { display: flex; align-items: center; justify-content: space-between; width: 180px; height: 44px; border-radius: 12px; background: var(--color-gray-100, #f0f0f2); color: var(--color-gray-900, #18181b); font-family: 'Onest Variable', system-ui, sans-serif; animation: ds-swap-in 200ms cubic-bezier(0.25, 1, 0.5, 1); } .ds-stepper-btn { display: inline-flex; align-items: center; justify-content: center; min-width: 44px; height: 100%; border: 0; border-radius: 12px; background: transparent; color: inherit; cursor: pointer; transition: background-color 150ms; } .ds-stepper-btn:hover { background: var(--color-gray-200, #e4e4e7); } .ds-stepper-btn:focus-visible { outline: 2px solid var(--color-ink, #0b0b0c); outline-offset: 2px; } .ds-stepper-btn:disabled { color: var(--color-gray-400, #a1a1a8); cursor: not-allowed; background: transparent; } .ds-stepper-count { font-weight: 600; font-variant-numeric: tabular-nums; }"
+    },
+    {
+      "name": "Tab Bar",
+      "kind": "nav",
+      "refersTo": "tab-bar",
+      "description": "Единственная навигация телефона: пять вкладок 56px, активная ink с толстой обводкой, счётчик корзины со вздрагиванием.",
+      "html": "<nav class=\"ds-tabbar\" aria-label=\"Разделы магазина\"><a class=\"ds-tab\" href=\"#\"><svg viewBox=\"0 0 24 24\" width=\"24\" height=\"24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8\"/><path d=\"M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z\"/></svg>Главная</a><a class=\"ds-tab ds-tab-active\" href=\"#\" aria-current=\"page\"><svg viewBox=\"0 0 24 24\" width=\"24\" height=\"24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.25\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><rect width=\"7\" height=\"7\" x=\"3\" y=\"3\" rx=\"1\"/><rect width=\"7\" height=\"7\" x=\"14\" y=\"3\" rx=\"1\"/><rect width=\"7\" height=\"7\" x=\"14\" y=\"14\" rx=\"1\"/><rect width=\"7\" height=\"7\" x=\"3\" y=\"14\" rx=\"1\"/></svg>Каталог</a><a class=\"ds-tab\" href=\"#\"><span class=\"ds-tab-icon\"><svg viewBox=\"0 0 24 24\" width=\"24\" height=\"24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><circle cx=\"8\" cy=\"21\" r=\"1\"/><circle cx=\"19\" cy=\"21\" r=\"1\"/><path d=\"M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12\"/></svg><span class=\"ds-badge\">3</span></span>Корзина</a><a class=\"ds-tab\" href=\"#\"><svg viewBox=\"0 0 24 24\" width=\"24\" height=\"24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z\"/></svg>Избранное</a><a class=\"ds-tab\" href=\"#\"><svg viewBox=\"0 0 24 24\" width=\"24\" height=\"24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2\"/><circle cx=\"12\" cy=\"7\" r=\"4\"/></svg>Войти</a></nav>",
+      "css": "@keyframes ds-bump { 0% { transform: scale(1); } 35% { transform: scale(1.22); } 100% { transform: scale(1); } } .ds-tabbar { display: grid; grid-template-columns: repeat(5, 1fr); height: 56px; max-width: 390px; border-top: 1px solid var(--color-line, #e4e4e7); background: #ffffff; font-family: 'Onest Variable', system-ui, sans-serif; } .ds-tab { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; font-size: 11px; font-weight: 500; color: var(--color-gray-500, #6a6a71); text-decoration: none; transition: color 150ms; } .ds-tab-active { color: var(--color-ink, #0b0b0c); } .ds-tab:focus-visible { outline: 2px solid var(--color-ink, #0b0b0c); outline-offset: -2px; } .ds-tab-icon { position: relative; display: inline-flex; } .ds-badge { position: absolute; top: -6px; right: -12px; display: inline-flex; align-items: center; justify-content: center; min-width: 20px; height: 20px; padding: 0 4px; border-radius: 9999px; background: var(--color-ink, #0b0b0c); color: #ffffff; font-size: 11px; line-height: 1; font-weight: 600; font-variant-numeric: tabular-nums; box-shadow: 0 0 0 2px #ffffff; animation: ds-bump 320ms cubic-bezier(0.25, 1, 0.5, 1); }"
+    },
+    {
+      "name": "Toast",
+      "kind": "custom",
+      "refersTo": "toast",
+      "description": "Тёмная плашка-снэкбар: ink, 16px, над вкладками на телефоне, справа снизу на десктопе.",
+      "html": "<div class=\"ds-toast\" role=\"status\"><svg class=\"ds-toast-icon\" viewBox=\"0 0 24 24\" width=\"20\" height=\"20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><circle cx=\"12\" cy=\"12\" r=\"10\"/><path d=\"m9 12 2 2 4-4\"/></svg><p class=\"ds-toast-text\">Товар добавлен в корзину <a href=\"#\">Перейти</a></p><button class=\"ds-toast-close\" type=\"button\" aria-label=\"Закрыть уведомление\"><svg viewBox=\"0 0 24 24\" width=\"16\" height=\"16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" aria-hidden=\"true\"><path d=\"M18 6 6 18\"/><path d=\"m6 6 12 12\"/></svg></button></div>",
+      "css": ".ds-toast { display: flex; align-items: flex-start; gap: 12px; width: 384px; max-width: 100%; padding: 12px 8px 12px 16px; border-radius: 16px; background: var(--color-ink, #0b0b0c); color: #ffffff; box-shadow: 0 8px 24px rgb(0 0 0 / 0.18); font-family: 'Onest Variable', system-ui, sans-serif; } .ds-toast-icon { flex-shrink: 0; margin-top: 2px; color: var(--color-gray-300, #d1d1d6); } .ds-toast-text { flex: 1; margin: 0; font-size: 14px; line-height: 20px; } .ds-toast-text a { margin-left: 4px; color: #ffffff; font-weight: 600; text-decoration: underline; text-decoration-color: rgb(255 255 255 / 0.4); text-underline-offset: 2px; } .ds-toast-text a:hover { text-decoration-color: #ffffff; } .ds-toast-close { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; margin: -8px 0; border: 0; border-radius: 12px; background: transparent; color: var(--color-gray-400, #a1a1a8); cursor: pointer; transition: background-color 150ms, color 150ms; } .ds-toast-close:hover { background: rgb(255 255 255 / 0.1); color: #ffffff; } .ds-toast-close:focus-visible { outline: 2px solid #ffffff; outline-offset: 2px; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "Аккуратное приложение",
+    "overview": "Витрина ведёт себя как хорошо собранное мобильное приложение, а не как маркетплейсная лента: покупка идёт по вкладкам и карточкам, на первом экране сразу видно, что это, сколько стоит и есть ли в наличии. Мир нейтральный и перекрашиваемый: премиальный холодный серый холст, белые карточки без рамок и теней, чёрный как единственный цвет действия. Платформа не несёт собственного бренда, поэтому всё, что различает магазины, живёт в семантических токенах, а не в компонентах.\n\nПлотность и компоновка следуют Ситилинку (citilink.ru): шапка с кнопкой «Каталог» и широким поиском, нижняя панель вкладок на телефоне, быстрые чипсы разделов, сортировка строкой, карточка с ценой над названием, строкой остатка и кнопкой «В корзину», липкий блок покупки справа в карточке товара. От ориентира сознательно не взяты баннеры, ярлыки акций, бонусы и оранжевый цвет. Цвет и движение здесь рабочие инструменты: движение подтверждает действие на месте, цвет говорит о статусе, но всегда в паре со словом.\n\nСначала телефон: сетка в две колонки, цели касания от 44px, закреплённые снизу элементы стоят над панелью вкладок. Десктоп расширяет ту же систему (служебная строка, боковая панель фильтров, до четырёх колонок), а не вводит другую.",
+    "keyCharacteristics": [
+      "Серый холст, белые карточки радиусом 16px, ни рамок, ни теней в покое.",
+      "Чёрная заливка только у действий и активного состояния.",
+      "Один шрифт, Onest; иерархия весом 600 и размером, цены пропорциональными цифрами.",
+      "Фото товара на светло-сером колодце с `mix-blend-multiply`.",
+      "Статус остатка словом и точкой; скидка чёрной плашкой «−N%».",
+      "Подпись системы: «В корзину» на месте превращается в степпер «− N +»."
+    ],
+    "rules": [
+      { "name": "The Black Means Act Rule", "body": "Чёрная заливка (ink) принадлежит только действиям и активному состоянию: основные кнопки, активный чипс и страница, счётчик корзины, плашка скидки, тост. Второстепенные зоны не заливаются чёрным: подвал намеренно светлая белая полоса.", "section": "colors" },
+      { "name": "The Word-First Status Rule", "body": "Цвет статуса всегда дублирует слово, а не заменяет его: точка 6px плюс текст «В наличии 14 шт.» / «Осталось 3 шт.» / «Нет в наличии». Скидка — чёрная плашка, никогда не красная.", "section": "colors" },
+      { "name": "The Temporary Bridge Rule", "body": "Шкала `--color-blue-*` в `@theme` — временный мост, отображённый в графит, чтобы ещё не переведённые экраны (корзина, оформление, кабинет, админка) говорили тем же языком. Новая работа использует только семантические роли (canvas, surface, ink, ink-hover, line, muted, positive, caution, negative) и серую шкалу; `bg-blue-*` и `ring-blue-*` в новом коде запрещены, а мост исчезает, когда последний экран переведён.", "section": "colors" },
+      { "name": "The Proportional Price Rule", "body": "Цены и статичные числа набираются пропорциональными цифрами: табличная «1» у Onest разрывает «15 990» визуально. `tabular-nums` только там, где цифры меняются на месте: число в степпере, счётчик корзины, номера пагинации, счётчик активных фильтров, поля цены при наборе. (Контракт направления называл цены «табличными цифрами»; сборка это опровергла, решение сборки главнее.)", "section": "typography" },
+      { "name": "The One Family Rule", "body": "Никакого второго шрифта и системных шрифтов для заголовков: иерархия только весом, размером и трекингом Onest.", "section": "typography" },
+      { "name": "The 44px Rule", "body": "Любая цель касания не меньше 44px: кнопки, чипсы, вкладки сортировки, страницы, иконки-кнопки, ссылки подвала. Основная кнопка покупки на странице товара — 52px.", "section": "layout" },
+      { "name": "The Flat-At-Rest Rule", "body": "В покое ни одна поверхность не отбрасывает тень и не имеет обводки; тень — это состояние (наведение) или временный слой (тост), а не декор.", "section": "elevation" },
+      { "name": "The Nested Radius Rule", "body": "Внешний контейнер 16px, элемент внутри 12px; радиус внутри никогда не больше внешнего.", "section": "shapes" }
+    ],
+    "dos": [
+      "**Do** строить новые экраны на семантических ролях canvas, surface, ink, ink-hover, line, muted, positive, caution, negative и серой шкале.",
+      "**Do** класть контент в белые карточки 16px на сером холсте, а элементы внутри скруглять на 12px.",
+      "**Do** держать цели касания от 44px, а основную кнопку покупки — 52px.",
+      "**Do** показывать фото товара на колодце gray-50 с `mix-blend-multiply`, чтобы белый фон снимка растворялся.",
+      "**Do** подтверждать действие на месте: морф кнопки в степпер, толчок счётчика; 150–320ms, ease-out-quart.",
+      "**Do** набирать цены пропорциональными цифрами, а `tabular-nums` ставить только на цифры, меняющиеся на месте.",
+      "**Do** проверять reduced motion: глобально анимации и переходы схлопываются до 1ms, тосты появляются без движения."
+    ],
+    "donts": [
+      "**Don't** использовать `bg-blue-*` / `ring-blue-*` в новой работе: это временный мост для непереведённых экранов.",
+      "**Don't** заливать чёрным что-либо, кроме действий и активного состояния; подвал остаётся светлым.",
+      "**Don't** добавлять баннеры, карусели акций, ярлыки акций, бонусы и оранжевый цвет, даже следуя компоновке Ситилинка.",
+      "**Don't** красить скидку в красный: скидка — чёрная плашка «−N%».",
+      "**Don't** обозначать статус только цветом: точка всегда рядом со словом и числом.",
+      "**Don't** обводить карточки рамкой и давать им тень в покое.",
+      "**Don't** добавлять гамбургер-меню в шапку телефона: навигацию несут нижние вкладки.",
+      "**Don't** вводить второй шрифт или системный шрифт для заголовков."
+    ]
+  }
+}
