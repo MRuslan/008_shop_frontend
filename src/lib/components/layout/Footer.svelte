@@ -66,7 +66,7 @@
 					</li>
 					<li>
 						<a href="/contacts" class="inline-flex min-h-11 items-center transition-colors hover:text-ink">
-							Контакты и пункты выдачи
+							Контакты и самовывоз
 						</a>
 					</li>
 					{#if pages.about}

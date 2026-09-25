@@ -82,7 +82,7 @@
 		{#if !showReviewForm}
 			<button
 				type="button"
-				onclick={() => ($authStore.isAuthenticated ? (showReviewForm = true) : window.dispatchEvent(new CustomEvent('open-auth-modal')))}
+				onclick={() => ($authStore.isAuthenticated ? (showReviewForm = true) : window.dispatchEvent(new CustomEvent('open-auth-modal', { detail: { reason: 'Войдите, чтобы написать отзыв о товаре.' } })))}
 				class="inline-flex h-11 items-center gap-2 rounded-xl bg-gray-100 px-4 text-sm font-medium text-ink transition-colors hover:bg-gray-200"
 			>
 				<PenLine class="size-4" aria-hidden="true" />

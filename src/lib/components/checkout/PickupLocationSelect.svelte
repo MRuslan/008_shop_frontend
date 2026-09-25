@@ -15,10 +15,11 @@
 </script>
 
 {#if locations.length === 0}
-	<p class="text-gray-500 text-center py-4">Точки самовывоза пока не добавлены</p>
+	<p class="text-gray-600 py-4">Самовывоз в этом магазине пока недоступен. Выберите доставку курьером.</p>
 {:else}
 	<fieldset class="m-0 flex min-w-0 flex-col gap-3 border-0 p-0">
 		<legend class="sr-only">Точка самовывоза</legend>
+		<p class="text-sm text-gray-500">Наличие товаров проверим в выбранной точке при оформлении заказа.</p>
 
 		{#each locations as location (location.id)}
 			{@const inputId = `${groupName}-${location.id}`}

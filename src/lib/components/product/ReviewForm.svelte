@@ -18,7 +18,7 @@
 
 	async function handleSubmit() {
 		if (rating === 0) {
-			error = 'Выберите оценку';
+			error = 'Поставьте оценку от 1 до 5.';
 			return;
 		}
 
@@ -41,12 +41,7 @@
 			// Обновляем список отзывов
 			onReviewAdded();
 		} catch (err) {
-			const message = getErrorMessage(err, 'Ошибка при добавлении отзыва');
-			if (Array.isArray(message)) {
-				error = message.join(', ');
-			} else {
-				error = message;
-			}
+			error = getErrorMessage(err, 'Не удалось опубликовать отзыв. Попробуйте ещё раз.');
 		} finally {
 			isSubmitting = false;
 		}
@@ -55,7 +50,7 @@
 
 {#if $authStore.isAuthenticated}
 	<div class="bg-white rounded-lg shadow-md p-6">
-		<h3 class="text-lg font-semibold text-gray-800 mb-4">Оставить отзыв</h3>
+		<h3 class="text-lg font-semibold text-gray-800 mb-4">Ваш отзыв</h3>
 
 		<form onsubmit={(e) => { e.preventDefault(); handleSubmit(); }} class="space-y-4">
 			{#if error}
@@ -65,19 +60,19 @@
 			{/if}
 
 			<!-- Оценка -->
-			<div>
-				<label class="block text-sm font-medium text-gray-700 mb-2">
-					Оценка <span class="text-red-500">*</span>
-				</label>
+			<div role="group" aria-labelledby="review-rating-label">
+				<p id="review-rating-label" class="block text-sm font-medium text-gray-700 mb-2">Оценка</p>
 				<div class="flex items-center space-x-2">
-					{#each Array.from({ length: 5 }, (_, i) => i + 1) as star}
+					{#each Array.from({ length: 5 }, (_, i) => i + 1) as star (star)}
 						<button
 							type="button"
 							onclick={() => rating = star}
 							class="inline-flex h-11 w-11 items-center justify-center rounded transition-transform hover:scale-110 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none"
-							aria-label="Оценка {star}"
+							aria-label="{star} из 5"
+							aria-pressed={star === rating}
 						>
 							<svg
+								aria-hidden="true"
 								class="w-8 h-8"
 								fill={star <= rating ? 'currentColor' : 'none'}
 								stroke="currentColor"
@@ -103,31 +98,32 @@
 			<!-- Текст отзыва -->
 			<div>
 				<label for="review-text" class="block text-sm font-medium text-gray-700 mb-1">
-					Комментарий (необязательно)
+					Текст отзыва <span class="font-normal text-gray-500">(необязательно)</span>
 				</label>
 				<textarea
 					id="review-text"
 					bind:value={text}
 					rows="4"
-					placeholder="Поделитесь своим мнением о товаре..."
+					placeholder="Что понравилось, что нет, как товар показал себя в деле"
 					class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
 				></textarea>
 			</div>
 
 			<button
 				type="submit"
-				disabled={isSubmitting || rating === 0}
+				disabled={isSubmitting}
 				class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
 			>
-				{isSubmitting ? 'Отправка...' : 'Отправить отзыв'}
+				{isSubmitting ? 'Публикуем…' : 'Опубликовать отзыв'}
 			</button>
 		</form>
 	</div>
 {:else}
 	<div class="bg-gray-50 rounded-lg p-6 text-center">
-		<p class="text-gray-600 mb-4">Войдите, чтобы оставить отзыв</p>
+		<p class="text-gray-600 mb-4">Чтобы написать отзыв, войдите в аккаунт.</p>
 		<button
-			onclick={() => window.dispatchEvent(new CustomEvent('open-auth-modal'))}
+			type="button"
+			onclick={() => window.dispatchEvent(new CustomEvent('open-auth-modal', { detail: { reason: 'Войдите, чтобы написать отзыв о товаре.' } }))}
 			class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
 		>
 			Войти

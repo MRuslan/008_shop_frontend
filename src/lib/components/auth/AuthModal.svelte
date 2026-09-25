@@ -8,9 +8,14 @@
 	interface Props {
 		mode?: Mode;
 		open?: boolean;
+		/** Зачем просим войти: показывается над формой, если окно открыто ради конкретного действия */
+		reason?: string | null;
 	}
 
-	let { mode = $bindable('login'), open = $bindable(false) }: Props = $props();
+	let { mode = $bindable('login'), open = $bindable(false), reason = null }: Props = $props();
+
+	// Email, который покупатель уже ввёл при регистрации, переносится в форму входа
+	let loginEmail = $state('');
 
 	// Нативный <dialog>: ловушка фокуса, Escape, верхний слой и возврат фокуса на кнопку-триггер бесплатно
 	let dialog: HTMLDialogElement | undefined = $state();
@@ -47,6 +52,7 @@
 
 	function close() {
 		open = false;
+		loginEmail = '';
 	}
 
 	function handleBackdropClick(event: MouseEvent) {
@@ -64,6 +70,13 @@
 	function switchMode(next: Mode) {
 		mode = next;
 		focusFirstField();
+	}
+
+	async function switchToLoginWithEmail(email: string) {
+		loginEmail = email;
+		mode = 'login';
+		await tick();
+		dialog?.querySelector<HTMLInputElement>('#login-password')?.focus();
 	}
 
 	// Стрелки переключают вкладки, как положено tablist
@@ -115,7 +128,7 @@
 					type="button"
 					onclick={close}
 					class="-mr-2 inline-flex h-11 w-11 shrink-0 items-center justify-center rounded text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none"
-					aria-label="Закрыть"
+					aria-label="Закрыть окно входа"
 				>
 					<svg
 						class="w-6 h-6"
@@ -134,11 +147,15 @@
 				</button>
 			</div>
 
+			{#if reason}
+				<p class="mb-4 text-sm text-gray-600">{reason}</p>
+			{/if}
+
 			<div id="auth-panel" role="tabpanel" aria-labelledby="auth-tab-{mode}">
 				{#if mode === 'login'}
-					<LoginForm />
+					<LoginForm initialEmail={loginEmail} />
 				{:else}
-					<RegisterForm />
+					<RegisterForm onSwitchToLogin={switchToLoginWithEmail} />
 				{/if}
 			</div>
 		</div>

@@ -2,7 +2,6 @@
 	import type { CartItem } from '$lib/types/cart';
 	import { formatPrice } from '$lib/utils/format';
 	import { storeSettings } from '$lib/stores/store';
-	import { confirmDialog } from '$lib/stores/confirm';
 
 	interface Props {
 		item: CartItem;
@@ -38,14 +37,9 @@
 		}
 	}
 
-	async function handleRemove() {
-		const confirmed = await confirmDialog({
-			title: 'Удалить товар из корзины?',
-			message: item.product.name,
-			confirmLabel: 'Удалить',
-			danger: true
-		});
-		if (confirmed) onRemove(item.id);
+	// Без подтверждения: удаление из корзины обратимо, страница корзины предлагает «Вернуть»
+	function handleRemove() {
+		onRemove(item.id);
 	}
 </script>
 

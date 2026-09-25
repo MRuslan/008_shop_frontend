@@ -69,12 +69,15 @@
 				selectedAddressId = defaultAddress?.id ?? null;
 			}
 
-			locations = await locationsApi.getLocations({ isActive: true });
+			// Склад не выдаёт заказы: бэкенд принимает самовывоз только из пунктов выдачи и магазинов
+			locations = (await locationsApi.getLocations({ isActive: true })).filter(
+				(location) => location.type !== 'warehouse'
+			);
 			if (selectedLocationId === null || !locations.some((l) => l.id === selectedLocationId)) {
 				selectedLocationId = locations[0]?.id ?? null;
 			}
 		} catch (err) {
-			loadError = getErrorMessage(err, 'Не удалось загрузить данные для оформления заказа');
+			loadError = getErrorMessage(err, 'Не удалось загрузить адреса и точки самовывоза.');
 		} finally {
 			isLoading = false;
 		}
@@ -123,12 +126,14 @@
 		submitError = null;
 
 		if (deliveryType === 'delivery' && !selectedAddressId) {
-			submitError = 'Выберите адрес доставки';
+			submitError = addresses.length ? 'Выберите адрес доставки.' : 'Добавьте адрес доставки.';
 			return;
 		}
 
 		if (deliveryType === 'pickup' && !selectedLocationId) {
-			submitError = 'Выберите точку самовывоза';
+			submitError = locations.length
+				? 'Выберите точку самовывоза.'
+				: 'Самовывоз сейчас недоступен. Выберите доставку курьером.';
 			return;
 		}
 
@@ -158,7 +163,6 @@
 
 <svelte:head>
 	<title>Оформление заказа</title>
-	<meta name="description" content="Оформление заказа в интернет-магазине" />
 	<meta name="robots" content="noindex" />
 </svelte:head>
 
@@ -167,7 +171,7 @@
 
 	{#if isLoading}
 		<div class="text-center py-12" role="status">
-			<p class="text-gray-500">Загрузка данных...</p>
+			<p class="text-gray-500">{$authStore.isLoading ? 'Проверяем вход…' : 'Загружаем адреса и точки самовывоза…'}</p>
 		</div>
 	{:else if loadError}
 		<div role="alert" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
@@ -182,7 +186,8 @@
 		</button>
 	{:else if !$cartStore || $cartStore.items.length === 0}
 		<div class="text-center py-12">
-			<p class="text-gray-500 mb-4">Корзина пуста</p>
+			<p class="text-gray-800">В корзине пока ничего нет</p>
+			<p class="mt-1 mb-4 text-gray-600">Чтобы оформить заказ, добавьте товары из каталога.</p>
 			<a href="/catalog" class="text-blue-600 hover:text-blue-800">Перейти в каталог</a>
 		</div>
 	{:else}
@@ -191,8 +196,8 @@
 			<div class="lg:col-span-2 space-y-6">
 				<!-- Тип доставки -->
 				<fieldset class="bg-white rounded-lg shadow-md p-6 m-0 min-w-0 border-0">
-					<legend class="sr-only">Способ доставки</legend>
-					<h2 class="text-xl font-semibold text-gray-800 mb-4" aria-hidden="true">Способ доставки</h2>
+					<legend class="sr-only">Способ получения</legend>
+					<h2 class="text-xl font-semibold text-gray-800 mb-4" aria-hidden="true">Способ получения</h2>
 					<div class="space-y-3">
 						<label
 							class="flex items-center space-x-3 p-4 border-2 rounded-lg cursor-pointer has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-blue-500 has-[:focus-visible]:ring-offset-2"
@@ -205,7 +210,10 @@
 								value="delivery"
 								class="text-blue-600 focus:ring-blue-500"
 							/>
-							<span class="flex-1 font-medium">Доставка по адресу</span>
+							<span class="flex-1">
+								<span class="block font-medium">Доставка курьером</span>
+								<span class="block text-sm text-gray-600">Привезём по адресу, который вы укажете</span>
+							</span>
 						</label>
 						<label
 							class="flex items-center space-x-3 p-4 border-2 rounded-lg cursor-pointer has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-blue-500 has-[:focus-visible]:ring-offset-2"
@@ -218,7 +226,10 @@
 								value="pickup"
 								class="text-blue-600 focus:ring-blue-500"
 							/>
-							<span class="flex-1 font-medium">Самовывоз</span>
+							<span class="flex-1">
+								<span class="block font-medium">Самовывоз</span>
+								<span class="block text-sm text-gray-600">Заберёте сами из пункта выдачи или магазина</span>
+							</span>
 						</label>
 					</div>
 				</fieldset>
@@ -278,13 +289,13 @@
 				<!-- Комментарий -->
 				<div class="bg-white rounded-lg shadow-md p-6">
 					<label for="order-comment" class="block text-xl font-semibold text-gray-800 mb-4">
-						Комментарий к заказу
+						Комментарий к заказу <span class="text-base font-normal text-gray-500">(необязательно)</span>
 					</label>
 					<textarea
 						id="order-comment"
 						bind:value={comment}
 						maxlength="2000"
-						placeholder="Дополнительная информация для доставки..."
+						placeholder="Например, код домофона или удобное время для звонка"
 						rows="4"
 						class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
 					></textarea>
@@ -314,13 +325,13 @@
 
 					<div class="border-t pt-4 mb-4">
 						<div class="flex justify-between text-lg font-bold text-gray-900">
-							<span>Итого:</span>
+							<span>Итого</span>
 							<span>
 								{formatPrice($cartTotal, $storeSettings?.currency || 'RUB')}
 							</span>
 						</div>
 						{#if couponCode}
-							<p class="mt-1 text-xs text-gray-500">Скидка по промокоду будет рассчитана при оформлении</p>
+							<p class="mt-1 text-sm text-gray-500">Сумма без скидки по промокоду</p>
 						{/if}
 					</div>
 
@@ -336,8 +347,9 @@
 						disabled={isSubmitting}
 						class="w-full bg-blue-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
 					>
-						{isSubmitting ? 'Оформление...' : 'Оформить заказ'}
+						{isSubmitting ? 'Оформляем заказ…' : 'Оформить заказ'}
 					</button>
+					<p class="mt-3 text-sm text-gray-500">Оплата при получении. Предоплата не нужна.</p>
 				</div>
 			</div>
 		</div>

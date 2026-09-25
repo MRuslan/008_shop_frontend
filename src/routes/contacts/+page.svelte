@@ -39,7 +39,7 @@
 
 <svelte:head>
 	<title>Контакты | {siteName}</title>
-	<meta name="description" content="Как связаться с {siteName}: телефон, email, адреса точек выдачи и график работы." />
+	<meta name="description" content="Как связаться с {siteName}: телефон, email, адреса точек самовывоза и график работы." />
 	<link rel="canonical" href="{siteUrl}/contacts" />
 </svelte:head>
 
@@ -118,14 +118,14 @@
 
 			<!-- Точки продаж -->
 			<section class="lg:col-span-2">
-				<h2 class="text-lg font-semibold text-gray-800 mb-4">Где нас найти</h2>
+				<h2 class="text-lg font-semibold text-gray-800 mb-4">Точки самовывоза</h2>
 
 				{#if data.locationsError}
 					<div role="alert" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
 						{data.locationsError}
 					</div>
 				{:else if visibleLocations.length === 0}
-					<p class="text-sm text-gray-600">Точки выдачи пока не добавлены. Заказы доставляем по адресу.</p>
+					<p class="text-sm text-gray-600">Точек самовывоза пока нет: заказы можно получить только с доставкой курьером.</p>
 				{:else}
 					<ul class="grid grid-cols-1 gap-4 md:grid-cols-2">
 						{#each visibleLocations as location (location.id)}

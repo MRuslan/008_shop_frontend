@@ -4,10 +4,8 @@ import { writable } from 'svelte/store';
 
 export type ToastType = 'success' | 'error' | 'info';
 
-export interface ToastAction {
-	label: string;
-	href: string;
-}
+/** Действие в уведомлении: переход по ссылке или команда (например, «Вернуть» после удаления) */
+export type ToastAction = { label: string; href: string } | { label: string; onClick: () => void };
 
 export interface Toast {
 	id: number;

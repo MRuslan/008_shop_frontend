@@ -34,28 +34,42 @@
 		return page.url.pathname.startsWith(prefix);
 	}
 
-	function openLogin() {
+	// Зачем просим войти: покупатель видит причину над формой, а не просто окно логина
+	let authReason = $state<string | null>(null);
+
+	function openLogin(reason: string | null = null) {
+		authReason = reason;
 		authMode = 'login';
 		showAuthModal = true;
+	}
+
+	function reasonForRedirect(target: string): string {
+		if (target.startsWith('/checkout')) {
+			return 'Чтобы оформить заказ, войдите или зарегистрируйтесь. Товары в корзине сохранятся.';
+		}
+		if (target.startsWith('/account/wishlist')) return 'Войдите, чтобы открыть избранное.';
+		if (target.startsWith('/account')) return 'Войдите, чтобы открыть личный кабинет.';
+		if (target.startsWith('/admin')) return 'Войдите под учётной записью сотрудника магазина.';
+		return 'Войдите, чтобы продолжить.';
 	}
 
 	// Избранное и кабинет требуют входа: гостю сразу предлагаем войти, а не отправляем на пустую страницу
 	function requireAuth(event: MouseEvent) {
 		if (!$authStore.isAuthenticated) {
 			event.preventDefault();
-			openLogin();
+			openLogin('Войдите, чтобы сохранять товары в избранное и видеть их с любого устройства.');
 		}
 	}
 
 	// Пришли с защищённой страницы: открываем окно входа, как только точно знаем, что пользователь не авторизован
 	$effect(() => {
 		if (redirectTarget && !$authStore.isLoading && !$authStore.isAuthenticated) {
-			openLogin();
+			openLogin(reasonForRedirect(redirectTarget));
 		}
 	});
 
 	$effect(() => {
-		const handleOpen = () => openLogin();
+		const handleOpen = (event: Event) => openLogin((event as CustomEvent<{ reason?: string }>).detail?.reason ?? null);
 		const handleSuccess = () => {
 			if (redirectTarget) goto(redirectTarget);
 		};
@@ -112,7 +126,7 @@
 					</a>
 				{/if}
 				<a href="/contacts" class="hover:text-ink" aria-current={isActive('/contacts') ? 'page' : undefined}>
-					Контакты и пункты выдачи
+					Контакты и самовывоз
 				</a>
 			</div>
 			{#if canAdmin}
@@ -151,7 +165,7 @@
 						<span class="max-w-20 truncate">{$authStore.user?.username ?? 'Профиль'}</span>
 					</a>
 				{:else}
-					<button type="button" onclick={openLogin} class={actionClass}>
+					<button type="button" onclick={() => openLogin()} class={actionClass}>
 						<User class="size-5.5" aria-hidden="true" />
 						Войти
 					</button>
@@ -177,4 +191,4 @@
 
 <!-- На телефоне навигацию несут нижние вкладки: отдельного меню в шапке нет -->
 
-<AuthModal bind:open={showAuthModal} bind:mode={authMode} />
+<AuthModal bind:open={showAuthModal} bind:mode={authMode} reason={authReason} />

@@ -10,6 +10,8 @@
 
 	let { address, onSave, onCancel }: Props = $props();
 
+	const uid = $props.id();
+
 	let label = $state(address?.label || '');
 	let city = $state(address?.city || '');
 	let street = $state(address?.street || '');
@@ -24,9 +26,18 @@
 	async function handleSubmit() {
 		error = null;
 
-		// Валидация
-		if (!label.trim() || !city.trim() || !street.trim() || !building.trim() || !phone.trim()) {
-			error = 'Заполните все обязательные поля';
+		// Называем именно те поля, которые остались пустыми
+		const missing = [
+			[label, 'название'],
+			[city, 'город'],
+			[street, 'улица'],
+			[building, 'дом'],
+			[phone, 'телефон']
+		]
+			.filter(([value]) => !value.trim())
+			.map(([, name]) => name);
+		if (missing.length) {
+			error = `Заполните: ${missing.join(', ')}.`;
 			return;
 		}
 
@@ -46,14 +57,14 @@
 
 			await onSave(data);
 		} catch (err) {
-			error = getErrorMessage(err, 'Ошибка сохранения адреса');
+			error = getErrorMessage(err, 'Не удалось сохранить адрес. Попробуйте ещё раз.');
 		} finally {
 			isSaving = false;
 		}
 	}
 </script>
 
-<form onsubmit={(e) => { e.preventDefault(); handleSubmit(); }} class="space-y-4">
+<form onsubmit={(e) => { e.preventDefault(); handleSubmit(); }} class="space-y-4" novalidate>
 	{#if error}
 		<div role="alert" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
 			{error}
@@ -61,120 +72,128 @@
 	{/if}
 
 	<div>
-		<label for="label" class="block text-sm font-medium text-gray-700 mb-1">
-			Название адреса <span class="text-red-500">*</span>
+		<label for="{uid}-label" class="block text-sm font-medium text-gray-700 mb-1">
+			Название
 		</label>
 		<input
-			id="label"
+			id="{uid}-label"
 			type="text"
 			bind:value={label}
 			required
-			placeholder="Дом, Офис и т.д."
-			class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+			placeholder="Например, «Дом» или «Работа»"
+			aria-describedby="{uid}-label-hint"
+			class="w-full min-h-11 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
 		/>
+		<p id="{uid}-label-hint" class="mt-1 text-sm text-gray-500">Чтобы быстро выбрать адрес в следующий раз</p>
 	</div>
 
 	<div>
-		<label for="city" class="block text-sm font-medium text-gray-700 mb-1">
-			Город <span class="text-red-500">*</span>
+		<label for="{uid}-city" class="block text-sm font-medium text-gray-700 mb-1">
+			Город
 		</label>
 		<input
-			id="city"
+			id="{uid}-city"
 			type="text"
 			bind:value={city}
 			required
-			class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+			autocomplete="address-level2"
+			class="w-full min-h-11 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
 		/>
 	</div>
 
 	<div>
-		<label for="street" class="block text-sm font-medium text-gray-700 mb-1">
-			Улица <span class="text-red-500">*</span>
+		<label for="{uid}-street" class="block text-sm font-medium text-gray-700 mb-1">
+			Улица
 		</label>
 		<input
-			id="street"
+			id="{uid}-street"
 			type="text"
 			bind:value={street}
 			required
-			class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+			autocomplete="address-line1"
+			class="w-full min-h-11 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
 		/>
 	</div>
 
 	<div class="grid grid-cols-2 gap-4">
 		<div>
-			<label for="building" class="block text-sm font-medium text-gray-700 mb-1">
-				Дом <span class="text-red-500">*</span>
+			<label for="{uid}-building" class="block text-sm font-medium text-gray-700 mb-1">
+				Дом
 			</label>
 			<input
-				id="building"
+				id="{uid}-building"
 				type="text"
 				bind:value={building}
 				required
-				class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+				class="w-full min-h-11 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
 			/>
 		</div>
 		<div>
-			<label for="apartment" class="block text-sm font-medium text-gray-700 mb-1">
-				Квартира/Офис
+			<label for="{uid}-apartment" class="block text-sm font-medium text-gray-700 mb-1">
+				Квартира или офис <span class="font-normal text-gray-500">(необязательно)</span>
 			</label>
 			<input
-				id="apartment"
+				id="{uid}-apartment"
 				type="text"
 				bind:value={apartment}
-				class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+				class="w-full min-h-11 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
 			/>
 		</div>
 	</div>
 
-	<div class="grid grid-cols-2 gap-4">
+	<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
 		<div>
-			<label for="postalCode" class="block text-sm font-medium text-gray-700 mb-1">
-				Индекс
+			<label for="{uid}-phone" class="block text-sm font-medium text-gray-700 mb-1">
+				Телефон
 			</label>
 			<input
-				id="postalCode"
-				type="text"
-				bind:value={postalCode}
-				class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-			/>
-		</div>
-		<div>
-			<label for="phone" class="block text-sm font-medium text-gray-700 mb-1">
-				Телефон <span class="text-red-500">*</span>
-			</label>
-			<input
-				id="phone"
+				id="{uid}-phone"
 				type="tel"
 				bind:value={phone}
 				required
-				class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+				autocomplete="tel"
+				inputmode="tel"
+				aria-describedby="{uid}-phone-hint"
+				class="w-full min-h-11 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+			/>
+			<p id="{uid}-phone-hint" class="mt-1 text-sm text-gray-500">Для связи по заказу</p>
+		</div>
+		<div>
+			<label for="{uid}-postal" class="block text-sm font-medium text-gray-700 mb-1">
+				Индекс <span class="font-normal text-gray-500">(необязательно)</span>
+			</label>
+			<input
+				id="{uid}-postal"
+				type="text"
+				bind:value={postalCode}
+				autocomplete="postal-code"
+				inputmode="numeric"
+				class="w-full min-h-11 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
 			/>
 		</div>
 	</div>
 
-	<div>
-		<label class="flex items-center space-x-2">
-			<input
-				type="checkbox"
-				bind:checked={isDefault}
-				class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-			/>
-			<span class="text-sm text-gray-700">Сделать адресом по умолчанию</span>
-		</label>
-	</div>
+	<label class="flex min-h-11 items-center gap-2">
+		<input
+			type="checkbox"
+			bind:checked={isDefault}
+			class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+		/>
+		<span class="text-sm text-gray-700">Подставлять этот адрес в новые заказы</span>
+	</label>
 
-	<div class="flex space-x-2">
+	<div class="flex gap-2">
 		<button
 			type="submit"
 			disabled={isSaving}
-			class="flex-1 bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50"
+			class="min-h-11 flex-1 bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50"
 		>
-			{isSaving ? 'Сохранение...' : 'Сохранить'}
+			{isSaving ? 'Сохраняем…' : 'Сохранить адрес'}
 		</button>
 		<button
 			type="button"
 			onclick={onCancel}
-			class="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+			class="min-h-11 px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
 		>
 			Отмена
 		</button>

@@ -54,7 +54,11 @@ function createWishlistStore() {
 		 */
 		async toggle(productId: number) {
 			if (!get(authStore).isAuthenticated) {
-				window.dispatchEvent(new CustomEvent('open-auth-modal'));
+				window.dispatchEvent(
+					new CustomEvent('open-auth-modal', {
+						detail: { reason: 'Войдите, чтобы сохранять товары в избранное и видеть их с любого устройства.' }
+					})
+				);
 				return;
 			}
 

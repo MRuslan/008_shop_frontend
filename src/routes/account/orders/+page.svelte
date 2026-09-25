@@ -35,8 +35,8 @@
 </script>
 
 <svelte:head>
-	<title>Мои заказы - Личный кабинет</title>
-	<meta name="description" content="История ваших заказов" />
+	<title>Мои заказы — Личный кабинет</title>
+	<meta name="robots" content="noindex" />
 </svelte:head>
 
 <div class="bg-white rounded-lg shadow-md p-6">
@@ -44,7 +44,8 @@
 
 	{#if data.orders.length === 0}
 		<div class="text-center py-12">
-			<p class="text-gray-500 mb-4">У вас пока нет заказов</p>
+			<p class="text-gray-800">Заказов пока нет</p>
+			<p class="mt-1 mb-4 text-gray-600">Здесь появятся оформленные заказы и их статусы.</p>
 			<a href="/catalog" class="text-blue-600 hover:text-blue-800">Перейти в каталог</a>
 		</div>
 	{:else}
@@ -57,9 +58,9 @@
 					<div class="flex items-start justify-between">
 						<div class="flex-1">
 							<div class="flex items-center space-x-4 mb-2">
-								<h3 class="text-lg font-semibold text-gray-800">
+								<h2 class="text-lg font-semibold text-gray-800">
 									Заказ №{order.id}
-								</h3>
+								</h2>
 								<span
 									class="px-2 py-1 rounded text-xs font-medium {getStatusColor(order.status)}"
 								>
@@ -67,20 +68,17 @@
 								</span>
 							</div>
 							
-							<p class="text-sm text-gray-600 mb-2">
-								Дата: {formatDateTime(order.createAt)}
+							<p class="text-sm text-gray-600 mb-1">
+								{formatDateTime(order.createAt)} · {order.deliveryType === 'delivery' ? 'Доставка курьером' : 'Самовывоз'}
 							</p>
-							
-							<p class="text-sm text-gray-600 mb-2">
-								Тип доставки: {order.deliveryType === 'delivery' ? 'Доставка' : 'Самовывоз'}
-							</p>
-							
+
 							<p class="text-sm text-gray-600">
-								Товаров: {order.items.length} • Сумма: {formatPrice(order.totalAmount, $storeSettings?.currency || 'RUB')}
+								{order.items.reduce((sum, item) => sum + item.quantity, 0)} шт. · {formatPrice(order.totalAmount, $storeSettings?.currency || 'RUB')}
 							</p>
 						</div>
 						
 						<svg
+							aria-hidden="true"
 							class="w-5 h-5 text-gray-400 ml-4"
 							fill="none"
 							stroke="currentColor"

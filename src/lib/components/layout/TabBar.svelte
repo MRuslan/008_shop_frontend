@@ -32,10 +32,14 @@
 	]);
 
 	// Гостю вкладки кабинета открывают окно входа, а не пустую страницу
-	function handleClick(event: MouseEvent, needsAuth: boolean) {
+	function handleClick(event: MouseEvent, needsAuth: boolean, href: string) {
 		if (needsAuth && !$authStore.isAuthenticated) {
 			event.preventDefault();
-			window.dispatchEvent(new CustomEvent('open-auth-modal'));
+			const reason =
+				href === '/account/wishlist'
+					? 'Войдите, чтобы сохранять товары в избранное и видеть их с любого устройства.'
+					: 'Войдите или зарегистрируйтесь: в кабинете ваши заказы, адреса и избранное.';
+			window.dispatchEvent(new CustomEvent('open-auth-modal', { detail: { reason } }));
 		}
 	}
 </script>
@@ -49,7 +53,7 @@
 			<li>
 				<a
 					href={tab.href}
-					onclick={(event) => handleClick(event, tab.auth)}
+					onclick={(event) => handleClick(event, tab.auth, tab.href)}
 					aria-current={tab.active ? 'page' : undefined}
 					aria-label={tab.href === '/cart' && $cartItemsCount > 0 ? `Корзина, товаров: ${$cartItemsCount}` : undefined}
 					class="relative flex h-full flex-col items-center justify-center gap-0.5 text-[0.6875rem] font-medium transition-colors {tab.active

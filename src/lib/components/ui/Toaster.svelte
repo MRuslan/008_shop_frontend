@@ -28,7 +28,7 @@
 
 			<p class="min-w-0 flex-1 text-sm leading-5">
 				{t.message}
-				{#if t.action}
+				{#if t.action && 'href' in t.action}
 					<a
 						href={t.action.href}
 						onclick={() => toasts.dismiss(t.id)}
@@ -36,6 +36,18 @@
 					>
 						{t.action.label}
 					</a>
+				{:else if t.action}
+					{@const action = t.action}
+					<button
+						type="button"
+						onclick={() => {
+							toasts.dismiss(t.id);
+							action.onClick();
+						}}
+						class="ml-1 font-semibold whitespace-nowrap underline decoration-white/40 underline-offset-2 hover:decoration-white"
+					>
+						{action.label}
+					</button>
 				{/if}
 			</p>
 

@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { getErrorMessage } from '$lib/utils/errors';
 	interface Props {
 		couponCode: string | null;
 		discountAmount: string | null;
@@ -9,80 +8,70 @@
 
 	let { couponCode, discountAmount, onApply, onRemove }: Props = $props();
 
+	const inputId = $props.id();
+
 	let inputCode = $state('');
-	let isApplying = $state(false);
 	let error = $state<string | null>(null);
 
+	// Промокод проверяет сервер при оформлении заказа: здесь его только запоминаем
 	async function handleApply() {
 		if (!inputCode.trim()) {
-			error = 'Введите код купона';
+			error = 'Введите промокод.';
 			return;
 		}
-
-		isApplying = true;
 		error = null;
-
-		try {
-			await onApply(inputCode.trim().toUpperCase());
-			inputCode = '';
-		} catch (err) {
-			error = getErrorMessage(err, 'Неверный код купона');
-		} finally {
-			isApplying = false;
-		}
+		await onApply(inputCode.trim().toUpperCase());
+		inputCode = '';
 	}
 </script>
 
 <div class="space-y-2">
-	<label class="block text-sm font-medium text-gray-700">Промокод</label>
-	
+	<label for={inputId} class="block text-sm font-medium text-gray-700">Промокод</label>
+
 	{#if couponCode}
-		<div class="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-md">
+		<div class="flex items-center justify-between gap-3 p-3 bg-gray-50 border border-gray-200 rounded-md">
 			<div>
-				<p class="text-sm font-medium text-green-800">Купон применён: {couponCode}</p>
-				{#if discountAmount}
-					<p class="text-xs text-green-600">Скидка: {discountAmount}</p>
-				{/if}
+				<p class="text-sm font-medium text-gray-900">{couponCode}</p>
+				<p class="text-sm text-gray-600">
+					{discountAmount ? `Скидка: ${discountAmount}` : 'Проверим и применим при оформлении заказа'}
+				</p>
 			</div>
 			<button
+				type="button"
 				onclick={onRemove}
-				class="text-red-600 hover:text-red-800 transition-colors"
-				aria-label="Удалить купон"
+				class="inline-flex min-h-11 items-center rounded-md px-3 text-sm text-gray-700 transition-colors hover:bg-gray-100"
 			>
-				<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-					<path
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						stroke-width="2"
-						d="M6 18L18 6M6 6l12 12"
-					/>
-				</svg>
+				Убрать
 			</button>
 		</div>
 	{:else}
-		<div class="flex space-x-2">
+		<div class="flex gap-2">
 			<input
+				id={inputId}
 				type="text"
 				bind:value={inputCode}
-				placeholder="Введите код купона"
+				autocomplete="off"
+				autocapitalize="characters"
+				aria-invalid={!!error}
+				aria-describedby={error ? `${inputId}-error` : undefined}
 				onkeydown={(e) => {
 					if (e.key === 'Enter') {
 						e.preventDefault();
 						handleApply();
 					}
 				}}
-				class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+				class="min-h-11 min-w-0 flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
 			/>
 			<button
+				type="button"
 				onclick={handleApply}
-				disabled={isApplying}
-				class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50"
+				class="min-h-11 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
 			>
-				{isApplying ? 'Применение...' : 'Применить'}
+				Применить
 			</button>
 		</div>
 		{#if error}
-			<p class="text-sm text-red-600">{error}</p>
+			<p id="{inputId}-error" class="text-sm text-red-700">{error}</p>
 		{/if}
 	{/if}
 </div>

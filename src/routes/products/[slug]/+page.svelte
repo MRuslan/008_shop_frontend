@@ -261,7 +261,7 @@
 							<p class="font-medium text-ink">Самовывоз</p>
 							<a href="/contacts" class="text-gray-600 underline decoration-gray-300 hover:text-ink hover:decoration-ink">
 								{data.pickupPoints}
-								{pluralize(data.pickupPoints, ['точка выдачи', 'точки выдачи', 'точек выдачи'])}
+								{pluralize(data.pickupPoints, ['точка самовывоза', 'точки самовывоза', 'точек самовывоза'])}
 							</a>
 						</div>
 					</li>

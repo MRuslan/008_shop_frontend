@@ -23,7 +23,7 @@
 		try {
 			addresses = await addressesApi.getAddresses();
 		} catch (err) {
-			error = getErrorMessage(err, 'Ошибка загрузки адресов');
+			error = getErrorMessage(err, 'Не удалось загрузить адреса.');
 		} finally {
 			isLoading = false;
 		}
@@ -41,7 +41,7 @@
 			showAddressForm = false;
 			editingAddress = null;
 		} catch (err) {
-			throw new Error(getErrorMessage(err, 'Ошибка сохранения адреса'));
+			throw new Error(getErrorMessage(err, 'Не удалось сохранить адрес. Попробуйте ещё раз.'));
 		}
 	}
 
@@ -50,7 +50,7 @@
 			await addressesApi.deleteAddress(addressId);
 			await loadAddresses();
 		} catch (err) {
-			error = getErrorMessage(err, 'Ошибка удаления адреса');
+			error = getErrorMessage(err, 'Не удалось удалить адрес. Попробуйте ещё раз.');
 		}
 	}
 
@@ -59,14 +59,14 @@
 			await addressesApi.setDefaultAddress(addressId);
 			await loadAddresses();
 		} catch (err) {
-			error = getErrorMessage(err, 'Ошибка установки адреса по умолчанию');
+			error = getErrorMessage(err, 'Не удалось сменить основной адрес. Попробуйте ещё раз.');
 		}
 	}
 </script>
 
 <svelte:head>
-	<title>Адреса доставки - Личный кабинет</title>
-	<meta name="description" content="Управление адресами доставки" />
+	<title>Адреса доставки — Личный кабинет</title>
+	<meta name="robots" content="noindex" />
 </svelte:head>
 
 <div class="bg-white rounded-lg shadow-md p-6">
@@ -81,7 +81,7 @@
 				}}
 				class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
 			>
-				+ Добавить адрес
+				Добавить адрес
 			</button>
 		{/if}
 	</div>
@@ -94,7 +94,7 @@
 
 	{#if isLoading}
 		<div class="text-center py-12">
-			<p class="text-gray-500">Загрузка адресов...</p>
+			<p class="text-gray-500" role="status">Загружаем адреса…</p>
 		</div>
 	{:else if showAddressForm}
 		<AddressForm
@@ -107,7 +107,8 @@
 		/>
 	{:else if addresses.length === 0}
 		<div class="text-center py-12">
-			<p class="text-gray-500 mb-4">У вас пока нет сохранённых адресов</p>
+			<p class="text-gray-800">Сохранённых адресов пока нет</p>
+				<p class="mt-1 mb-4 text-gray-600">Добавьте адрес, и он подставится при оформлении заказа.</p>
 			<button
 				type="button"
 				onclick={() => {
@@ -116,14 +117,14 @@
 				}}
 				class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
 			>
-				Добавить первый адрес
+				Добавить адрес
 			</button>
 		</div>
 	{:else}
 		<AddressList
 			{addresses}
 			selectedAddressId={addresses.find((a) => a.isDefault)?.id ?? null}
-			legend="Адрес по умолчанию для заказов"
+			legend="Основной адрес для заказов"
 			onSelect={(id) => handleSetDefault(id)}
 			onEdit={(address) => {
 				editingAddress = address;
@@ -137,7 +138,7 @@
 		/>
 		
 		<p class="mt-4 text-sm text-gray-600">
-			Выберите адрес, чтобы сделать его адресом по умолчанию для новых заказов.
+			Основной адрес подставляется в новые заказы автоматически.
 		</p>
 	{/if}
 </div>

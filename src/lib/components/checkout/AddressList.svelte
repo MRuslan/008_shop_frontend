@@ -33,9 +33,9 @@
 
 	async function handleDelete(address: Address) {
 		const confirmed = await confirmDialog({
-			title: 'Удалить адрес?',
-			message: `${address.label}: ${formatAddress(address)}`,
-			confirmLabel: 'Удалить',
+			title: `Удалить адрес «${address.label}»?`,
+			message: `${formatAddress(address)}. Уже оформленные заказы это не затронет.`,
+			confirmLabel: 'Удалить адрес',
 			danger: true
 		});
 		if (confirmed) onDelete(address.id);
@@ -116,6 +116,6 @@
 		onclick={onAddNew}
 		class="w-full rounded-lg border-2 border-dashed border-gray-300 p-4 text-gray-600 transition-colors hover:border-blue-600 hover:text-blue-600 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none"
 	>
-		+ Добавить новый адрес
+		Добавить адрес
 	</button>
 </fieldset>

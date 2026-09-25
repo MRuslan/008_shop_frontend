@@ -10,9 +10,18 @@
 	let deletePassword = $state('');
 	let deleteError = $state<string | null>(null);
 
+	// Роль показываем только сотрудникам: покупателю служебное слово «customer» ничего не говорит
+	const ROLE_LABELS: Record<string, string> = {
+		admin: 'Администратор',
+		manager: 'Менеджер',
+		moderator: 'Модератор',
+		support: 'Поддержка'
+	};
+	const roleLabel = $derived($authStore.user ? (ROLE_LABELS[$authStore.user.role] ?? null) : null);
+
 	async function handleDeleteAccount() {
 		if (!deletePassword.trim()) {
-			deleteError = 'Введите пароль для подтверждения';
+			deleteError = 'Введите пароль, чтобы подтвердить удаление.';
 			return;
 		}
 
@@ -24,7 +33,7 @@
 			await authStore.logout();
 			goto('/');
 		} catch (err) {
-			deleteError = getErrorMessage(err, 'Ошибка удаления аккаунта');
+			deleteError = getErrorMessage(err, 'Не удалось удалить аккаунт. Попробуйте ещё раз.');
 		} finally {
 			isDeleting = false;
 		}
@@ -32,8 +41,8 @@
 </script>
 
 <svelte:head>
-	<title>Профиль - Личный кабинет</title>
-	<meta name="description" content="Профиль пользователя" />
+	<title>Профиль — Личный кабинет</title>
+	<meta name="robots" content="noindex" />
 </svelte:head>
 
 <div class="bg-white rounded-lg shadow-md p-6">
@@ -43,30 +52,29 @@
 		<div class="space-y-6">
 			<!-- Информация о пользователе -->
 			<div>
-				<h2 class="text-lg font-semibold text-gray-800 mb-4">Личная информация</h2>
+				<h2 class="text-lg font-semibold text-gray-800 mb-4">Данные аккаунта</h2>
 				<dl class="grid grid-cols-1 md:grid-cols-2 gap-4">
 					<div>
-						<dt class="text-sm font-medium text-gray-500">Имя пользователя</dt>
+						<dt class="text-sm font-medium text-gray-500">Имя</dt>
 						<dd class="mt-1 text-sm text-gray-900">{$authStore.user.username}</dd>
 					</div>
 					<div>
 						<dt class="text-sm font-medium text-gray-500">Email</dt>
 						<dd class="mt-1 text-sm text-gray-900">{$authStore.user.email}</dd>
 					</div>
-					<div>
-						<dt class="text-sm font-medium text-gray-500">Роль</dt>
-						<dd class="mt-1 text-sm text-gray-900">
-							<span class="inline-block px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs font-medium">
-								{$authStore.user.role}
-							</span>
-						</dd>
-					</div>
+					{#if roleLabel}
+						<div>
+							<dt class="text-sm font-medium text-gray-500">Роль</dt>
+							<dd class="mt-1 text-sm text-gray-900">{roleLabel}</dd>
+						</div>
+					{/if}
 				</dl>
 			</div>
 
 			<!-- Удаление аккаунта -->
 			<div class="border-t pt-6">
-				<h2 class="text-lg font-semibold text-red-600 mb-4">Опасная зона</h2>
+				<h2 class="text-lg font-semibold text-gray-800 mb-2">Удаление аккаунта</h2>
+				<p class="mb-4 text-sm text-gray-600">Аккаунт удалится безвозвратно, восстановить его не получится.</p>
 				
 				{#if !showDeleteConfirm}
 					<button
@@ -78,7 +86,7 @@
 				{:else}
 					<div class="space-y-4">
 						<p class="text-sm text-gray-600">
-							Введите пароль для подтверждения удаления аккаунта. Это действие нельзя отменить.
+							Чтобы подтвердить удаление, введите пароль от аккаунта.
 						</p>
 						
 						{#if deleteError}
@@ -95,7 +103,7 @@
 								id="delete-password"
 								type="password"
 								bind:value={deletePassword}
-								placeholder="Введите пароль"
+								autocomplete="current-password"
 								class="w-full md:w-64 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
 							/>
 						</div>
@@ -106,7 +114,7 @@
 								disabled={isDeleting}
 								class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors disabled:opacity-50"
 							>
-								{isDeleting ? 'Удаление...' : 'Подтвердить удаление'}
+								{isDeleting ? 'Удаляем аккаунт…' : 'Удалить аккаунт навсегда'}
 							</button>
 							<button
 								onclick={() => {

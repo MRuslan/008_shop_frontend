@@ -32,17 +32,28 @@
 		};
 		return colors[status] || 'bg-gray-100 text-gray-800';
 	}
+
+	// Что будет дальше: одна строка под статусом, без обещаний, которых система не даёт
+	const nextStep = $derived(
+		{
+			pending: 'Заказ ждёт подтверждения магазином. Оплатить его нужно будет при получении.',
+			confirmed: 'Магазин подтвердил заказ. Оплата при получении.',
+			shipped: 'Заказ передан в доставку. Оплата при получении.',
+			delivered: 'Заказ получен. Спасибо за покупку!',
+			cancelled: 'Заказ отменён.'
+		}[data.order.status] ?? null
+	);
 </script>
 
 <svelte:head>
-	<title>Заказ №{data.order.id} - Личный кабинет</title>
-	<meta name="description" content="Детали заказа №{data.order.id}" />
+	<title>Заказ №{data.order.id} — Личный кабинет</title>
+	<meta name="robots" content="noindex" />
 </svelte:head>
 
 <div class="space-y-6">
 	<!-- Заголовок -->
 	<div class="bg-white rounded-lg shadow-md p-6">
-		<div class="flex items-center justify-between mb-4">
+		<div class="flex flex-wrap items-center justify-between gap-3 mb-2">
 			<h1 class="text-2xl font-bold text-gray-800">Заказ №{data.order.id}</h1>
 			<span
 				class="px-3 py-1 rounded-full text-sm font-medium {getStatusColor(data.order.status)}"
@@ -51,25 +62,34 @@
 			</span>
 		</div>
 		
-		<div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+		{#if nextStep}
+			<p class="mb-4 text-gray-700">
+				{nextStep}
+				{#if data.order.status === 'cancelled'}
+					Если это ошибка, <a href="/contacts" class="underline underline-offset-4">свяжитесь с магазином</a>.
+				{/if}
+			</p>
+		{/if}
+
+		<dl class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
 			<div>
-				<span class="text-gray-500">Дата оформления:</span>
-				<span class="ml-2 text-gray-900">{formatDateTime(data.order.createAt)}</span>
+				<dt class="text-gray-500">Оформлен</dt>
+				<dd class="text-gray-900">{formatDateTime(data.order.createAt)}</dd>
 			</div>
 			<div>
-				<span class="text-gray-500">Тип доставки:</span>
-				<span class="ml-2 text-gray-900">
-					{data.order.deliveryType === 'delivery' ? 'Доставка по адресу' : 'Самовывоз'}
-				</span>
+				<dt class="text-gray-500">Получение</dt>
+				<dd class="text-gray-900">
+					{data.order.deliveryType === 'delivery' ? 'Доставка курьером' : 'Самовывоз'}
+				</dd>
 			</div>
-		</div>
+		</dl>
 	</div>
 
 	<!-- Товары -->
 	<div class="bg-white rounded-lg shadow-md p-6">
 		<h2 class="text-lg font-semibold text-gray-800 mb-4">Товары в заказе</h2>
 		<div class="space-y-4">
-			{#each data.order.items as item}
+			{#each data.order.items as item (item.id)}
 				<div class="flex items-center space-x-4 pb-4 border-b border-gray-200 last:border-0">
 					<div class="flex-1">
 						<a
@@ -78,19 +98,13 @@
 						>
 							{item.productName}
 						</a>
-						<p class="text-sm text-gray-600">Количество: {item.quantity}</p>
-					</div>
-					<div class="text-right">
-						<p class="text-lg font-semibold text-gray-900">
-							{formatPrice(item.price, $storeSettings?.currency || 'RUB')}
-						</p>
 						<p class="text-sm text-gray-600">
-							Итого: {formatPrice(
-								(parseFloat(item.price) * item.quantity).toFixed(2),
-								$storeSettings?.currency || 'RUB'
-							)}
+							{item.quantity} шт. × {formatPrice(item.price, $storeSettings?.currency || 'RUB')}
 						</p>
 					</div>
+					<p class="text-right text-lg font-semibold text-gray-900">
+						{formatPrice((parseFloat(item.price) * item.quantity).toFixed(2), $storeSettings?.currency || 'RUB')}
+					</p>
 				</div>
 			{/each}
 		</div>
@@ -109,7 +123,7 @@
 				{#if data.order.deliveryAddressSnapshot.postalCode}
 					<p>Индекс: {data.order.deliveryAddressSnapshot.postalCode}</p>
 				{/if}
-				<p>Телефон: {data.order.deliveryAddressSnapshot.phone}</p>
+				<p>Телефон для связи: {data.order.deliveryAddressSnapshot.phone}</p>
 			</div>
 		</div>
 	{:else if data.order.deliveryType === 'pickup' && data.order.pickupLocation}
@@ -121,7 +135,7 @@
 					{data.order.pickupLocation.city}, {data.order.pickupLocation.street}, д. {data.order.pickupLocation.building}
 					{#if data.order.pickupLocation.apartment}, {data.order.pickupLocation.apartment}{/if}
 				</p>
-				<p>Телефон: {data.order.pickupLocation.phone}</p>
+				<p>Телефон точки: {data.order.pickupLocation.phone}</p>
 			</div>
 		</div>
 	{/if}
@@ -131,7 +145,7 @@
 		<h2 class="text-lg font-semibold text-gray-800 mb-4">Итого</h2>
 		<div class="space-y-2">
 			<div class="flex justify-between text-gray-600">
-				<span>Сумма товаров:</span>
+				<span>Товары</span>
 				<span>
 					{formatPrice(
 						(parseFloat(data.order.totalAmount) + (data.order.discountAmount ? parseFloat(data.order.discountAmount) : 0)).toFixed(2),
@@ -141,12 +155,14 @@
 			</div>
 			{#if data.order.discountAmount && parseFloat(data.order.discountAmount) > 0}
 				<div class="flex justify-between text-green-600">
-					<span>Скидка {#if data.order.couponCode}({data.order.couponCode}){/if}:</span>
+					<span>Скидка{#if data.order.couponCode} по промокоду {data.order.couponCode}{/if}</span>
 					<span>-{formatPrice(data.order.discountAmount, $storeSettings?.currency || 'RUB')}</span>
 				</div>
 			{/if}
 			<div class="flex justify-between text-lg font-bold text-gray-900 border-t pt-2">
-				<span>Итого к оплате:</span>
+				<span>
+					{['pending', 'confirmed', 'shipped'].includes(data.order.status) ? 'К оплате при получении' : 'Сумма заказа'}
+				</span>
 				<span>{formatPrice(data.order.totalAmount, $storeSettings?.currency || 'RUB')}</span>
 			</div>
 		</div>

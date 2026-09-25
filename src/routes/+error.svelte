@@ -26,8 +26,8 @@
 		const message = page.error?.message;
 		if (message && !genericMessages.has(message)) return message;
 		if (status === 404) return 'Возможно, ссылка устарела или товар сняли с продажи.';
-		if (status >= 500) return 'Мы уже знаем о проблеме. Попробуйте обновить страницу через минуту.';
-		return 'Попробуйте вернуться на главную и повторить действие.';
+		if (status >= 500) return 'Сервер не ответил. Обновите страницу через минуту.';
+		return 'Вернитесь на главную и повторите действие.';
 	});
 
 	let retrying = $state(false);
