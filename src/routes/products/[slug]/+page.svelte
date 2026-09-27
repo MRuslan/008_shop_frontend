@@ -130,13 +130,13 @@
 </svelte:head>
 
 {#snippet price(sizeClass: string)}
-	<p class="font-semibold tracking-tight text-ink {sizeClass}">{formatPrice(product.price, currency)}</p>
+	<p class="text-ink {sizeClass}">{formatPrice(product.price, currency)}</p>
 {/snippet}
 
 <div class="container py-4 md:py-6">
 	<Breadcrumbs items={breadcrumbs.map((crumb) => ({ name: crumb.name, href: crumb.url }))} />
 
-	<h1 class="mt-2 max-w-4xl text-xl leading-tight font-semibold tracking-tight text-balance text-ink md:text-3xl">
+	<h1 class="mt-2 max-w-4xl text-xl leading-tight font-semibold tracking-tight text-balance text-ink md:text-2xl">
 		{product.name}
 	</h1>
 	<div class="mt-2 flex flex-wrap items-center gap-x-5 gap-y-1 text-sm text-gray-500">
@@ -220,7 +220,7 @@
 						<span class="rounded-md bg-ink px-1.5 py-0.5 text-xs font-semibold text-white">−{discount}%</span>
 					</p>
 				{/if}
-				{@render price('text-3xl')}
+				{@render price('text-price-lg')}
 				{#if saving > 0}
 					<p class="mt-0.5 text-sm text-gray-600">Выгода <span>{formatPrice(saving, currency)}</span></p>
 				{/if}
@@ -290,8 +290,8 @@
 		<div class="min-w-0 space-y-3 lg:space-y-6">
 			{#if product.description}
 				<section aria-labelledby="description-title" class="rounded-2xl bg-surface p-5 md:p-6">
-					<h2 id="description-title" class="text-lg font-semibold text-ink">Описание</h2>
-					<p class="mt-3 max-w-[36rem] leading-relaxed break-words whitespace-pre-line text-gray-700">{product.description}</p>
+					<h2 id="description-title" class="text-title text-ink">Описание</h2>
+					<p class="mt-3 max-w-[36rem] text-body text-pretty break-words whitespace-pre-line text-gray-700">{product.description}</p>
 				</section>
 			{/if}
 
@@ -317,9 +317,9 @@
 			{#if discount > 0 && product.compareAtPrice}
 				<p class="text-xs text-gray-500"><s>{formatPrice(product.compareAtPrice, currency)}</s></p>
 			{/if}
-			{@render price('text-xl leading-tight')}
+			{@render price('text-price-md leading-tight')}
 		</div>
-		<div class="w-44 shrink-0">
+		<div class="w-40 shrink-0 min-[360px]:w-44">
 			<CartControl {product} />
 		</div>
 	</div>

@@ -71,7 +71,7 @@
 
 <div class="bg-white rounded-lg shadow-md p-6">
 	<div class="flex items-center justify-between mb-6">
-		<h1 class="text-2xl font-bold text-gray-800">Адреса доставки</h1>
+		<h1 class="text-headline text-ink">Адреса доставки</h1>
 		{#if !showAddressForm}
 			<button
 				type="button"
@@ -79,7 +79,7 @@
 					editingAddress = null;
 					showAddressForm = true;
 				}}
-				class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+				class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-control"
 			>
 				Добавить адрес
 			</button>
@@ -107,15 +107,15 @@
 		/>
 	{:else if addresses.length === 0}
 		<div class="text-center py-12">
-			<p class="text-gray-800">Сохранённых адресов пока нет</p>
-				<p class="mt-1 mb-4 text-gray-600">Добавьте адрес, и он подставится при оформлении заказа.</p>
+			<p class="text-title-sm text-ink">Сохранённых адресов пока нет</p>
+				<p class="mt-1 mb-4 text-body-sm text-gray-600">Добавьте адрес, и он подставится при оформлении заказа.</p>
 			<button
 				type="button"
 				onclick={() => {
 					editingAddress = null;
 					showAddressForm = true;
 				}}
-				class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+				class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-control"
 			>
 				Добавить адрес
 			</button>

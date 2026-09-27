@@ -102,7 +102,7 @@
 			placeholder="Поиск товаров"
 			enterkeyhint="search"
 			autocomplete="off"
-			class="h-11 w-full rounded-xl border-0 bg-gray-100 pr-12 pl-4 text-[0.9375rem] text-ink placeholder:text-gray-500 focus:bg-white focus:ring-2 focus:ring-ink focus:outline-none"
+			class="h-11 w-full rounded-xl border-0 bg-gray-100 pr-12 pl-4 text-base text-ink placeholder:text-gray-500 md:text-[0.9375rem] focus:bg-white focus:ring-2 focus:ring-ink focus:outline-none"
 		/>
 		<button
 			type="submit"
@@ -141,7 +141,7 @@
 				{#if $storeSettings?.logoUrl}
 					<img src={$storeSettings.logoUrl} alt="" class="h-8 w-auto max-w-40 object-contain" />
 				{:else}
-					<span class="max-w-[12rem] truncate text-xl font-semibold tracking-tight text-ink">{storeName}</span>
+					<span class="max-w-[12rem] truncate text-lg font-semibold tracking-tight text-ink md:text-xl">{storeName}</span>
 				{/if}
 			</a>
 

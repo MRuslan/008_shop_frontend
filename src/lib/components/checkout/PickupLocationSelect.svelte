@@ -40,7 +40,7 @@
 					class="sr-only"
 				/>
 				<label for={inputId} class="block cursor-pointer p-4">
-					<span class="mb-2 block font-semibold text-gray-800">{location.name}</span>
+					<span class="mb-2 block text-title-sm text-ink">{location.name}</span>
 					<span class="mb-1 block text-sm text-gray-600">
 						{location.city}, {location.street}, д. {location.building}
 						{#if location.apartment}, {location.apartment}{/if}

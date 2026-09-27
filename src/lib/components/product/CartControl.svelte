@@ -23,7 +23,7 @@
 	let addButton: HTMLButtonElement | undefined = $state();
 	let plusButton: HTMLButtonElement | undefined = $state();
 
-	const height = $derived(size === 'lg' ? 'h-13 text-base' : 'h-11 text-sm');
+	const height = $derived(size === 'lg' ? 'h-13 text-control-lg' : 'h-11 text-control');
 
 	async function add() {
 		if (pending) return;

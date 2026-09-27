@@ -1,8 +1,77 @@
 /* Глобальные стили и токены дизайна */
 @import 'tailwindcss';
 
+/*
+ * Заменители Onest на время загрузки шрифта: системные шрифты, подогнанные под метрики Onest
+ * (ширина кириллицы, высота строки), чтобы после подмены текст не перескакивал.
+ */
+@font-face {
+	font-family: 'Onest Fallback Segoe';
+	src: local('Segoe UI');
+	size-adjust: 103.8%;
+	ascent-override: 93.5%;
+	descent-override: 29.4%;
+	line-gap-override: 0%;
+}
+
+@font-face {
+	font-family: 'Onest Fallback Arial';
+	src: local('Arial');
+	size-adjust: 103%;
+	ascent-override: 94.2%;
+	descent-override: 29.6%;
+	line-gap-override: 0%;
+}
+
 @theme {
-	--font-sans: 'Onest Variable', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+	--font-sans:
+		'Onest Variable', 'Onest Fallback Segoe', 'Onest Fallback Arial', system-ui, -apple-system, Roboto, sans-serif;
+
+	/*
+	 * Роли текста. Каждая утилита text-<роль> задаёт кегль, интерлиньяж, трекинг и насыщенность разом,
+	 * поэтому одна и та же роль выглядит одинаково на любом экране. Жирный 700 в системе не используется.
+	 */
+	--text-headline: 1.5rem;
+	--text-headline--line-height: 2rem;
+	--text-headline--letter-spacing: -0.025em;
+	--text-headline--font-weight: 600;
+	--text-headline-lg: 1.875rem;
+	--text-headline-lg--line-height: 2.25rem;
+	--text-headline-lg--letter-spacing: -0.025em;
+	--text-headline-lg--font-weight: 600;
+	--text-price-lg: 1.875rem;
+	--text-price-lg--line-height: 2.25rem;
+	--text-price-lg--letter-spacing: -0.025em;
+	--text-price-lg--font-weight: 600;
+	--text-price-md: 1.25rem;
+	--text-price-md--line-height: 1.75rem;
+	--text-price-md--letter-spacing: -0.025em;
+	--text-price-md--font-weight: 600;
+	--text-price: 1.125rem;
+	--text-price--line-height: 1.75rem;
+	--text-price--letter-spacing: -0.025em;
+	--text-price--font-weight: 600;
+	--text-title: 1.125rem;
+	--text-title--line-height: 1.75rem;
+	--text-title--font-weight: 600;
+	--text-title-sm: 1rem;
+	--text-title-sm--line-height: 1.5rem;
+	--text-title-sm--font-weight: 600;
+	--text-body: 1rem;
+	--text-body--line-height: 1.625;
+	--text-body-sm: 0.875rem;
+	--text-body-sm--line-height: 1.25rem;
+	--text-control: 0.875rem;
+	--text-control--line-height: 1.25rem;
+	--text-control--font-weight: 500;
+	--text-control-lg: 1rem;
+	--text-control-lg--line-height: 1.5rem;
+	--text-control-lg--font-weight: 500;
+	--text-label: 0.75rem;
+	--text-label--line-height: 1rem;
+	--text-tab: 0.6875rem;
+	--text-tab--line-height: 1rem;
+	--text-tab--font-weight: 500;
 
 	/* Нейтральная премиальная шкала серых: основа всей витрины */
 	--color-gray-50: #f7f7f8;
@@ -93,7 +162,6 @@ body {
 	@apply bg-canvas text-gray-900;
 	margin: 0;
 	font-family: var(--font-sans);
-	font-optical-sizing: auto;
 	caret-color: var(--color-ink);
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;

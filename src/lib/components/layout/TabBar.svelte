@@ -56,7 +56,7 @@
 					onclick={(event) => handleClick(event, tab.auth, tab.href)}
 					aria-current={tab.active ? 'page' : undefined}
 					aria-label={tab.href === '/cart' && $cartItemsCount > 0 ? `Корзина, товаров: ${$cartItemsCount}` : undefined}
-					class="relative flex h-full flex-col items-center justify-center gap-0.5 text-[0.6875rem] font-medium transition-colors {tab.active
+					class="relative flex h-full flex-col items-center justify-center gap-0.5 text-tab transition-colors {tab.active
 						? 'text-ink'
 						: 'text-gray-500'}"
 				>

@@ -89,7 +89,7 @@
 </svelte:head>
 
 <div class="bg-white rounded-lg shadow-md p-6">
-	<h1 class="text-2xl font-bold text-gray-800 mb-6">Настройки магазина</h1>
+	<h1 class="text-headline text-ink mb-6">Настройки магазина</h1>
 
 	<form onsubmit={(e) => { e.preventDefault(); handleSubmit(); }} class="space-y-6">
 		{#if error}
@@ -106,7 +106,7 @@
 
 		<!-- Основная информация -->
 		<div>
-			<h2 class="text-lg font-semibold text-gray-800 mb-4">Основная информация</h2>
+			<h2 class="text-title text-ink mb-4">Основная информация</h2>
 			<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 				<div>
 					<label class="block text-sm font-medium text-gray-700 mb-1">
@@ -134,7 +134,7 @@
 
 		<!-- Контакты -->
 		<div>
-			<h2 class="text-lg font-semibold text-gray-800 mb-4">Контакты</h2>
+			<h2 class="text-title text-ink mb-4">Контакты</h2>
 			<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 				<div>
 					<label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
@@ -158,7 +158,7 @@
 
 		<!-- Юридическая информация -->
 		<div>
-			<h2 class="text-lg font-semibold text-gray-800 mb-4">Юридическая информация</h2>
+			<h2 class="text-title text-ink mb-4">Юридическая информация</h2>
 			<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 				<div>
 					<label class="block text-sm font-medium text-gray-700 mb-1">Юридическое название</label>
@@ -190,7 +190,7 @@
 
 		<!-- Настройки -->
 		<div>
-			<h2 class="text-lg font-semibold text-gray-800 mb-4">Настройки</h2>
+			<h2 class="text-title text-ink mb-4">Настройки</h2>
 			<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
 				<div>
 					<label class="block text-sm font-medium text-gray-700 mb-1">Валюта</label>
@@ -226,7 +226,7 @@
 
 		<!-- URL изображений -->
 		<div>
-			<h2 class="text-lg font-semibold text-gray-800 mb-4">Изображения</h2>
+			<h2 class="text-title text-ink mb-4">Изображения</h2>
 			<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 				<div>
 					<label class="block text-sm font-medium text-gray-700 mb-1">URL логотипа</label>

@@ -31,7 +31,7 @@
 	<div class="container py-8 md:py-10">
 		<div class="grid grid-cols-1 gap-8 sm:grid-cols-2 {pages.legal.length ? 'lg:grid-cols-3' : ''}">
 			<div>
-				<h2 class="text-base font-semibold text-ink">{$storeSettings?.name || 'Магазин'}</h2>
+				<h2 class="text-title-sm text-ink">{$storeSettings?.name || 'Магазин'}</h2>
 				<ul class="mt-2">
 					{#if $storeSettings?.contactPhone}
 						<li>
@@ -59,7 +59,7 @@
 			</div>
 
 			<div>
-				<h2 class="text-base font-semibold text-ink">Покупателям</h2>
+				<h2 class="text-title-sm text-ink">Покупателям</h2>
 				<ul class="mt-2">
 					<li>
 						<a href="/catalog" class="inline-flex min-h-11 items-center transition-colors hover:text-ink">Каталог</a>
@@ -81,7 +81,7 @@
 
 			{#if pages.legal.length}
 				<div>
-					<h2 class="text-base font-semibold text-ink">Информация</h2>
+					<h2 class="text-title-sm text-ink">Информация</h2>
 					<ul class="mt-2">
 						{#each pages.legal as item (item.href)}
 							<li>

@@ -64,9 +64,9 @@
 			/>
 			<label for={inputId} class="min-w-0 flex-1 cursor-pointer p-4">
 				<span class="mb-2 flex flex-wrap items-center gap-2">
-					<span class="font-semibold text-gray-800">{address.label}</span>
+					<span class="text-title-sm text-ink">{address.label}</span>
 					{#if address.isDefault}
-						<span class="rounded bg-blue-100 px-2 py-1 text-xs text-blue-800">По умолчанию</span>
+						<span class="rounded bg-gray-100 px-2 py-1 text-label font-medium text-gray-700">По умолчанию</span>
 					{/if}
 				</span>
 				<span class="block text-sm text-gray-600">{formatAddress(address)}</span>

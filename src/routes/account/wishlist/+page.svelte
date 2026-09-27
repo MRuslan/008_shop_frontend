@@ -40,7 +40,7 @@
 </svelte:head>
 
 <div class="bg-white rounded-lg shadow-md p-6">
-	<h1 class="text-2xl font-bold text-gray-800 mb-6">Избранное</h1>
+	<h1 class="text-headline text-ink mb-6">Избранное</h1>
 
 	{#if error}
 		<div role="alert" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
@@ -67,7 +67,8 @@
 					d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
 				/>
 			</svg>
-			<p class="text-gray-500 mb-4">У вас пока нет избранных товаров</p>
+			<p class="text-title-sm text-ink">В избранном пока пусто</p>
+			<p class="mt-1 mb-4 text-body-sm text-gray-600">Нажмите на сердечко у товара, чтобы сохранить его здесь.</p>
 			<a href="/catalog" class="text-blue-600 hover:text-blue-800">Перейти в каталог</a>
 		</div>
 	{:else}

@@ -10,7 +10,7 @@
 	const LOW_STOCK = 3;
 	const status = $derived(quantity <= 0 ? 'out' : quantity <= LOW_STOCK ? 'low' : 'in');
 	const label = $derived(
-		status === 'out' ? 'Нет в наличии' : status === 'low' ? `Осталось ${quantity} шт.` : `В наличии ${quantity} шт.`
+		status === 'out' ? 'Нет в наличии' : status === 'low' ? `Осталось ${quantity}\u00a0шт.` : `В наличии ${quantity}\u00a0шт.`
 	);
 </script>
 

@@ -85,7 +85,7 @@
 </svelte:head>
 
 <div class="bg-white rounded-lg shadow-md p-6">
-	<h1 class="text-2xl font-bold text-gray-800 mb-6">Управление заказами</h1>
+	<h1 class="text-headline text-ink mb-6">Управление заказами</h1>
 
 	<!-- Фильтры -->
 	<div class="mb-6 grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -147,7 +147,7 @@
 								value={order.status}
 								aria-label="Статус заказа №{order.id}"
 								onchange={(e) => handleStatusChange(order, e.currentTarget)}
-								class="text-sm px-2 py-1 rounded {getStatusColor(order.status)} border-0 focus:outline-none focus:ring-2 focus:ring-blue-500"
+								class="text-base md:text-sm px-2 py-1 rounded {getStatusColor(order.status)} border-0 focus:outline-none focus:ring-2 focus:ring-blue-500"
 							>
 								<option value="pending">Ожидает подтверждения</option>
 								<option value="confirmed">Подтверждён</option>

@@ -186,14 +186,14 @@
 		<button
 			type="submit"
 			disabled={isSaving}
-			class="min-h-11 flex-1 bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50"
+			class="min-h-11 flex-1 bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50 text-control"
 		>
 			{isSaving ? 'Сохраняем…' : 'Сохранить адрес'}
 		</button>
 		<button
 			type="button"
 			onclick={onCancel}
-			class="min-h-11 px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+			class="min-h-11 px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors text-control"
 		>
 			Отмена
 		</button>

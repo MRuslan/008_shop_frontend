@@ -23,7 +23,7 @@
 
 	const totalPages = $derived(Math.max(1, Math.ceil(data.total / data.limit)));
 	const sortValue = $derived(`${data.filters.sortBy || 'createAt'}-${data.filters.sortOrder || 'DESC'}`);
-	const totalLabel = $derived(`${data.total} ${pluralize(data.total, ['товар', 'товара', 'товаров'])}`);
+	const totalLabel = $derived(`${data.total}\u00a0${pluralize(data.total, ['товар', 'товара', 'товаров'])}`);
 
 	// Запрос правится в поле поиска в шапке: страница только показывает результат
 	function buildUrl(pageNumber: number, sort: string): string {
@@ -61,13 +61,13 @@
 <div class="container py-4 md:py-6">
 	{#if data.query}
 		<div class="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-			<h1 class="text-2xl font-semibold tracking-tight text-balance text-ink md:text-3xl">«{data.query}»</h1>
+			<h1 class="text-headline text-balance text-ink md:text-headline-lg">«{data.query}»</h1>
 			{#if !data.loadError}
 				<p class="text-gray-500" role="status">{totalLabel}</p>
 			{/if}
 		</div>
 	{:else}
-		<h1 class="text-2xl font-semibold tracking-tight text-ink md:text-3xl">Поиск товаров</h1>
+		<h1 class="text-headline text-balance text-ink md:text-headline-lg">Поиск товаров</h1>
 	{/if}
 
 	{#if data.loadError}

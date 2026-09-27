@@ -41,7 +41,7 @@
 >
 	{#if $confirmRequest}
 		<div class="p-6">
-			<h2 id="confirm-dialog-title" class="text-lg font-semibold text-gray-900">
+			<h2 id="confirm-dialog-title" class="text-title text-ink">
 				{$confirmRequest.title}
 			</h2>
 			{#if $confirmRequest.message}

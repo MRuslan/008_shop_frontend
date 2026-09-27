@@ -46,26 +46,26 @@
 </svelte:head>
 
 <div class="bg-white rounded-lg shadow-md p-6">
-	<h1 class="text-2xl font-bold text-gray-800 mb-6">Профиль</h1>
+	<h1 class="text-headline text-ink mb-6">Профиль</h1>
 
 	{#if $authStore.user}
 		<div class="space-y-6">
 			<!-- Информация о пользователе -->
 			<div>
-				<h2 class="text-lg font-semibold text-gray-800 mb-4">Данные аккаунта</h2>
+				<h2 class="text-title text-ink mb-4">Данные аккаунта</h2>
 				<dl class="grid grid-cols-1 md:grid-cols-2 gap-4">
 					<div>
-						<dt class="text-sm font-medium text-gray-500">Имя</dt>
-						<dd class="mt-1 text-sm text-gray-900">{$authStore.user.username}</dd>
+						<dt class="text-body-sm text-gray-500">Имя</dt>
+						<dd class="mt-0.5 text-body text-ink">{$authStore.user.username}</dd>
 					</div>
 					<div>
-						<dt class="text-sm font-medium text-gray-500">Email</dt>
-						<dd class="mt-1 text-sm text-gray-900">{$authStore.user.email}</dd>
+						<dt class="text-body-sm text-gray-500">Email</dt>
+						<dd class="mt-0.5 text-body text-ink">{$authStore.user.email}</dd>
 					</div>
 					{#if roleLabel}
 						<div>
-							<dt class="text-sm font-medium text-gray-500">Роль</dt>
-							<dd class="mt-1 text-sm text-gray-900">{roleLabel}</dd>
+							<dt class="text-body-sm text-gray-500">Роль</dt>
+							<dd class="mt-0.5 text-body text-ink">{roleLabel}</dd>
 						</div>
 					{/if}
 				</dl>
@@ -73,7 +73,7 @@
 
 			<!-- Удаление аккаунта -->
 			<div class="border-t pt-6">
-				<h2 class="text-lg font-semibold text-gray-800 mb-2">Удаление аккаунта</h2>
+				<h2 class="text-title text-ink mb-2">Удаление аккаунта</h2>
 				<p class="mb-4 text-sm text-gray-600">Аккаунт удалится безвозвратно, восстановить его не получится.</p>
 				
 				{#if !showDeleteConfirm}
@@ -122,7 +122,7 @@
 									deletePassword = '';
 									deleteError = null;
 								}}
-								class="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+								class="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors text-control"
 							>
 								Отмена
 							</button>

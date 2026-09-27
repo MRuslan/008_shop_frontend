@@ -31,7 +31,7 @@
 	// Всё состояние страницы живёт в URL: данные приходят из load и не устаревают при навигации
 	const totalPages = $derived(Math.max(1, Math.ceil(data.total / data.limit)));
 	const sortValue = $derived(`${data.filters.sortBy || 'createAt'}-${data.filters.sortOrder || 'DESC'}`);
-	const totalLabel = $derived(`${data.total} ${pluralize(data.total, ['товар', 'товара', 'товаров'])}`);
+	const totalLabel = $derived(`${data.total}\u00a0${pluralize(data.total, ['товар', 'товара', 'товаров'])}`);
 
 	function findCategory(list: Category[], id: number | null | undefined): Category | undefined {
 		if (id == null) return undefined;
@@ -175,7 +175,7 @@
 	<Breadcrumbs items={breadcrumbs.map((crumb) => ({ name: crumb.name, href: crumb.url }))} />
 
 	<div class="mt-2 flex flex-wrap items-baseline gap-x-3 gap-y-1">
-		<h1 class="text-2xl font-semibold tracking-tight text-balance text-ink md:text-3xl">{title}</h1>
+		<h1 class="text-headline text-balance text-ink md:text-headline-lg">{title}</h1>
 		{#if !data.loadError}
 			<p class="text-gray-500" role="status">{totalLabel}</p>
 		{/if}
@@ -206,7 +206,7 @@
 					<SlidersHorizontal class="size-4" aria-hidden="true" />
 					Фильтры
 					{#if activeFilterCount}
-						<span class="inline-flex size-5 items-center justify-center rounded-full bg-ink text-xs text-white tabular-nums">
+						<span class="inline-flex size-5 items-center justify-center rounded-full bg-ink text-tab leading-none font-semibold text-white tabular-nums">
 							{activeFilterCount}
 						</span>
 					{/if}
@@ -274,7 +274,7 @@
 	{#if sheetOpen}
 		<div class="flex max-h-[85dvh] flex-col">
 			<div class="flex items-center justify-between px-5 pt-4 pb-2">
-				<h2 id="catalog-filters-title" class="text-lg font-semibold text-ink">Фильтры</h2>
+				<h2 id="catalog-filters-title" class="text-title text-ink">Фильтры</h2>
 				<button
 					type="button"
 					onclick={() => (sheetOpen = false)}

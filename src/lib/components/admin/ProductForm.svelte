@@ -117,7 +117,7 @@
 </script>
 
 <div class="bg-gray-50 rounded-lg p-6 border-2 border-blue-500">
-	<h2 class="text-xl font-semibold text-gray-800 mb-4">
+	<h2 class="text-title text-ink mb-4">
 		{product ? 'Редактирование товара' : 'Создание товара'}
 	</h2>
 

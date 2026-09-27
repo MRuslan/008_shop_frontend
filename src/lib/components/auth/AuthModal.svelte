@@ -115,7 +115,7 @@
 							aria-controls="auth-panel"
 							tabindex={mode === tab.id ? 0 : -1}
 							onclick={() => switchMode(tab.id)}
-							class="min-h-11 rounded-t border-b-2 px-4 py-2 font-medium transition-colors focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none {mode ===
+							class="min-h-11 rounded-t border-b-2 px-4 py-2 text-control transition-colors focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none {mode ===
 							tab.id
 								? 'border-blue-600 text-blue-600'
 								: 'border-transparent text-gray-500 hover:text-gray-700'}"

@@ -75,14 +75,14 @@
 	<!-- Информация о товаре -->
 	<div class="flex-1 min-w-[10rem]">
 		<a href="/products/{item.product.slug}" class="block">
-			<h3 class="text-lg font-semibold text-gray-800 hover:text-blue-600 transition-colors break-words">
+			<h3 class="line-clamp-2 text-body-sm sm:text-body text-gray-800 hover:text-ink transition-colors break-words">
 				{item.product.name}
 			</h3>
 		</a>
 		{#if item.product.category}
 			<p class="text-sm text-gray-500">{item.product.category.name}</p>
 		{/if}
-		<p class="text-lg font-bold text-gray-900 mt-2">
+		<p class="mt-1 text-body-sm text-gray-600">
 			{formatPrice(item.product.price, currency)}
 		</p>
 	</div>
@@ -124,7 +124,7 @@
 		</div>
 
 		<!-- Итоговая цена -->
-		<p class="text-lg font-bold text-gray-900 text-right sm:min-w-[6rem] tabular-nums">
+		<p class="text-price text-ink text-right sm:min-w-[6rem]">
 			{formatPrice((parseFloat(item.product.price) * localQuantity).toFixed(2), currency)}
 		</p>
 

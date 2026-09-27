@@ -45,7 +45,7 @@
 
 	const itemClass = (active: boolean) =>
 		`flex min-h-10 w-full items-center rounded-lg px-3 text-left text-sm transition-colors ${
-			active ? 'bg-gray-100 font-semibold text-ink' : 'text-gray-700 hover:bg-gray-50 hover:text-ink'
+			active ? 'bg-gray-100 font-medium text-ink' : 'text-gray-700 hover:bg-gray-50 hover:text-ink'
 		}`;
 </script>
 
@@ -62,7 +62,7 @@
 					bind:value={minDraft}
 					onchange={applyPrice}
 					onkeydown={(event) => event.key === 'Enter' && applyPrice()}
-					class="h-11 w-full rounded-xl border-0 bg-gray-100 px-3 text-sm text-ink tabular-nums placeholder:text-gray-500 focus:bg-white focus:ring-2 focus:ring-ink focus:outline-none"
+					class="h-11 w-full rounded-xl border-0 bg-gray-100 px-3 text-base text-ink tabular-nums lg:text-sm placeholder:text-gray-500 focus:bg-white focus:ring-2 focus:ring-ink focus:outline-none"
 				/>
 			</label>
 			<label class="block">
@@ -74,7 +74,7 @@
 					bind:value={maxDraft}
 					onchange={applyPrice}
 					onkeydown={(event) => event.key === 'Enter' && applyPrice()}
-					class="h-11 w-full rounded-xl border-0 bg-gray-100 px-3 text-sm text-ink tabular-nums placeholder:text-gray-500 focus:bg-white focus:ring-2 focus:ring-ink focus:outline-none"
+					class="h-11 w-full rounded-xl border-0 bg-gray-100 px-3 text-base text-ink tabular-nums lg:text-sm placeholder:text-gray-500 focus:bg-white focus:ring-2 focus:ring-ink focus:outline-none"
 				/>
 			</label>
 		</div>

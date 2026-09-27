@@ -40,12 +40,12 @@
 </svelte:head>
 
 <div class="bg-white rounded-lg shadow-md p-6">
-	<h1 class="text-2xl font-bold text-gray-800 mb-6">Мои заказы</h1>
+	<h1 class="text-headline text-ink mb-6">Мои заказы</h1>
 
 	{#if data.orders.length === 0}
 		<div class="text-center py-12">
-			<p class="text-gray-800">Заказов пока нет</p>
-			<p class="mt-1 mb-4 text-gray-600">Здесь появятся оформленные заказы и их статусы.</p>
+			<p class="text-title-sm text-ink">Заказов пока нет</p>
+			<p class="mt-1 mb-4 text-body-sm text-gray-600">Здесь появятся оформленные заказы и их статусы.</p>
 			<a href="/catalog" class="text-blue-600 hover:text-blue-800">Перейти в каталог</a>
 		</div>
 	{:else}
@@ -58,11 +58,11 @@
 					<div class="flex items-start justify-between">
 						<div class="flex-1">
 							<div class="flex items-center space-x-4 mb-2">
-								<h2 class="text-lg font-semibold text-gray-800">
+								<h2 class="text-title-sm text-ink">
 									Заказ №{order.id}
 								</h2>
 								<span
-									class="px-2 py-1 rounded text-xs font-medium {getStatusColor(order.status)}"
+									class="px-2 py-1 rounded text-label font-medium {getStatusColor(order.status)}"
 								>
 									{getStatusLabel(order.status)}
 								</span>
@@ -73,7 +73,7 @@
 							</p>
 
 							<p class="text-sm text-gray-600">
-								{order.items.reduce((sum, item) => sum + item.quantity, 0)} шт. · {formatPrice(order.totalAmount, $storeSettings?.currency || 'RUB')}
+								{order.items.reduce((sum, item) => sum + item.quantity, 0)}&nbsp;шт. · {formatPrice(order.totalAmount, $storeSettings?.currency || 'RUB')}
 							</p>
 						</div>
 						

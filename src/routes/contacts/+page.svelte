@@ -44,7 +44,7 @@
 </svelte:head>
 
 <div class="container mx-auto px-4 py-8">
-	<h1 class="text-3xl font-bold text-gray-800 mb-6">Контакты</h1>
+	<h1 class="text-headline md:text-headline-lg text-balance text-ink mb-6">Контакты</h1>
 
 	{#if !$storeSettings}
 		<p class="text-gray-600">Информация о магазине ещё не заполнена.</p>
@@ -53,7 +53,7 @@
 			<div class="space-y-6 lg:col-span-1">
 				<!-- Связь -->
 				<section class="bg-white rounded-lg shadow-md p-6">
-					<h2 class="text-lg font-semibold text-gray-800 mb-4">Связаться с нами</h2>
+					<h2 class="text-title text-ink mb-4">Связаться с нами</h2>
 					{#if hasContacts}
 						<dl class="space-y-3 text-sm">
 							{#if $storeSettings.contactPhone}
@@ -91,7 +91,7 @@
 				<!-- Реквизиты -->
 				{#if hasLegal}
 					<section class="bg-white rounded-lg shadow-md p-6">
-						<h2 class="text-lg font-semibold text-gray-800 mb-4">Реквизиты</h2>
+						<h2 class="text-title text-ink mb-4">Реквизиты</h2>
 						<dl class="space-y-3 text-sm">
 							{#if $storeSettings.legalName}
 								<div>
@@ -118,7 +118,7 @@
 
 			<!-- Точки продаж -->
 			<section class="lg:col-span-2">
-				<h2 class="text-lg font-semibold text-gray-800 mb-4">Точки самовывоза</h2>
+				<h2 class="text-title text-ink mb-4">Точки самовывоза</h2>
 
 				{#if data.locationsError}
 					<div role="alert" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
@@ -132,8 +132,8 @@
 							{@const hours = formatOpeningHours(location.openingHours)}
 							<li class="bg-white rounded-lg shadow-md p-6">
 								<div class="mb-2 flex flex-wrap items-center gap-2">
-									<h3 class="font-semibold text-gray-800">{location.name}</h3>
-									<span class="rounded bg-blue-100 px-2 py-1 text-xs text-blue-800">
+									<h3 class="text-title-sm text-ink">{location.name}</h3>
+									<span class="rounded bg-gray-100 px-2 py-1 text-label font-medium text-gray-700">
 										{typeLabels[location.type]}
 									</span>
 								</div>

@@ -49,8 +49,8 @@
 
 <section class="container mx-auto px-4 py-16 sm:py-24">
 	<div class="mx-auto max-w-lg text-center">
-		<h1 class="text-3xl font-bold text-gray-900 text-balance">{title}</h1>
-		<p class="mt-3 text-gray-600">{description}</p>
+		<h1 class="text-headline md:text-headline-lg text-balance text-ink">{title}</h1>
+		<p class="mt-3 text-pretty text-gray-600">{description}</p>
 
 		<div class="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
 			{#if status >= 500}

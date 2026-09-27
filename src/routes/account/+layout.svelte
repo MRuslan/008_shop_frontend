@@ -2,6 +2,10 @@
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
 	import { authStore, hasRole } from '$lib/stores/auth';
+	import User from '@lucide/svelte/icons/user';
+	import Package from '@lucide/svelte/icons/package';
+	import MapPin from '@lucide/svelte/icons/map-pin';
+	import Heart from '@lucide/svelte/icons/heart';
 
 	let { children } = $props();
 
@@ -13,10 +17,10 @@
 	});
 
 	const menuItems = [
-		{ href: '/account', label: 'Профиль', icon: '👤' },
-		{ href: '/account/orders', label: 'Мои заказы', icon: '📦' },
-		{ href: '/account/addresses', label: 'Адреса', icon: '📍' },
-		{ href: '/account/wishlist', label: 'Избранное', icon: '❤️' }
+		{ href: '/account', label: 'Профиль', icon: User },
+		{ href: '/account/orders', label: 'Мои заказы', icon: Package },
+		{ href: '/account/addresses', label: 'Адреса', icon: MapPin },
+		{ href: '/account/wishlist', label: 'Избранное', icon: Heart }
 	];
 
 	async function handleLogout() {
@@ -39,20 +43,20 @@
 			<!-- Боковое меню -->
 			<aside class="lg:col-span-1">
 				<nav class="bg-white rounded-lg shadow-md p-4" aria-label="Личный кабинет">
-					<h2 class="text-lg font-semibold text-gray-800 mb-4">Личный кабинет</h2>
+					<h2 class="text-title text-ink mb-4">Личный кабинет</h2>
 					<ul class="space-y-2">
 						{#each menuItems as item (item.href)}
 							<li>
 								<a
 									href={item.href}
-									class="flex items-center space-x-2 px-4 py-2 rounded-md transition-colors"
+									class="flex min-h-11 items-center gap-2.5 px-4 py-2 rounded-md transition-colors"
 									class:bg-blue-100={isCurrent(item.href)}
 									class:text-blue-800={isCurrent(item.href)}
 									class:hover:bg-gray-100={!isCurrent(item.href)}
 									class:text-gray-700={!isCurrent(item.href)}
 									aria-current={isCurrent(item.href) ? 'page' : undefined}
 								>
-									<span aria-hidden="true">{item.icon}</span>
+									<item.icon class="size-4.5 shrink-0" aria-hidden="true" />
 									<span>{item.label}</span>
 								</a>
 							</li>

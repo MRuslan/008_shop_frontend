@@ -53,33 +53,33 @@
 			aria-label={isFavorite ? `Убрать «${product.name}» из избранного` : `Добавить «${product.name}» в избранное`}
 			class="absolute top-0 right-0 z-10 inline-flex size-11 items-center justify-center rounded-full transition-colors {isFavorite
 				? 'text-ink'
-				: 'text-gray-400 hover:text-ink'}"
+				: 'text-gray-500 hover:text-ink'}"
 		>
 			<Heart class="size-5" fill={isFavorite ? 'currentColor' : 'none'} aria-hidden="true" />
 		</button>
 	</div>
 
 	<div class="mt-2.5 flex flex-1 flex-col">
-		<p class="flex h-5 items-center gap-1.5 text-xs text-gray-500">
+		<p class="flex h-5 items-center gap-1.5 text-label text-gray-500">
 			{#if discount > 0 && product.compareAtPrice}
 				<s>{formatPrice(product.compareAtPrice, currency)}</s>
 				<span class="rounded-md bg-ink px-1.5 py-0.5 font-semibold text-white">−{discount}%</span>
 			{/if}
 		</p>
-		<p class="text-lg leading-7 font-semibold tracking-tight text-ink sm:text-xl">
+		<p class="text-price text-ink sm:text-price-md">
 			{formatPrice(product.price, currency)}
 		</p>
 
 		<h2 class="mt-1 text-sm leading-5 text-gray-800">
 			<a
 				href="/products/{product.slug}"
-				class="line-clamp-2 outline-none after:absolute after:inset-0 after:rounded-2xl after:content-[''] group-hover:text-ink"
+				class="line-clamp-2 break-words outline-none after:absolute after:inset-0 after:rounded-2xl after:content-[''] group-hover:text-ink"
 			>
 				{product.name}
 			</a>
 		</h2>
 
-		<StockStatus quantity={product.quantity} class="mt-1.5 text-xs" />
+		<StockStatus quantity={product.quantity} class="mt-1.5 text-label" />
 
 		<div class="relative z-10 mt-auto pt-3">
 			<CartControl {product} />

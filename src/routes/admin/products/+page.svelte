@@ -8,6 +8,9 @@
 	import { getErrorMessage } from '$lib/utils/errors';
 	import { toast } from '$lib/stores/toast';
 	import { confirmDialog } from '$lib/stores/confirm';
+	import Eye from '@lucide/svelte/icons/eye';
+	import Pencil from '@lucide/svelte/icons/pencil';
+	import Trash2 from '@lucide/svelte/icons/trash-2';
 
 	interface Props {
 		data: {
@@ -71,7 +74,7 @@
 
 <div class="bg-white rounded-lg shadow-md p-6">
 	<div class="flex items-center justify-between mb-6">
-		<h1 class="text-2xl font-bold text-gray-800">Управление товарами</h1>
+		<h1 class="text-headline text-ink">Управление товарами</h1>
 		<button
 			onclick={handleCreate}
 			class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
@@ -204,23 +207,26 @@
 										href="/products/{product.slug}"
 										target="_blank"
 										class="inline-flex h-11 w-11 items-center justify-center rounded-md text-blue-600 hover:bg-blue-50 hover:text-blue-900"
-										title="Просмотр"
+										title="Открыть на витрине"
+										aria-label="Открыть «{product.name}» на витрине"
 									>
-										👁️
+										<Eye class="size-4.5" aria-hidden="true" />
 									</a>
 									<button
 										onclick={() => handleEdit(product)}
 										class="inline-flex h-11 w-11 items-center justify-center rounded-md text-indigo-600 hover:bg-indigo-50 hover:text-indigo-900"
 										title="Редактировать"
+										aria-label="Редактировать «{product.name}»"
 									>
-										✏️
+										<Pencil class="size-4.5" aria-hidden="true" />
 									</button>
 									<button
 										onclick={() => handleDelete(product)}
 										class="inline-flex h-11 w-11 items-center justify-center rounded-md text-red-600 hover:bg-red-50 hover:text-red-900"
 										title="Удалить"
+										aria-label="Удалить «{product.name}»"
 									>
-										🗑️
+										<Trash2 class="size-4.5" aria-hidden="true" />
 									</button>
 								</div>
 							</td>

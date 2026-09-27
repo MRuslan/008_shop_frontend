@@ -152,7 +152,7 @@
 	<button
 		type="submit"
 		disabled={isLoading}
-		class="w-full min-h-11 bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+		class="w-full min-h-11 bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-control"
 	>
 		{isLoading ? 'Создаём аккаунт…' : 'Зарегистрироваться'}
 	</button>

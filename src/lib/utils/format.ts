@@ -5,12 +5,14 @@
  */
 export function formatPrice(price: string | number, currency: string = 'RUB'): string {
 	const numPrice = typeof price === 'string' ? parseFloat(price) : price;
-	
+	// Копейки либо целиком, либо никак: «1 234 567,50 ₽», а не «1 234 567,5 ₽»
+	const fractionDigits = Number.isInteger(numPrice) ? 0 : 2;
+
 	return new Intl.NumberFormat('ru-RU', {
 		style: 'currency',
 		currency: currency,
-		minimumFractionDigits: 0,
-		maximumFractionDigits: 2
+		minimumFractionDigits: fractionDigits,
+		maximumFractionDigits: fractionDigits
 	}).format(numPrice);
 }
 

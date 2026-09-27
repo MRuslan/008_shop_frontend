@@ -3,6 +3,13 @@
 	import { page } from '$app/state';
 	import { authStore, hasRole, isAdminOrManager } from '$lib/stores/auth';
 	import type { Role } from '$lib/types/auth';
+	import type { Component } from 'svelte';
+	import Package from '@lucide/svelte/icons/package';
+	import FolderTree from '@lucide/svelte/icons/folder-tree';
+	import ShoppingCart from '@lucide/svelte/icons/shopping-cart';
+	import TicketPercent from '@lucide/svelte/icons/ticket-percent';
+	import MapPin from '@lucide/svelte/icons/map-pin';
+	import Settings from '@lucide/svelte/icons/settings';
 
 	let { children } = $props();
 
@@ -20,13 +27,13 @@
 		}
 	});
 
-	const menuItems: { href: string; label: string; icon: string; roles: Role[] }[] = [
-		{ href: '/admin/products', label: 'Товары', icon: '📦', roles: ['manager', 'admin'] },
-		{ href: '/admin/categories', label: 'Категории', icon: '📁', roles: ['manager', 'admin'] },
-		{ href: '/admin/orders', label: 'Заказы', icon: '🛒', roles: ['manager', 'admin'] },
-		{ href: '/admin/coupons', label: 'Купоны', icon: '🎫', roles: ['manager', 'admin'] },
-		{ href: '/admin/locations', label: 'Точки продаж', icon: '📍', roles: ['manager', 'admin'] },
-		{ href: '/admin/store', label: 'Настройки магазина', icon: '⚙️', roles: ['admin'] }
+	const menuItems: { href: string; label: string; icon: Component; roles: Role[] }[] = [
+		{ href: '/admin/products', label: 'Товары', icon: Package, roles: ['manager', 'admin'] },
+		{ href: '/admin/categories', label: 'Категории', icon: FolderTree, roles: ['manager', 'admin'] },
+		{ href: '/admin/orders', label: 'Заказы', icon: ShoppingCart, roles: ['manager', 'admin'] },
+		{ href: '/admin/coupons', label: 'Купоны', icon: TicketPercent, roles: ['manager', 'admin'] },
+		{ href: '/admin/locations', label: 'Точки продаж', icon: MapPin, roles: ['manager', 'admin'] },
+		{ href: '/admin/store', label: 'Настройки магазина', icon: Settings, roles: ['admin'] }
 	];
 
 	function isCurrent(href: string): boolean {
@@ -44,20 +51,20 @@
 			<!-- Боковое меню -->
 			<aside class="lg:col-span-1">
 				<div class="bg-white rounded-lg shadow-md p-4 sticky top-4">
-					<h2 class="text-lg font-semibold text-gray-800 mb-4">Админ-панель</h2>
+					<h2 class="text-title text-ink mb-4">Админ-панель</h2>
 					<nav class="space-y-2" aria-label="Разделы админ-панели">
 						{#each menuItems as item (item.href)}
 							{#if $hasRole(item.roles)}
 								<a
 									href={item.href}
-									class="flex items-center space-x-2 px-4 py-2 rounded-md transition-colors"
+									class="flex min-h-11 items-center gap-2.5 px-4 py-2 rounded-md transition-colors"
 									class:bg-blue-100={isCurrent(item.href)}
 									class:text-blue-800={isCurrent(item.href)}
 									class:hover:bg-gray-100={!isCurrent(item.href)}
 									class:text-gray-700={!isCurrent(item.href)}
 									aria-current={isCurrent(item.href) ? 'page' : undefined}
 								>
-									<span aria-hidden="true">{item.icon}</span>
+									<item.icon class="size-4.5 shrink-0" aria-hidden="true" />
 									<span>{item.label}</span>
 								</a>
 							{/if}

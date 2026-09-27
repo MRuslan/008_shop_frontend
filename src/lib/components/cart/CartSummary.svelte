@@ -15,11 +15,11 @@
 </script>
 
 <div class="bg-white rounded-lg shadow-md p-6">
-	<h2 class="text-xl font-bold text-gray-800 mb-4">Итого</h2>
+	<h2 class="text-title text-ink mb-4">Итого</h2>
 
 	<div class="flex items-baseline justify-between gap-3">
-		<span class="text-gray-600">Товары, {quantity} шт.</span>
-		<span class="text-xl font-bold text-gray-900">
+		<span class="text-gray-600">Товары, {quantity}&nbsp;шт.</span>
+		<span class="text-price-md text-ink">
 			{formatPrice($cartTotal, $storeSettings?.currency || 'RUB')}
 		</span>
 	</div>
@@ -29,7 +29,7 @@
 
 	<a
 		href="/checkout"
-		class="block w-full bg-blue-600 text-white text-center py-3 px-6 rounded-lg font-medium hover:bg-blue-700 transition-colors"
+		class="block w-full bg-blue-600 text-white text-center py-3 px-6 rounded-lg font-medium hover:bg-blue-700 transition-colors text-control-lg"
 	>
 		Оформить заказ
 	</a>

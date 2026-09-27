@@ -23,11 +23,13 @@
 						href={chip.href}
 						aria-current={chip.active ? 'page' : undefined}
 						data-sveltekit-noscroll
-						class="inline-flex h-11 items-center rounded-full px-4 text-sm font-medium transition-colors duration-150 {chip.active
+						title={chip.label.length > 28 ? chip.label : undefined}
+						class="inline-flex h-11 max-w-[16rem] items-center rounded-full px-4 text-control transition-colors duration-150 {chip.active
 							? 'bg-ink text-white'
 							: 'bg-surface text-gray-800 hover:bg-gray-200'}"
 					>
-						{chip.label}
+						<!-- Длинное название раздела не растягивает чипс на всю ширину экрана -->
+						<span class="truncate">{chip.label}</span>
 					</a>
 				</li>
 			{/each}

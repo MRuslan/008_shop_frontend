@@ -78,7 +78,7 @@
 
 <div>
 	<div class="flex flex-wrap items-center justify-between gap-3">
-		<h2 class="text-lg font-semibold text-ink">
+		<h2 class="text-title text-ink">
 			Отзывы
 			{#if reviews.length > 0}
 				<span class="font-normal text-gray-500 tabular-nums">{reviews.length}</span>
@@ -165,7 +165,7 @@
 					</div>
 
 					{#if review.text}
-						<p class="mt-2 max-w-[36rem] leading-relaxed whitespace-pre-line text-gray-700">{review.text}</p>
+						<p class="mt-2 max-w-[36rem] text-body text-pretty whitespace-pre-line text-gray-700">{review.text}</p>
 					{/if}
 				</li>
 			{/each}

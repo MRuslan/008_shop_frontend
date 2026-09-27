@@ -167,7 +167,7 @@
 </svelte:head>
 
 <div class="container mx-auto px-4 py-8">
-	<h1 class="text-3xl font-bold text-gray-800 mb-6">Оформление заказа</h1>
+	<h1 class="text-headline md:text-headline-lg text-balance text-ink mb-6">Оформление заказа</h1>
 
 	{#if isLoading}
 		<div class="text-center py-12" role="status">
@@ -180,14 +180,14 @@
 		<button
 			type="button"
 			onclick={loadData}
-			class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+			class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-control"
 		>
 			Попробовать снова
 		</button>
 	{:else if !$cartStore || $cartStore.items.length === 0}
 		<div class="text-center py-12">
-			<p class="text-gray-800">В корзине пока ничего нет</p>
-			<p class="mt-1 mb-4 text-gray-600">Чтобы оформить заказ, добавьте товары из каталога.</p>
+			<p class="text-title-sm text-ink">В корзине пока ничего нет</p>
+			<p class="mt-1 mb-4 text-body-sm text-gray-600">Чтобы оформить заказ, добавьте товары из каталога.</p>
 			<a href="/catalog" class="text-blue-600 hover:text-blue-800">Перейти в каталог</a>
 		</div>
 	{:else}
@@ -197,7 +197,7 @@
 				<!-- Тип доставки -->
 				<fieldset class="bg-white rounded-lg shadow-md p-6 m-0 min-w-0 border-0">
 					<legend class="sr-only">Способ получения</legend>
-					<h2 class="text-xl font-semibold text-gray-800 mb-4" aria-hidden="true">Способ получения</h2>
+					<h2 class="text-title text-ink mb-4" aria-hidden="true">Способ получения</h2>
 					<div class="space-y-3">
 						<label
 							class="flex items-center space-x-3 p-4 border-2 rounded-lg cursor-pointer has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-blue-500 has-[:focus-visible]:ring-offset-2"
@@ -237,7 +237,7 @@
 				<!-- Адреса доставки или точки самовывоза -->
 				{#if deliveryType === 'delivery'}
 					<div class="bg-white rounded-lg shadow-md p-6">
-						<h2 class="text-xl font-semibold text-gray-800 mb-4">Адрес доставки</h2>
+						<h2 class="text-title text-ink mb-4">Адрес доставки</h2>
 
 						{#if showAddressForm}
 							<AddressForm
@@ -267,7 +267,7 @@
 					</div>
 				{:else}
 					<div class="bg-white rounded-lg shadow-md p-6">
-						<h2 class="text-xl font-semibold text-gray-800 mb-4">Точка самовывоза</h2>
+						<h2 class="text-title text-ink mb-4">Точка самовывоза</h2>
 						<PickupLocationSelect
 							{locations}
 							{selectedLocationId}
@@ -288,8 +288,8 @@
 
 				<!-- Комментарий -->
 				<div class="bg-white rounded-lg shadow-md p-6">
-					<label for="order-comment" class="block text-xl font-semibold text-gray-800 mb-4">
-						Комментарий к заказу <span class="text-base font-normal text-gray-500">(необязательно)</span>
+					<label for="order-comment" class="block text-title text-ink mb-4">
+						Комментарий к заказу <span class="text-body-sm font-normal text-gray-500">(необязательно)</span>
 					</label>
 					<textarea
 						id="order-comment"
@@ -305,7 +305,7 @@
 			<!-- Итого -->
 			<div class="lg:col-span-1">
 				<div class="bg-white rounded-lg shadow-md p-6 sticky top-4">
-					<h2 class="text-xl font-semibold text-gray-800 mb-4">Ваш заказ</h2>
+					<h2 class="text-title text-ink mb-4">Ваш заказ</h2>
 
 					<ul class="space-y-2 mb-4">
 						{#each $cartStore.items as item (item.id)}
@@ -324,9 +324,9 @@
 					</ul>
 
 					<div class="border-t pt-4 mb-4">
-						<div class="flex justify-between text-lg font-bold text-gray-900">
-							<span>Итого</span>
-							<span>
+						<div class="flex items-baseline justify-between text-ink">
+							<span class="text-title-sm">Итого</span>
+							<span class="text-price-md">
 								{formatPrice($cartTotal, $storeSettings?.currency || 'RUB')}
 							</span>
 						</div>
@@ -345,7 +345,7 @@
 						type="button"
 						onclick={handleSubmitOrder}
 						disabled={isSubmitting}
-						class="w-full bg-blue-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+						class="w-full bg-blue-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-control-lg"
 					>
 						{isSubmitting ? 'Оформляем заказ…' : 'Оформить заказ'}
 					</button>

@@ -50,7 +50,7 @@
 
 {#if $authStore.isAuthenticated}
 	<div class="bg-white rounded-lg shadow-md p-6">
-		<h3 class="text-lg font-semibold text-gray-800 mb-4">Ваш отзыв</h3>
+		<h3 class="text-title text-ink mb-4">Ваш отзыв</h3>
 
 		<form onsubmit={(e) => { e.preventDefault(); handleSubmit(); }} class="space-y-4">
 			{#if error}
@@ -112,7 +112,7 @@
 			<button
 				type="submit"
 				disabled={isSubmitting}
-				class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+				class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-control"
 			>
 				{isSubmitting ? 'Публикуем…' : 'Опубликовать отзыв'}
 			</button>
@@ -124,7 +124,7 @@
 		<button
 			type="button"
 			onclick={() => window.dispatchEvent(new CustomEvent('open-auth-modal', { detail: { reason: 'Войдите, чтобы написать отзыв о товаре.' } }))}
-			class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+			class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-control"
 		>
 			Войти
 		</button>

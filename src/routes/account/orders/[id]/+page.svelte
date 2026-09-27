@@ -54,9 +54,9 @@
 	<!-- Заголовок -->
 	<div class="bg-white rounded-lg shadow-md p-6">
 		<div class="flex flex-wrap items-center justify-between gap-3 mb-2">
-			<h1 class="text-2xl font-bold text-gray-800">Заказ №{data.order.id}</h1>
+			<h1 class="text-headline text-ink">Заказ №{data.order.id}</h1>
 			<span
-				class="px-3 py-1 rounded-full text-sm font-medium {getStatusColor(data.order.status)}"
+				class="px-3 py-1 rounded-full text-label font-medium {getStatusColor(data.order.status)}"
 			>
 				{getStatusLabel(data.order.status)}
 			</span>
@@ -87,22 +87,22 @@
 
 	<!-- Товары -->
 	<div class="bg-white rounded-lg shadow-md p-6">
-		<h2 class="text-lg font-semibold text-gray-800 mb-4">Товары в заказе</h2>
+		<h2 class="text-title text-ink mb-4">Товары в заказе</h2>
 		<div class="space-y-4">
 			{#each data.order.items as item (item.id)}
 				<div class="flex items-center space-x-4 pb-4 border-b border-gray-200 last:border-0">
 					<div class="flex-1">
 						<a
 							href="/products/{item.product?.slug || '#'}"
-							class="text-lg font-medium text-gray-800 hover:text-blue-600"
+							class="line-clamp-2 text-body-sm sm:text-body text-gray-800 hover:text-ink"
 						>
 							{item.productName}
 						</a>
 						<p class="text-sm text-gray-600">
-							{item.quantity} шт. × {formatPrice(item.price, $storeSettings?.currency || 'RUB')}
+							{item.quantity}&nbsp;шт. × {formatPrice(item.price, $storeSettings?.currency || 'RUB')}
 						</p>
 					</div>
-					<p class="text-right text-lg font-semibold text-gray-900">
+					<p class="text-right text-price text-ink">
 						{formatPrice((parseFloat(item.price) * item.quantity).toFixed(2), $storeSettings?.currency || 'RUB')}
 					</p>
 				</div>
@@ -113,7 +113,7 @@
 	<!-- Информация о доставке -->
 	{#if data.order.deliveryType === 'delivery' && data.order.deliveryAddressSnapshot}
 		<div class="bg-white rounded-lg shadow-md p-6">
-			<h2 class="text-lg font-semibold text-gray-800 mb-4">Адрес доставки</h2>
+			<h2 class="text-title text-ink mb-4">Адрес доставки</h2>
 			<div class="text-sm text-gray-600 space-y-1">
 				<p>{data.order.deliveryAddressSnapshot.label}</p>
 				<p>
@@ -128,7 +128,7 @@
 		</div>
 	{:else if data.order.deliveryType === 'pickup' && data.order.pickupLocation}
 		<div class="bg-white rounded-lg shadow-md p-6">
-			<h2 class="text-lg font-semibold text-gray-800 mb-4">Точка самовывоза</h2>
+			<h2 class="text-title text-ink mb-4">Точка самовывоза</h2>
 			<div class="text-sm text-gray-600 space-y-1">
 				<p class="font-medium text-gray-800">{data.order.pickupLocation.name}</p>
 				<p>
@@ -142,7 +142,7 @@
 
 	<!-- Итого -->
 	<div class="bg-white rounded-lg shadow-md p-6">
-		<h2 class="text-lg font-semibold text-gray-800 mb-4">Итого</h2>
+		<h2 class="text-title text-ink mb-4">Итого</h2>
 		<div class="space-y-2">
 			<div class="flex justify-between text-gray-600">
 				<span>Товары</span>
@@ -154,16 +154,16 @@
 				</span>
 			</div>
 			{#if data.order.discountAmount && parseFloat(data.order.discountAmount) > 0}
-				<div class="flex justify-between text-green-600">
+				<div class="flex justify-between text-positive">
 					<span>Скидка{#if data.order.couponCode} по промокоду {data.order.couponCode}{/if}</span>
 					<span>-{formatPrice(data.order.discountAmount, $storeSettings?.currency || 'RUB')}</span>
 				</div>
 			{/if}
-			<div class="flex justify-between text-lg font-bold text-gray-900 border-t pt-2">
-				<span>
+			<div class="flex items-baseline justify-between text-ink border-t pt-2">
+				<span class="text-title-sm">
 					{['pending', 'confirmed', 'shipped'].includes(data.order.status) ? 'К оплате при получении' : 'Сумма заказа'}
 				</span>
-				<span>{formatPrice(data.order.totalAmount, $storeSettings?.currency || 'RUB')}</span>
+				<span class="text-price-md">{formatPrice(data.order.totalAmount, $storeSettings?.currency || 'RUB')}</span>
 			</div>
 		</div>
 	</div>
@@ -171,7 +171,7 @@
 	<!-- Комментарий -->
 	{#if data.order.comment}
 		<div class="bg-white rounded-lg shadow-md p-6">
-			<h2 class="text-lg font-semibold text-gray-800 mb-4">Комментарий к заказу</h2>
+			<h2 class="text-title text-ink mb-4">Комментарий к заказу</h2>
 			<p class="text-sm text-gray-600">{data.order.comment}</p>
 		</div>
 	{/if}

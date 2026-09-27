@@ -23,7 +23,7 @@
 {#if $cartItemsCount > 0}
 	{#key bumpKey}
 		<span
-			class="pointer-events-none inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-ink px-1 text-[0.6875rem] leading-none font-semibold text-white tabular-nums ring-2 ring-surface {bumpKey
+			class="pointer-events-none inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-ink px-1 text-tab leading-none font-semibold text-white tabular-nums ring-2 ring-surface {bumpKey
 				? 'animate-bump'
 				: ''} {className}"
 			aria-hidden="true"

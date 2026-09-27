@@ -28,7 +28,7 @@
 	// Состояние страницы живёт в URL, поэтому всё выводим из data: при переходе между категориями ничего не устаревает
 	const totalPages = $derived(Math.max(1, Math.ceil(data.total / data.limit)));
 	const sortValue = $derived(`${data.filters.sortBy || 'createAt'}-${data.filters.sortOrder || 'DESC'}`);
-	const totalLabel = $derived(`${data.total} ${pluralize(data.total, ['товар', 'товара', 'товаров'])}`);
+	const totalLabel = $derived(`${data.total}\u00a0${pluralize(data.total, ['товар', 'товара', 'товаров'])}`);
 	const parentCategory = $derived(data.category.parent ?? data.parent);
 
 	// Чипсы: подкатегории раздела, а у конечной категории — её соседи по разделу
@@ -103,7 +103,7 @@
 	<Breadcrumbs items={breadcrumbs.map((crumb) => ({ name: crumb.name, href: crumb.url }))} />
 
 	<div class="mt-2 flex flex-wrap items-baseline gap-x-3 gap-y-1">
-		<h1 class="text-2xl font-semibold tracking-tight text-balance text-ink md:text-3xl">{data.category.name}</h1>
+		<h1 class="text-headline text-balance text-ink md:text-headline-lg">{data.category.name}</h1>
 		<p class="text-gray-500" role="status">{totalLabel}</p>
 	</div>
 

@@ -114,7 +114,7 @@
 </svelte:head>
 
 <div class="container mx-auto px-4 py-8">
-	<h1 class="text-3xl font-bold text-gray-800 mb-6">Корзина</h1>
+	<h1 class="text-headline md:text-headline-lg text-balance text-ink mb-6">Корзина</h1>
 
 	{#if isLoading}
 		<div class="text-center py-12">
@@ -127,7 +127,7 @@
 		<button
 			type="button"
 			onclick={loadCart}
-			class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+			class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors text-control"
 		>
 			Попробовать снова
 		</button>
@@ -147,11 +147,11 @@
 					d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L6 4H4M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"
 				/>
 			</svg>
-			<p class="text-xl text-gray-800">В корзине пока ничего нет</p>
-			<p class="mt-1 mb-4 text-gray-600">Добавляйте товары кнопкой «В корзину» в каталоге.</p>
+			<p class="text-title-sm text-ink">В корзине пока ничего нет</p>
+			<p class="mt-1 mb-4 text-body-sm text-gray-600">Добавляйте товары кнопкой «В корзину» в каталоге.</p>
 			<a
 				href="/catalog"
-				class="inline-block px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+				class="inline-block px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-control-lg"
 			>
 				Перейти в каталог
 			</a>
@@ -175,7 +175,7 @@
 						type="button"
 						onclick={handleClearCart}
 						disabled={isUpdating}
-						class="px-4 py-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded transition-colors disabled:opacity-50"
+						class="px-4 py-2 text-negative hover:bg-red-50 rounded transition-colors disabled:opacity-50"
 					>
 						Очистить корзину
 					</button>

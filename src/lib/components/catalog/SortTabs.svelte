@@ -31,8 +31,8 @@
 					href={href(option.value)}
 					aria-current={active ? 'true' : undefined}
 					data-sveltekit-noscroll
-					class="inline-flex h-11 items-center rounded-xl px-3 text-sm transition-colors {active
-						? 'bg-surface font-semibold text-ink'
+					class="inline-flex h-11 items-center rounded-xl px-3 text-control transition-colors {active
+						? 'bg-surface text-ink'
 						: 'text-gray-600 hover:text-ink'}"
 				>
 					{option.label}

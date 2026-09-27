@@ -24,59 +24,75 @@ colors:
   gray-950: "#0b0b0c"
 typography:
   headline:
-    fontFamily: "'Onest Variable', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif"
-    fontSize: "1.875rem"
-    fontWeight: 600
-    lineHeight: 1.2
-    letterSpacing: "-0.025em"
-  headline-mobile:
-    fontFamily: "'Onest Variable', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif"
+    fontFamily: "'Onest Variable', 'Onest Fallback Segoe', 'Onest Fallback Arial', system-ui, -apple-system, Roboto, sans-serif"
     fontSize: "1.5rem"
     fontWeight: 600
-    lineHeight: 1.333
+    lineHeight: "2rem"
     letterSpacing: "-0.025em"
-  price-lg:
-    fontFamily: "'Onest Variable', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif"
+  headline-lg:
+    fontFamily: "'Onest Variable', 'Onest Fallback Segoe', 'Onest Fallback Arial', system-ui, -apple-system, Roboto, sans-serif"
     fontSize: "1.875rem"
     fontWeight: 600
-    lineHeight: 1.2
+    lineHeight: "2.25rem"
     letterSpacing: "-0.025em"
-  price:
-    fontFamily: "'Onest Variable', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif"
+  price-lg:
+    fontFamily: "'Onest Variable', 'Onest Fallback Segoe', 'Onest Fallback Arial', system-ui, -apple-system, Roboto, sans-serif"
+    fontSize: "1.875rem"
+    fontWeight: 600
+    lineHeight: "2.25rem"
+    letterSpacing: "-0.025em"
+  price-md:
+    fontFamily: "'Onest Variable', 'Onest Fallback Segoe', 'Onest Fallback Arial', system-ui, -apple-system, Roboto, sans-serif"
     fontSize: "1.25rem"
     fontWeight: 600
     lineHeight: "1.75rem"
     letterSpacing: "-0.025em"
-  title:
-    fontFamily: "'Onest Variable', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif"
+  price:
+    fontFamily: "'Onest Variable', 'Onest Fallback Segoe', 'Onest Fallback Arial', system-ui, -apple-system, Roboto, sans-serif"
     fontSize: "1.125rem"
     fontWeight: 600
-    lineHeight: 1.556
+    lineHeight: "1.75rem"
+    letterSpacing: "-0.025em"
+  title:
+    fontFamily: "'Onest Variable', 'Onest Fallback Segoe', 'Onest Fallback Arial', system-ui, -apple-system, Roboto, sans-serif"
+    fontSize: "1.125rem"
+    fontWeight: 600
+    lineHeight: "1.75rem"
+  title-sm:
+    fontFamily: "'Onest Variable', 'Onest Fallback Segoe', 'Onest Fallback Arial', system-ui, -apple-system, Roboto, sans-serif"
+    fontSize: "1rem"
+    fontWeight: 600
+    lineHeight: "1.5rem"
   body:
-    fontFamily: "'Onest Variable', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif"
+    fontFamily: "'Onest Variable', 'Onest Fallback Segoe', 'Onest Fallback Arial', system-ui, -apple-system, Roboto, sans-serif"
     fontSize: "1rem"
     fontWeight: 400
     lineHeight: 1.625
   body-sm:
-    fontFamily: "'Onest Variable', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif"
+    fontFamily: "'Onest Variable', 'Onest Fallback Segoe', 'Onest Fallback Arial', system-ui, -apple-system, Roboto, sans-serif"
     fontSize: "0.875rem"
     fontWeight: 400
     lineHeight: "1.25rem"
   control:
-    fontFamily: "'Onest Variable', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif"
+    fontFamily: "'Onest Variable', 'Onest Fallback Segoe', 'Onest Fallback Arial', system-ui, -apple-system, Roboto, sans-serif"
     fontSize: "0.875rem"
     fontWeight: 500
     lineHeight: "1.25rem"
+  control-lg:
+    fontFamily: "'Onest Variable', 'Onest Fallback Segoe', 'Onest Fallback Arial', system-ui, -apple-system, Roboto, sans-serif"
+    fontSize: "1rem"
+    fontWeight: 500
+    lineHeight: "1.5rem"
   label:
-    fontFamily: "'Onest Variable', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif"
+    fontFamily: "'Onest Variable', 'Onest Fallback Segoe', 'Onest Fallback Arial', system-ui, -apple-system, Roboto, sans-serif"
     fontSize: "0.75rem"
     fontWeight: 400
-    lineHeight: 1.333
-  tab-label:
-    fontFamily: "'Onest Variable', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif"
+    lineHeight: "1rem"
+  tab:
+    fontFamily: "'Onest Variable', 'Onest Fallback Segoe', 'Onest Fallback Arial', system-ui, -apple-system, Roboto, sans-serif"
     fontSize: "0.6875rem"
     fontWeight: 500
-    lineHeight: 1.333
+    lineHeight: "1rem"
 rounded:
   md: "6px"
   lg: "8px"
@@ -109,6 +125,7 @@ components:
   button-primary-lg:
     backgroundColor: "{colors.ink}"
     textColor: "{colors.surface}"
+    typography: "{typography.control-lg}"
     rounded: "{rounded.xl}"
     height: "52px"
   button-secondary:
@@ -147,6 +164,7 @@ components:
     textColor: "{colors.surface}"
   sort-tab:
     textColor: "{colors.gray-600}"
+    typography: "{typography.control}"
     rounded: "{rounded.xl}"
     padding: "0 12px"
     height: "44px"
@@ -193,7 +211,7 @@ components:
   tab-bar:
     backgroundColor: "{colors.surface}"
     textColor: "{colors.gray-500}"
-    typography: "{typography.tab-label}"
+    typography: "{typography.tab}"
     height: "56px"
   tab-bar-active:
     textColor: "{colors.ink}"
@@ -223,7 +241,7 @@ components:
 **Key Characteristics:**
 - Серый холст, белые карточки радиусом 16px, ни рамок, ни теней в покое.
 - Чёрная заливка только у действий и активного состояния.
-- Один шрифт, Onest; иерархия весом 600 и размером, цены пропорциональными цифрами.
+- Один шрифт, Onest; иерархия размером и весом 600 (700 не используется), цены пропорциональными цифрами.
 - Фото товара на светло-сером колодце с `mix-blend-multiply`.
 - Статус остатка словом и точкой; скидка чёрной плашкой «−N%».
 - Подпись системы: «В корзину» на месте превращается в степпер «− N +».
@@ -248,7 +266,8 @@ components:
 ### Статусы
 - **Есть на складе** (positive): точка «В наличии N шт.».
 - **Мало** (caution): точка и текст «Осталось N шт.» при остатке 3 и меньше.
-- **Ошибка** (negative): текст ошибок и деструктивные действия в отзывах.
+- **Ошибка** (negative): текст ошибок и деструктивные действия («Удалить» в отзывах, «Очистить корзину»).
+- Строка скидки в итогах заказа набирается positive.
 
 ### Named Rules
 **The Black Means Act Rule.** Чёрная заливка (ink) принадлежит только действиям и активному состоянию: основные кнопки, активный чипс и страница, счётчик корзины, плашка скидки, тост. Второстепенные зоны не заливаются чёрным: подвал намеренно светлая белая полоса.
@@ -259,38 +278,56 @@ components:
 
 ## Typography
 
-**Display Font:** Onest Variable (с system-ui, -apple-system, Segoe UI, Roboto)
+**Display Font:** Onest Variable (с метрически подогнанными заменителями Onest Fallback Segoe и Onest Fallback Arial, затем system-ui, -apple-system, Roboto)
 **Body Font:** Onest Variable
 **Label/Mono Font:** нет, одно семейство на всё
 
-**Character:** Современный гротеск с кириллицей, спокойный и деловой; иерархия строится весом 600 против 400 и плотным трекингом −0.025em у заголовков и цен, без второго шрифта. Включено `font-optical-sizing: auto` и сглаживание antialiased.
+**Character:** Современный гротеск с кириллицей, спокойный и деловой; иерархия строится размером и весом 600 против 400/500 и плотным трекингом −0.025em у заголовков и цен, без второго шрифта. Сглаживание antialiased. Оптического размера у Onest нет, поэтому `font-optical-sizing` не задаётся.
+
+**Заменители на время загрузки.** Два `@font-face` на локальных системных шрифтах подогнаны под метрики Onest, чтобы после подмены текст не перескакивал: Onest Fallback Segoe (Segoe UI, size-adjust 103.8%, ascent 93.5%, descent 29.4%) и Onest Fallback Arial (Arial, 103%, 94.2%, 29.6%), line-gap 0 у обоих. Предзагрузка шрифта измерена и отклонена: на медленном 4G она задерживала первую отрисовку.
 
 ### Hierarchy
-- **Headline** (600, 1.5rem на телефоне → 1.875rem с 768px, −0.025em, `text-balance`): заголовок страницы каталога и раздела. Название товара — та же роль, на телефоне 1.25rem с межстрочным 1.25.
-- **Price-lg** (600, 1.875rem, −0.025em): цена в блоке покупки карточки товара.
-- **Price** (600, 1.125rem → 1.25rem с 640px, строка 1.75rem, −0.025em): цена в карточке списка и в полосе покупки.
-- **Title** (600, 1.125rem): заголовки панелей («Описание», «Отзывы», «Фильтры»).
+Каждая роль — токен кегля в `@theme` (`--text-<роль>` с подсвойствами интерлиньяжа, трекинга и насыщенности); утилита `text-<роль>` задаёт всё разом.
+
+- **Headline** (600, 1.5rem, строка 2rem, −0.025em): заголовки страниц на телефоне, заголовки экранов кабинета и админки.
+- **Headline-lg** (600, 1.875rem, строка 2.25rem, −0.025em): заголовок страницы с 768px (`text-headline md:text-headline-lg`, с `text-balance`). Название товара — отдельный размер 1.25rem → 1.5rem с 768px, чтобы цена 30px в блоке покупки оставалась самым крупным элементом.
+- **Price-lg** (600, 1.875rem, строка 2.25rem, −0.025em): цена в блоке покупки карточки товара.
+- **Price-md** (600, 1.25rem, строка 1.75rem, −0.025em): итоги корзины, оформления и заказа, цена в полосе покупки, цена в карточке списка с 640px.
+- **Price** (600, 1.125rem, строка 1.75rem, −0.025em): цена в карточке списка на телефоне, сумма строки в корзине и заказе.
+- **Title** (600, 1.125rem, строка 1.75rem): заголовки панелей («Описание», «Отзывы», «Фильтры») и разделов кабинета, оформления, админки.
+- **Title-sm** (600, 1rem, строка 1.5rem): заголовки внутри панелей: адрес, пункт выдачи, строка заказа, колонки подвала.
 - **Body** (400, 1rem, 1.625): описание товара, ширина до 36rem.
-- **Body-sm** (400, 0.875rem, 1.25rem): название в карточке (две строки, `line-clamp-2`), крошки, строки фильтров, тосты.
-- **Control** (500, 0.875rem): подписи кнопок, чипсов, пагинации; кнопка большого размера — 1rem.
-- **Label** (400, 0.75rem): остаток, старая цена, плашка скидки (600), подписи иконок в шапке.
-- **Tab-label** (500, 0.6875rem): подписи нижних вкладок и цифра счётчика корзины (600).
+- **Body-sm** (400, 0.875rem, строка 1.25rem): название в карточке (две строки, `line-clamp-2`), крошки, строки фильтров, тосты, вторичные строки (цена за штуку в корзине — gray-600).
+- **Control** (500, 0.875rem, строка 1.25rem): подписи кнопок, чипсов, сортировки, пагинации.
+- **Control-lg** (500, 1rem, строка 1.5rem): подпись большой кнопки 52px («Оформить заказ», основное действие главной).
+- **Label** (400, 0.75rem, строка 1rem): остаток, старая цена, плашка скидки (600), подписи иконок в шапке; бейджи статуса заказа, «По умолчанию» и тип пункта выдачи — 500.
+- **Tab** (500, 0.6875rem, строка 1rem): подписи нижних вкладок и цифра счётчика корзины (600).
+
+Заголовки групп фильтров («Цена, ₽», «Категории», «Только в наличии») — 0.875rem / 600; активный пункт фильтра выделяется 500 и подложкой, а не жирным.
 
 ### Named Rules
 **The Proportional Price Rule.** Цены и статичные числа набираются пропорциональными цифрами: табличная «1» у Onest разрывает «15 990» визуально. `tabular-nums` только там, где цифры меняются на месте: число в степпере, счётчик корзины, номера пагинации, счётчик активных фильтров, поля цены при наборе. (Контракт направления называл цены «табличными цифрами»; сборка это опровергла, решение сборки главнее.)
 
 **The One Family Rule.** Никакого второго шрифта и системных шрифтов для заголовков: иерархия только весом, размером и трекингом Onest.
 
+**The Size-Not-Bold Rule.** Насыщенность в системе — 400, 500 и 600; 700 не используется нигде. Иерархию несёт размер роли плюс 600, активное состояние — подложка и цвет, а не прибавка веса.
+
+**The One Price Family Rule.** Любая цена набирается одной из трёх ролей price (price, price-md, price-lg) с одинаковым трекингом и весом; вторичная цена (за штуку, старая) уходит в body-sm или label серым. Копейки показываются целиком или никак: «1 234 567,50 ₽», а не «1 234 567,5 ₽».
+
+**The 16px Field Rule.** Текст в полях ввода на телефоне не меньше 16px, чтобы iOS не увеличивал страницу при фокусе; уменьшать разрешено только с широких брейкпоинтов (поиск в шапке 15px с 768px, поля цены 14px с 1024px).
+
+**The Unbroken Unit Rule.** Между числом и единицей стоит неразрывный пробел: «14 шт.», «16 товаров» не разрываются переносом.
+
 ## Layout
 
 Контейнер шириной до 1280px с полями 16px на телефоне и 24px с 768px; вертикальные отступы задаёт страница (16px / 24px сверху). Ритм на базе 4px.
 
-- **Сетка товаров:** 2 колонки на телефоне (зазор 8px, с 640px — 12px), 3 с 768px, 4 с 1280px, если рядом нет боковой панели.
+- **Сетка товаров:** на телефоне `repeat(auto-fit, minmax(max(8.5rem, (100% − 0.75rem) / 2), 1fr))` — обычно 2 колонки, а при 200% текста одна, без горизонтальной прокрутки (зазор 8px, с 640px — 12px); 3 с 768px, 4 с 1280px, если рядом нет боковой панели.
 - **Каталог на десктопе (с 1024px):** боковая панель фильтров 16rem, липкая с отступом 16px, и контент справа, зазор 24px. Чипсы разделов на десктопе скрыты: те же разделы уже в панели.
 - **Карточка товара (с 1024px):** галерея слева и липкий блок покупки 23rem справа, зазор 24px; ниже — описание и отзывы в левой колонке. На телефоне всё в одну колонку с зазором 12px.
-- **Шапка:** на десктопе служебная строка 36px (телефон, «Контакты и пункты выдачи», «Админ-панель»), под ней логотип, чёрная «Каталог», широкий поиск на всю оставшуюся ширину и подписанные иконки «Войти / Избранное / Корзина». На телефоне — название магазина и поле поиска строкой ниже, без гамбургера.
+- **Шапка:** на десктопе служебная строка 36px (телефон, «Контакты и пункты выдачи», «Админ-панель»), под ней логотип, чёрная «Каталог», широкий поиск на всю оставшуюся ширину и подписанные иконки «Войти / Избранное / Корзина». На телефоне — название магазина (1.125rem → 1.25rem с 768px, 600) и поле поиска строкой ниже, без гамбургера.
 - **Низ телефона:** панель вкладок высотой 56px (`--tabbar-height`) плюс safe-area; всё закреплённое снизу (полоса покупки, тосты) стоит над ней. Страница получает нижний отступ под панель. В админке панели вкладок нет.
-- **Горизонтальные ряды** (чипсы, сортировка, крошки) на узком экране прокручиваются без полосы; ряд сортировки гаснет маской к правому краю.
+- **Горизонтальные ряды** (чипсы, сортировка, крошки) на узком экране прокручиваются без полосы; ряд сортировки гаснет маской к правому краю. Чипс не шире 16rem, длинное название обрезается многоточием.
 
 **The 44px Rule.** Любая цель касания не меньше 44px: кнопки, чипсы, вкладки сортировки, страницы, иконки-кнопки, ссылки подвала. Основная кнопка покупки на странице товара — 52px.
 
@@ -312,7 +349,7 @@ components:
 
 **The Nested Radius Rule.** Внешний контейнер 16px, элемент внутри 12px; радиус внутри никогда не больше внешнего.
 
-Иконки — Lucide, контурные, 16–24px, толщина по умолчанию; в активной вкладке толщина 2.25 против 1.75 у неактивной. Сердце «в избранном» заливается `currentColor`.
+Иконки — Lucide, контурные, 16–24px, толщина по умолчанию; в активной вкладке толщина 2.25 против 1.75 у неактивной. Сердце «в избранном» заливается `currentColor`. Меню кабинета и админки и действия над товарами в админке тоже несут Lucide (package, map-pin, heart, user, folder-tree, shopping-cart, ticket-percent, settings, eye, pencil, trash-2), а не эмодзи.
 
 ## Components
 
@@ -326,11 +363,11 @@ components:
 - **Focus:** глобальная обводка 2px ink со смещением 2px; на тёмном тосте — белая.
 
 ### Chips
-- **Style:** круглые, высота 44px, поля 16px, белые на холсте, текст gray-800 500; наведение gray-200.
+- **Style:** круглые, высота 44px, поля 16px, не шире 16rem с обрезкой подписи, белые на холсте, текст control gray-800; наведение gray-200.
 - **State:** активный — ink и белый текст, `aria-current="page"`. Первый чипс — «Все товары» / «Все в разделе».
 
 ### Sort Tabs
-Строка ссылок без подложки, текст gray-600; активная — белая плитка 12px с ink 600. Рядом на телефоне белая кнопка «Фильтры» со счётчиком активных фильтров (чёрный круг 20px).
+Строка ссылок без подложки, текст control (500) gray-600, наведение ink; активная — белая плитка 12px и ink тем же весом 500: состояние несут подложка и цвет, а не насыщенность. Рядом на телефоне белая кнопка «Фильтры» со счётчиком активных фильтров (чёрный круг 20px).
 
 ### Cards / Containers
 - **Corner Style:** 16px.
@@ -338,10 +375,10 @@ components:
 - **Shadow Strategy:** плоско в покое, отклик при наведении (см. Elevation & Depth).
 - **Border:** нет; фокус ссылки внутри рисует обводку ink вокруг всей карточки.
 - **Internal Padding:** карточка товара 10px → 12px с 640px; панели 20px (24px с 768px у описания и отзывов).
-- **Карточка товара, порядок сверху вниз:** квадратный колодец gray-50 с фото (`object-contain`, поля 12px, `mix-blend-multiply`; без остатка — прозрачность 0.5 и grayscale), кнопка-сердце в углу; строка 20px со старой ценой и плашкой «−N%»; цена; название в две строки (вся карточка кликабельна); строка остатка; «В корзину» на всю ширину, прижата к низу.
+- **Карточка товара, порядок сверху вниз:** квадратный колодец gray-50 с фото (`object-contain`, поля 12px, `mix-blend-multiply`; без остатка — прозрачность 0.5 и grayscale), кнопка-сердце в углу; строка 20px со старой ценой и плашкой «−N%»; цена (price, с 640px price-md); название в две строки с переносом длинных слов (вся карточка кликабельна); строка остатка; «В корзину» на всю ширину, прижата к низу.
 
 ### Inputs / Fields
-- **Style:** без обводки, подложка gray-100, 12px, высота 44px, текст ink, плейсхолдер gray-500.
+- **Style:** без обводки, подложка gray-100, 12px, высота 44px, текст ink 16px на телефоне (см. The 16px Field Rule), плейсхолдер gray-500.
 - **Focus:** подложка становится белой, кольцо 2px ink.
 - **Тумблер:** 48×28px, выключен gray-300, включён ink, белый бегунок сдвигается за 200ms.
 
@@ -358,7 +395,7 @@ components:
 Кнопка «В корзину» после добавления на том же месте превращается в степпер «− N +» на подложке gray-100 (`animate-swap-in`: 200ms, прозрачность и `scale(0.96 → 1)`, ease-out-quart), и фокус переезжает на «+»; при уходе в ноль возвращается кнопка и фокус на неё. «+» выключается, когда достигнут остаток. Одновременно счётчик корзины на вкладке и в шапке вздрагивает (`animate-bump`: 320ms, `scale(1 → 1.22 → 1)`) — только когда число выросло, не при первой загрузке корзины. На странице товара под степпером появляется «Перейти в корзину».
 
 ### Buy Bar (телефон)
-На странице товара закреплённая над вкладками белая полоса с ценой и степпером/кнопкой шириной 11rem; видна только пока строка покупки в блоке справа вне экрана, выезжает за 300ms ease-out-quart и становится `inert`, когда строка видна.
+На странице товара закреплённая над вкладками белая полоса с ценой (price-md) и степпером/кнопкой шириной 11rem; видна только пока строка покупки в блоке справа вне экрана, выезжает за 300ms ease-out-quart и становится `inert`, когда строка видна.
 
 ### Bottom Sheet (фильтры на телефоне)
 Нативный `<dialog>` снизу, высота до 85dvh, верхние углы 24px, затемнение 40%, въезд снизу за 300ms. Шапка «Фильтры» с крестиком 44px, прокручиваемые фильтры, внизу за линией кнопка 52px «Показать N товаров». Список за листом обновляется сразу. Закрывается фоном, Esc и крестиком.
@@ -373,6 +410,8 @@ components:
 - **Do** подтверждать действие на месте: морф кнопки в степпер, толчок счётчика; 150–320ms, ease-out-quart.
 - **Do** набирать цены пропорциональными цифрами, а `tabular-nums` ставить только на цифры, меняющиеся на месте.
 - **Do** проверять reduced motion: глобально анимации и переходы схлопываются до 1ms, тосты появляются без движения.
+- **Do** набирать текст ролями `text-<роль>` из `@theme` (headline, price, title, body, control, label, tab), а не сырыми кеглями с отдельным весом и трекингом.
+- **Do** держать текст полей ввода 16px на телефоне и ставить неразрывный пробел между числом и единицей.
 
 ### Don't:
 - **Don't** использовать `bg-blue-*` / `ring-blue-*` в новой работе: это временный мост для непереведённых экранов.
@@ -383,3 +422,7 @@ components:
 - **Don't** обводить карточки рамкой и давать им тень в покое.
 - **Don't** добавлять гамбургер-меню в шапку телефона: навигацию несут нижние вкладки.
 - **Don't** вводить второй шрифт или системный шрифт для заголовков.
+- **Don't** использовать жирный 700 (`font-bold`): потолок насыщенности — 600.
+- **Don't** выделять активную вкладку сортировки или пункт фильтра прибавкой веса до 600.
+- **Don't** ставить предзагрузку шрифта: измерено, на медленном 4G она замедляет первую отрисовку; скачок при подмене гасят метрические заменители.
+- **Don't** использовать эмодзи вместо иконок: только Lucide.
