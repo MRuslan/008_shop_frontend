@@ -38,5 +38,5 @@ export async function load({ params }) {
 	// Склад не выдаёт заказы покупателям: считаем только пункты выдачи и магазины
 	const pickupPoints = locations?.filter((location) => location.type !== 'warehouse').length ?? null;
 
-	return { product, category: category as Category | null, rating, pickupPoints };
+	return { product, category: category as Category | null, reviews: visibleReviews, rating, pickupPoints };
 }

@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/state';
 	import type { Product, Category } from '$lib/types/product';
+	import type { Review } from '$lib/types/common';
 	import { formatPrice, discountPercent, pluralize } from '$lib/utils/format';
 	import { storeSettings } from '$lib/stores/store';
 	import { cartLines } from '$lib/stores/cart';
@@ -22,6 +23,7 @@
 		data: {
 			product: Product;
 			category: Category | null;
+			reviews: Review[] | null;
 			rating: { average: number; count: number } | null;
 			pickupPoints: number | null;
 		};
@@ -295,7 +297,7 @@
 
 			<section id="reviews" class="scroll-mt-4 rounded-2xl bg-surface p-5 md:p-6">
 				{#key product.id}
-					<ProductReviews productId={product.id} />
+					<ProductReviews productId={product.id} initialReviews={data.reviews} />
 				{/key}
 			</section>
 		</div>

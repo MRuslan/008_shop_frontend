@@ -17,7 +17,7 @@
 >
 	{#each products as product, index (product.id)}
 		<li>
-			<ProductCard {product} eager={index < 4} />
+			<ProductCard {product} eager={index < 4} priority={index < 2} />
 		</li>
 	{/each}
 </ul>

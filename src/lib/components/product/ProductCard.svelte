@@ -12,9 +12,11 @@
 		product: Product;
 		/** Первые карточки видны без прокрутки: грузим их фото сразу */
 		eager?: boolean;
+		/** Первый ряд на телефоне: его фото — кандидат в LCP, просим браузер грузить его первым */
+		priority?: boolean;
 	}
 
-	let { product, eager = false }: Props = $props();
+	let { product, eager = false, priority = false }: Props = $props();
 
 	const currency = $derived($storeSettings?.currency || 'RUB');
 	const image = $derived(product.images?.[0]?.url);
@@ -32,6 +34,7 @@
 				src={image}
 				alt=""
 				loading={eager ? 'eager' : 'lazy'}
+				fetchpriority={priority ? 'high' : undefined}
 				decoding="async"
 				class="size-full object-contain p-3 mix-blend-multiply {inStock
 					? ''

@@ -15,17 +15,22 @@
 
 	interface Props {
 		productId: number;
+		/** Отзывы, уже загруженные на сервере: без них компонент загрузит список сам */
+		initialReviews?: Review[] | null;
 	}
 
-	let { productId }: Props = $props();
+	let { productId, initialReviews = null }: Props = $props();
 
-	let reviews = $state<Review[]>([]);
-	let isLoading = $state(true);
+	// Серверные отзывы попадают в HTML сразу: ни второго запроса после гидрации, ни мигания загрузки
+	// svelte-ignore state_referenced_locally
+	let reviews = $state<Review[]>(initialReviews ?? []);
+	// svelte-ignore state_referenced_locally
+	let isLoading = $state(initialReviews === null);
 	let error = $state<string | null>(null);
 	let showReviewForm = $state(false);
 
 	onMount(async () => {
-		await loadReviews();
+		if (initialReviews === null) await loadReviews();
 	});
 
 	async function loadReviews() {
@@ -37,7 +42,7 @@
 			// Показываем только видимые отзывы
 			reviews = allReviews.filter((review) => review.isVisible);
 		} catch (err) {
-			error = getErrorMessage(err, 'Ошибка загрузки отзывов');
+			error = getErrorMessage(err, 'Не удалось загрузить отзывы.');
 		} finally {
 			isLoading = false;
 		}
