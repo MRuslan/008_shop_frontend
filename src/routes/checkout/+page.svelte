@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import { tick } from 'svelte';
 	import { cartStore, cartTotal } from '$lib/stores/cart';
 	import { authStore } from '$lib/stores/auth';
 	import { cartApi } from '$lib/api/cart';
@@ -7,11 +8,14 @@
 	import { addressesApi } from '$lib/api/addresses';
 	import { locationsApi } from '$lib/api/locations';
 	import type { Address, CreateAddressDto, UpdateAddressDto } from '$lib/types/common';
-	import type { Location, DeliveryType, CreateOrderDto } from '$lib/types/order';
+	import type { Location, DeliveryType, CreateOrderDto, OrderQuote } from '$lib/types/order';
+	import type { CartAvailability } from '$lib/types/cart';
 	import { formatPrice } from '$lib/utils/format';
+	import { shortageText, couponToPromo } from '$lib/utils/availability';
+	import { deliveryTerms as describeDelivery } from '$lib/utils/delivery';
 	import { storeSettings } from '$lib/stores/store';
 	import { toast } from '$lib/stores/toast';
-	import { getErrorMessage } from '$lib/utils/errors';
+	import { getErrorMessage, humanizeMessage, isApiError } from '$lib/utils/errors';
 	import AddressList from '$lib/components/checkout/AddressList.svelte';
 	import AddressForm from '$lib/components/checkout/AddressForm.svelte';
 	import PickupLocationSelect from '$lib/components/checkout/PickupLocationSelect.svelte';
@@ -28,7 +32,6 @@
 	let selectedAddressId = $state<number | null>(null);
 	let selectedLocationId = $state<number | null>(null);
 	let couponCode = $state<string | null>(null);
-	let discountAmount = $state<string | null>(null);
 	let comment = $state('');
 
 	// Данные
@@ -36,6 +39,42 @@
 	let locations = $state<Location[]>([]);
 	let showAddressForm = $state(false);
 	let editingAddress = $state<Address | null>(null);
+	// Наличие корзины по точкам; null — бэкенд его не отдаёт, тогда проверка только при оформлении
+	let availability = $state<CartAvailability | null>(null);
+
+	// Предрасчёт с сервера: промокод, доставка, итог. null — ещё не посчитан или бэкенд его не умеет
+	let quote = $state<OrderQuote | null>(null);
+	let quotePending = $state(false);
+	let quoteError = $state<string | null>(null);
+	let quoteSupported = $state(true);
+	let quoteSeq = 0;
+
+	let blockersBox: HTMLElement | undefined = $state();
+
+	const currency = $derived($storeSettings?.currency || 'RUB');
+	const money = (value: string | number) =>
+		formatPrice(typeof value === 'number' ? value.toFixed(2) : value, currency);
+
+	// Способы получения: свежие флаги из наличия, иначе из настроек магазина; без настроек доступны оба
+	const deliverySettings = $derived($storeSettings?.settings?.delivery ?? null);
+	const deliveryEnabled = $derived(availability?.delivery.enabled ?? deliverySettings?.enabled ?? true);
+	const pickupEnabled = $derived(
+		availability?.pickup.enabled ?? $storeSettings?.settings?.pickup?.enabled ?? true
+	);
+
+	const pickupStock = $derived(
+		availability
+			? new Map(
+					availability.pickup.points.map((point) => [
+						point.locationId,
+						{ available: point.available, shortages: point.shortages }
+					])
+				)
+			: null
+	);
+
+	// Условия доставки одной строкой под вариантом «Доставка курьером»
+	const deliveryTerms = $derived(describeDelivery(deliverySettings, currency));
 
 	let dataRequested = false;
 
@@ -52,15 +91,35 @@
 		}
 	});
 
+	async function loadAvailability() {
+		try {
+			availability = await cartApi.getAvailability(false);
+		} catch (err) {
+			// Старый бэкенд без наличия по точкам: остатки проверит оформление заказа
+			console.error('Failed to load cart availability:', err);
+			availability = null;
+		}
+	}
+
+	function pickDefaultLocation() {
+		const usable = locations.filter((location) => !pickupStock || pickupStock.get(location.id)?.available);
+		if (selectedLocationId === null || !usable.some((location) => location.id === selectedLocationId)) {
+			selectedLocationId = usable[0]?.id ?? null;
+		}
+	}
+
 	async function loadData() {
 		isLoading = true;
 		loadError = null;
 
 		try {
-			const cart = await cartApi.getCart(false);
+			const [cart, userAddresses, allLocations] = await Promise.all([
+				cartApi.getCart(false),
+				addressesApi.getAddresses(),
+				locationsApi.getLocations({ isActive: true }),
+				loadAvailability()
+			]);
 			cartStore.setCart(cart);
-
-			const userAddresses = await addressesApi.getAddresses();
 			addresses = userAddresses;
 
 			// Адрес по умолчанию, если пользователь ещё ничего не выбрал
@@ -70,18 +129,132 @@
 			}
 
 			// Склад не выдаёт заказы: бэкенд принимает самовывоз только из пунктов выдачи и магазинов
-			locations = (await locationsApi.getLocations({ isActive: true })).filter(
-				(location) => location.type !== 'warehouse'
-			);
-			if (selectedLocationId === null || !locations.some((l) => l.id === selectedLocationId)) {
-				selectedLocationId = locations[0]?.id ?? null;
-			}
+			locations = allLocations.filter((location) => location.type !== 'warehouse');
+			pickDefaultLocation();
+
+			// Выключенный магазином способ не предлагаем по умолчанию
+			if (deliveryType === 'delivery' && !deliveryEnabled && pickupEnabled) deliveryType = 'pickup';
+			if (deliveryType === 'pickup' && !pickupEnabled && deliveryEnabled) deliveryType = 'delivery';
 		} catch (err) {
 			loadError = getErrorMessage(err, 'Не удалось загрузить адреса и точки самовывоза.');
 		} finally {
 			isLoading = false;
 		}
 	}
+
+	// Пересчёт при каждом изменении того, что влияет на сумму. Короткая задержка склеивает быстрые клики,
+	// номер запроса отбрасывает ответы, которые пришли позже более нового
+	const quoteKey = $derived(
+		JSON.stringify([
+			deliveryType,
+			deliveryType === 'delivery' ? selectedAddressId : selectedLocationId,
+			couponCode,
+			$cartStore?.items.map((item) => [item.productId, item.quantity]) ?? []
+		])
+	);
+
+	$effect(() => {
+		void quoteKey;
+		if (isLoading || loadError || !quoteSupported || !$cartStore?.items.length) return;
+		const timer = setTimeout(refreshQuote, 150);
+		return () => clearTimeout(timer);
+	});
+
+	async function refreshQuote() {
+		const seq = ++quoteSeq;
+		quotePending = true;
+		try {
+			const result = await ordersApi.quote({
+				deliveryType,
+				deliveryAddressId: deliveryType === 'delivery' ? (selectedAddressId ?? undefined) : undefined,
+				pickupLocationId: deliveryType === 'pickup' ? (selectedLocationId ?? undefined) : undefined,
+				couponCode: couponCode ?? undefined
+			});
+			if (seq !== quoteSeq) return;
+			quote = result;
+			quoteError = null;
+		} catch (err) {
+			if (seq !== quoteSeq) return;
+			if (isApiError(err) && err.statusCode === 404) {
+				// Бэкенд без предрасчёта: считаем по корзине, промокод проверит оформление
+				quoteSupported = false;
+				quote = null;
+			} else {
+				quoteError = getErrorMessage(err, 'Не удалось пересчитать заказ. Итог уточним при оформлении.');
+			}
+		} finally {
+			if (seq === quoteSeq) quotePending = false;
+		}
+	}
+
+	// Суммы: с сервера, пока его нет — по корзине без скидки и доставки
+	const subtotal = $derived(quote?.subtotalAmount ?? $cartTotal);
+	const discount = $derived(quote ? parseFloat(quote.discountAmount) : 0);
+	const deliveryCost = $derived(quote && quote.deliveryType === 'delivery' ? parseFloat(quote.deliveryCost) : null);
+	const total = $derived(quote?.totalAmount ?? $cartTotal);
+
+	const couponStatus = $derived.by((): 'checking' | 'applied' | 'rejected' | 'unchecked' => {
+		if (!couponCode || !quoteSupported) return 'unchecked';
+		const answer = quote?.coupon;
+		if (quotePending || !answer || answer.code.toUpperCase() !== couponCode) {
+			return quotePending ? 'checking' : 'unchecked';
+		}
+		return answer.applied ? 'applied' : 'rejected';
+	});
+
+	// Что мешает оформить заказ прямо сейчас: показываем рядом с кнопкой, а не после нажатия
+	const blockers = $derived.by(() => {
+		const list: string[] = [];
+		if (deliveryType === 'delivery') {
+			if (!deliveryEnabled) {
+				list.push(
+					pickupEnabled
+						? 'Магазин сейчас не доставляет заказы. Выберите самовывоз.'
+						: 'Магазин сейчас не принимает заказы.'
+				);
+			} else if (availability && !availability.delivery.available) {
+				// Самовывоз предлагаем, только если хоть одна точка соберёт весь заказ
+				const pickupHelps = pickupEnabled && availability.pickup.points.some((point) => point.available);
+				const orPickup = pickupHelps ? ' или выберите самовывоз' : '';
+				const shortages = availability.delivery.shortages;
+				if (availability.delivery.locationId === null || shortages.length === 0) {
+					list.push(`Доставка сейчас недоступна${pickupHelps ? ', выберите самовывоз' : ''}.`);
+				} else {
+					const noneLeft = shortages.every((s) => s.reason === 'unavailable' || s.available <= 0);
+					list.push(
+						`Для доставки не хватает товара: ${shortages.map((s) => shortageText(s, 'delivery')).join('; ')}. ` +
+							`${noneLeft ? 'Уберите эти товары из корзины' : 'Уменьшите количество в корзине'}${orPickup}.`
+					);
+				}
+			}
+		} else if (!pickupEnabled) {
+			list.push(
+				deliveryEnabled
+					? 'Самовывоз сейчас недоступен. Выберите доставку курьером.'
+					: 'Магазин сейчас не принимает заказы.'
+			);
+		}
+
+		for (const problem of quote?.problems ?? []) {
+			if (problem.code === 'delivery_disabled' || problem.code === 'pickup_disabled') continue;
+			if (problem.code === 'min_order_amount' && deliverySettings?.minOrderAmount) {
+				const missing = parseFloat(deliverySettings.minOrderAmount) - (parseFloat(subtotal) - discount);
+				list.push(
+					`Доставка — для заказов от\u00a0${money(deliverySettings.minOrderAmount)}. ` +
+						`Добавьте товаров на\u00a0${money(Math.max(missing, 0))}${pickupEnabled ? ' или выберите самовывоз' : ''}.`
+				);
+			} else if (problem.code === 'product_unavailable') {
+				list.push(`${problem.message.replace(/"([^"]+)"/, '«$1»')}. Уберите его из корзины.`);
+			} else {
+				list.push(problem.message);
+			}
+		}
+
+		if (couponStatus === 'rejected') {
+			list.push(`Промокод ${couponCode} не подходит. Уберите его, чтобы оформить заказ.`);
+		}
+		return list;
+	});
 
 	async function handleSaveAddress(data: CreateAddressDto | UpdateAddressDto) {
 		try {
@@ -111,19 +284,15 @@
 		}
 	}
 
-	async function handleApplyCoupon(code: string) {
-		// Скидку рассчитает сервер при создании заказа; здесь только запоминаем код
-		couponCode = code;
-		discountAmount = null;
-	}
-
-	function handleRemoveCoupon() {
-		couponCode = null;
-		discountAmount = null;
-	}
-
 	async function handleSubmitOrder() {
 		submitError = null;
+
+		if (blockers.length > 0) {
+			// Причины уже написаны над кнопкой: переводим туда фокус, чтобы их прочитал и скринридер
+			await tick();
+			blockersBox?.focus();
+			return;
+		}
 
 		if (deliveryType === 'delivery' && !selectedAddressId) {
 			submitError = addresses.length ? 'Выберите адрес доставки.' : 'Добавьте адрес доставки.';
@@ -154,7 +323,11 @@
 			toast.success(`Заказ №${order.id} оформлен`);
 			await goto(`/account/orders/${order.id}`);
 		} catch (err) {
-			submitError = getErrorMessage(err, 'Не удалось оформить заказ. Попробуйте ещё раз.');
+			submitError = couponToPromo(getErrorMessage(err, 'Не удалось оформить заказ. Попробуйте ещё раз.'));
+			// Остатки могли измениться, пока покупатель оформлял: обновляем наличие и итог
+			await loadAvailability();
+			pickDefaultLocation();
+			void refreshQuote();
 		} finally {
 			isSubmitting = false;
 		}
@@ -200,7 +373,9 @@
 					<h2 class="text-title text-ink mb-4" aria-hidden="true">Способ получения</h2>
 					<div class="space-y-3">
 						<label
-							class="flex items-center space-x-3 p-4 border-2 rounded-lg cursor-pointer has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-blue-500 has-[:focus-visible]:ring-offset-2"
+							class="flex items-center space-x-3 p-4 border-2 rounded-lg has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-blue-500 has-[:focus-visible]:ring-offset-2 {deliveryEnabled
+								? 'cursor-pointer'
+								: 'cursor-not-allowed bg-gray-50'}"
 							class:border-blue-600={deliveryType === 'delivery'}
 							class:border-gray-300={deliveryType !== 'delivery'}
 						>
@@ -208,15 +383,25 @@
 								type="radio"
 								bind:group={deliveryType}
 								value="delivery"
+								disabled={!deliveryEnabled}
 								class="text-blue-600 focus:ring-blue-500"
 							/>
 							<span class="flex-1">
-								<span class="block font-medium">Доставка курьером</span>
-								<span class="block text-sm text-gray-600">Привезём по адресу, который вы укажете</span>
+								<span class="block font-medium {deliveryEnabled ? '' : 'text-gray-600'}">Доставка курьером</span>
+								{#if !deliveryEnabled}
+									<span class="block text-sm text-gray-600">Сейчас магазин не доставляет заказы</span>
+								{:else}
+									<span class="block text-sm text-gray-600">Привезём по адресу, который вы укажете</span>
+									{#if deliveryTerms}
+										<span class="block text-sm text-gray-600">{deliveryTerms}</span>
+									{/if}
+								{/if}
 							</span>
 						</label>
 						<label
-							class="flex items-center space-x-3 p-4 border-2 rounded-lg cursor-pointer has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-blue-500 has-[:focus-visible]:ring-offset-2"
+							class="flex items-center space-x-3 p-4 border-2 rounded-lg has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-blue-500 has-[:focus-visible]:ring-offset-2 {pickupEnabled
+								? 'cursor-pointer'
+								: 'cursor-not-allowed bg-gray-50'}"
 							class:border-blue-600={deliveryType === 'pickup'}
 							class:border-gray-300={deliveryType !== 'pickup'}
 						>
@@ -224,11 +409,16 @@
 								type="radio"
 								bind:group={deliveryType}
 								value="pickup"
+								disabled={!pickupEnabled}
 								class="text-blue-600 focus:ring-blue-500"
 							/>
 							<span class="flex-1">
-								<span class="block font-medium">Самовывоз</span>
-								<span class="block text-sm text-gray-600">Заберёте сами из пункта выдачи или магазина</span>
+								<span class="block font-medium {pickupEnabled ? '' : 'text-gray-600'}">Самовывоз</span>
+								<span class="block text-sm text-gray-600">
+									{pickupEnabled
+										? 'Бесплатно. Заберёте сами из пункта выдачи или магазина'
+										: 'Сейчас самовывоз недоступен'}
+								</span>
 							</span>
 						</label>
 					</div>
@@ -271,6 +461,7 @@
 						<PickupLocationSelect
 							{locations}
 							{selectedLocationId}
+							stock={pickupStock}
 							onSelect={(id) => (selectedLocationId = id)}
 						/>
 					</div>
@@ -280,9 +471,11 @@
 				<div class="bg-white rounded-lg shadow-md p-6">
 					<CouponInput
 						{couponCode}
-						{discountAmount}
-						onApply={handleApplyCoupon}
-						onRemove={handleRemoveCoupon}
+						status={couponStatus}
+						discountLabel={discount > 0 ? `−${money(quote?.discountAmount ?? '0')}` : null}
+						rejection={quote?.coupon?.error ? (humanizeMessage(quote.coupon.error) ?? couponToPromo(quote.coupon.error)) : null}
+						onApply={(code) => (couponCode = code)}
+						onRemove={() => (couponCode = null)}
 					/>
 				</div>
 
@@ -314,29 +507,74 @@
 									{item.product.name} × {item.quantity}
 								</span>
 								<span class="font-medium shrink-0">
-									{formatPrice(
-										(parseFloat(item.product.price) * item.quantity).toFixed(2),
-										$storeSettings?.currency || 'RUB'
-									)}
+									{money((parseFloat(item.product.price) * item.quantity).toFixed(2))}
 								</span>
 							</li>
 						{/each}
 					</ul>
 
-					<div class="border-t pt-4 mb-4">
-						<div class="flex items-baseline justify-between text-ink">
-							<span class="text-title-sm">Итого</span>
-							<span class="text-price-md">
-								{formatPrice($cartTotal, $storeSettings?.currency || 'RUB')}
-							</span>
+					<!-- Пока идёт пересчёт, прежние суммы бледнеют, но не исчезают -->
+					<dl class="space-y-2 border-t pt-4 text-sm transition-opacity {quotePending ? 'opacity-60' : ''}" aria-busy={quotePending}>
+						<div class="flex justify-between text-gray-600">
+							<dt>Товары</dt>
+							<dd>{money(subtotal)}</dd>
 						</div>
-						{#if couponCode}
-							<p class="mt-1 text-sm text-gray-500">Сумма без скидки по промокоду</p>
+						{#if discount > 0}
+							<div class="flex justify-between text-positive">
+								<dt>Скидка по промокоду</dt>
+								<dd>−{money(quote?.discountAmount ?? '0')}</dd>
+							</div>
 						{/if}
-					</div>
+						{#if deliveryType === 'delivery' && deliveryCost !== null}
+							<div class="flex justify-between text-gray-600">
+								<dt>Доставка</dt>
+								<dd>{deliveryCost > 0 ? money(deliveryCost) : 'Бесплатно'}</dd>
+							</div>
+						{:else if deliveryType === 'pickup'}
+							<div class="flex justify-between text-gray-600">
+								<dt>Самовывоз</dt>
+								<dd>Бесплатно</dd>
+							</div>
+						{/if}
+						<div class="flex items-baseline justify-between border-t pt-3 text-ink">
+							<dt class="text-title-sm">Итого</dt>
+							<dd class="text-price-md">{money(total)}</dd>
+						</div>
+					</dl>
+
+					{#if quote?.freeDeliveryRemaining && deliveryType === 'delivery'}
+						<p class="mt-2 text-sm text-gray-600">
+							Добавьте товаров на&nbsp;{money(quote.freeDeliveryRemaining)}, и доставка станет бесплатной.
+						</p>
+					{/if}
+					{#if !quote && couponCode}
+						<p class="mt-2 text-sm text-gray-500">Сумма без скидки по промокоду</p>
+					{/if}
+					{#if quoteError}
+						<p class="mt-2 text-sm text-gray-500">{quoteError}</p>
+					{/if}
+
+					{#if blockers.length > 0}
+						<div
+							bind:this={blockersBox}
+							tabindex="-1"
+							role="status"
+							class="mt-4 rounded-md border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-gray-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-ink"
+						>
+							<p class="font-medium">Чтобы оформить заказ:</p>
+							<ul class="mt-1 list-disc space-y-1 pl-5">
+								{#each blockers as blocker (blocker)}
+									<li>{blocker}</li>
+								{/each}
+							</ul>
+							{#if blockers.some((text) => text.includes('корзин'))}
+								<a href="/cart" class="mt-2 inline-block underline underline-offset-4">Перейти в корзину</a>
+							{/if}
+						</div>
+					{/if}
 
 					{#if submitError}
-						<div role="alert" class="mb-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded text-sm">
+						<div role="alert" class="mt-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded text-sm">
 							{submitError}
 						</div>
 					{/if}
@@ -345,7 +583,7 @@
 						type="button"
 						onclick={handleSubmitOrder}
 						disabled={isSubmitting}
-						class="w-full bg-blue-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-control-lg"
+						class="mt-4 w-full bg-blue-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-control-lg"
 					>
 						{isSubmitting ? 'Оформляем заказ…' : 'Оформить заказ'}
 					</button>

@@ -1,7 +1,13 @@
 // API методы для корзины
 
 import { apiClient } from './client';
-import type { Cart, AddCartItemDto, UpdateCartItemDto, MergeSessionDto } from '$lib/types/cart';
+import type {
+	Cart,
+	AddCartItemDto,
+	UpdateCartItemDto,
+	MergeSessionDto,
+	CartAvailability
+} from '$lib/types/cart';
 
 export const cartApi = {
 	/**
@@ -37,6 +43,13 @@ export const cartApi = {
 	 */
 	async clearCart(useSessionId: boolean = false): Promise<Cart> {
 		return apiClient.delete<Cart>('/cart', { useSessionId });
+	},
+
+	/**
+	 * Где корзину можно забрать целиком и хватит ли её на доставку (без резерва)
+	 */
+	async getAvailability(useSessionId: boolean = false): Promise<CartAvailability> {
+		return apiClient.get<CartAvailability>('/cart/availability', { useSessionId });
 	},
 
 	/**

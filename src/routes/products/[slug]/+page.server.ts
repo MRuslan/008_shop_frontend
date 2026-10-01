@@ -28,15 +28,30 @@ export async function load({ params }) {
 	]);
 
 	const visibleReviews = reviews?.filter((review) => review.isVisible) ?? null;
-	const rating = visibleReviews?.length
+	// Рейтинг считает бэкенд; по отзывам — только если он его не прислал
+	const serverAverage = product.ratingAvg ? Number.parseFloat(product.ratingAvg) : null;
+	const rating =
+		serverAverage && product.ratingCount
+			? { average: serverAverage, count: product.ratingCount }
+			: visibleReviews?.length
+				? {
+						average: visibleReviews.reduce((sum, review) => sum + review.rating, 0) / visibleReviews.length,
+						count: visibleReviews.length
+					}
+				: null;
+
+	// Склад не выдаёт заказы покупателям: считаем только пункты выдачи и магазины.
+	// withStock — в скольких из них товар есть сейчас; null, если бэкенд не отдал остатки по точкам
+	const pickupLocations = locations?.filter((location) => location.type !== 'warehouse') ?? null;
+	const stockByLocation = new Map((product.stocks ?? []).map((stock) => [stock.locationId, stock.quantity]));
+	const pickup = pickupLocations
 		? {
-				average: visibleReviews.reduce((sum, review) => sum + review.rating, 0) / visibleReviews.length,
-				count: visibleReviews.length
+				total: pickupLocations.length,
+				withStock: product.stocks
+					? pickupLocations.filter((location) => (stockByLocation.get(location.id) ?? 0) > 0).length
+					: null
 			}
 		: null;
 
-	// Склад не выдаёт заказы покупателям: считаем только пункты выдачи и магазины
-	const pickupPoints = locations?.filter((location) => location.type !== 'warehouse').length ?? null;
-
-	return { product, category: category as Category | null, reviews: visibleReviews, rating, pickupPoints };
+	return { product, category: category as Category | null, reviews: visibleReviews, rating, pickup };
 }

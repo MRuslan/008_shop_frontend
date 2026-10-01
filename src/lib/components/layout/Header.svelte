@@ -14,7 +14,7 @@
 	import Phone from '@lucide/svelte/icons/phone';
 
 	let showAuthModal = $state(false);
-	let authMode: 'login' | 'register' = $state('login');
+	let authMode: 'login' | 'register' | 'forgot' = $state('login');
 
 	const storeName = $derived($storeSettings?.name || 'Магазин');
 	const phone = $derived($storeSettings?.contactPhone ?? null);
@@ -37,9 +37,9 @@
 	// Зачем просим войти: покупатель видит причину над формой, а не просто окно логина
 	let authReason = $state<string | null>(null);
 
-	function openLogin(reason: string | null = null) {
+	function openLogin(reason: string | null = null, mode: 'login' | 'register' | 'forgot' = 'login') {
 		authReason = reason;
-		authMode = 'login';
+		authMode = mode;
 		showAuthModal = true;
 	}
 
@@ -69,7 +69,11 @@
 	});
 
 	$effect(() => {
-		const handleOpen = (event: Event) => openLogin((event as CustomEvent<{ reason?: string }>).detail?.reason ?? null);
+		// detail.mode открывает сразу нужный шаг, например восстановление пароля со страницы сброса
+		const handleOpen = (event: Event) => {
+			const detail = (event as CustomEvent<{ reason?: string; mode?: 'login' | 'register' | 'forgot' }>).detail;
+			openLogin(detail?.reason ?? null, detail?.mode ?? 'login');
+		};
 		const handleSuccess = () => {
 			if (redirectTarget) goto(redirectTarget);
 		};

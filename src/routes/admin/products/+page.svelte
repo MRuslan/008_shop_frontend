@@ -126,12 +126,15 @@
 	<!-- Форма товара -->
 	{#if showProductForm}
 		<div class="mb-6">
-			<ProductForm
-				product={editingProduct}
-				categories={data.categories}
-				onSuccess={handleFormSuccess}
-				onCancel={handleFormClose}
-			/>
+			<!-- Другой товар — новая форма: поля заполняются из пропсов только при создании -->
+			{#key editingProduct?.id ?? "new"}
+				<ProductForm
+					product={editingProduct}
+					categories={data.categories}
+					onSuccess={handleFormSuccess}
+					onCancel={handleFormClose}
+				/>
+			{/key}
 		</div>
 	{/if}
 

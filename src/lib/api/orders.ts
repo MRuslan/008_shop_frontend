@@ -1,7 +1,34 @@
 // API методы для заказов
 
 import { apiClient } from './client';
-import type { Order, CreateOrderDto, UpdateOrderStatusDto } from '$lib/types/order';
+import type { PaginatedResponse } from '$lib/types/api';
+import type {
+	Order,
+	OrderStatus,
+	CreateOrderDto,
+	UpdateOrderStatusDto,
+	OrderQuote,
+	OrderQuoteDto
+} from '$lib/types/order';
+
+export interface OrdersQuery {
+	status?: OrderStatus | string;
+	dateFrom?: string;
+	dateTo?: string;
+	page?: number;
+	limit?: number;
+}
+
+function toQuery(filters: OrdersQuery = {}, extra: Record<string, string> = {}): string {
+	const params = new URLSearchParams(extra);
+	if (filters.status) params.append('status', filters.status);
+	if (filters.dateFrom) params.append('dateFrom', filters.dateFrom);
+	if (filters.dateTo) params.append('dateTo', filters.dateTo);
+	if (filters.page && filters.page > 1) params.append('page', String(filters.page));
+	if (filters.limit) params.append('limit', String(filters.limit));
+	const query = params.toString();
+	return query ? `?${query}` : '';
+}
 
 export const ordersApi = {
 	/**
@@ -12,10 +39,18 @@ export const ordersApi = {
 	},
 
 	/**
-	 * Получить список своих заказов
+	 * Предрасчёт по текущей корзине теми же правилами, что и оформление: промокод, доставка, итог.
+	 * Ничего не создаёт и не резервирует
 	 */
-	async getMyOrders(): Promise<Order[]> {
-		return apiClient.get<Order[]>('/orders');
+	async quote(data: OrderQuoteDto): Promise<OrderQuote> {
+		return apiClient.post<OrderQuote>('/orders/quote', data);
+	},
+
+	/**
+	 * Свои заказы, новые первыми, постранично
+	 */
+	async getMyOrders(filters?: OrdersQuery): Promise<PaginatedResponse<Order>> {
+		return apiClient.get<PaginatedResponse<Order>>(`/orders${toQuery(filters)}`);
 	},
 
 	/**
@@ -26,20 +61,17 @@ export const ordersApi = {
 	},
 
 	/**
-	 * Получить все заказы (для admin/manager)
+	 * Отменить свой заказ: можно, пока он не передан в доставку (pending, confirmed)
 	 */
-	async getAllOrders(filters?: {
-		status?: string;
-		dateFrom?: string;
-		dateTo?: string;
-	}): Promise<Order[]> {
-		const params = new URLSearchParams();
-		params.append('scope', 'all');
-		if (filters?.status) params.append('status', filters.status);
-		if (filters?.dateFrom) params.append('dateFrom', filters.dateFrom);
-		if (filters?.dateTo) params.append('dateTo', filters.dateTo);
+	async cancelOrder(id: number, comment?: string): Promise<Order> {
+		return apiClient.post<Order>(`/orders/${id}/cancel`, comment ? { comment } : {});
+	},
 
-		return apiClient.get<Order[]>(`/orders?${params.toString()}`);
+	/**
+	 * Все заказы магазина (для admin/manager), постранично
+	 */
+	async getAllOrders(filters?: OrdersQuery): Promise<PaginatedResponse<Order>> {
+		return apiClient.get<PaginatedResponse<Order>>(`/orders${toQuery(filters, { scope: 'all' })}`);
 	},
 
 	/**

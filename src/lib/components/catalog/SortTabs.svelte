@@ -1,5 +1,5 @@
 <script lang="ts" module>
-	export type SortValue = 'createAt-DESC' | 'price-ASC' | 'price-DESC' | 'name-ASC';
+	export type SortValue = 'createAt-DESC' | 'rating-DESC' | 'price-ASC' | 'price-DESC' | 'name-ASC';
 </script>
 
 <script lang="ts">
@@ -12,6 +12,7 @@
 
 	const options: { value: SortValue; label: string }[] = [
 		{ value: 'createAt-DESC', label: 'Новинки' },
+		{ value: 'rating-DESC', label: 'По рейтингу' },
 		{ value: 'price-ASC', label: 'Сначала дешёвые' },
 		{ value: 'price-DESC', label: 'Сначала дорогие' },
 		{ value: 'name-ASC', label: 'По названию' }

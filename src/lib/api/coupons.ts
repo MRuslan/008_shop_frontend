@@ -1,6 +1,6 @@
 // API методы для купонов
 
-import { apiClient } from './client';
+import { apiClient, fetchAllPages } from './client';
 import type { Coupon } from '$lib/types/common';
 
 export interface CreateCouponDto {
@@ -10,23 +10,20 @@ export interface CreateCouponDto {
 	validFrom?: string;
 	validTo?: string;
 	isActive?: boolean;
+	/** Лимиты; null снимает ограничение */
+	maxUses?: number | null;
+	maxUsesPerUser?: number | null;
+	minSubtotal?: number | null;
 }
 
-export interface UpdateCouponDto {
-	code?: string;
-	type?: 'percent' | 'fixed';
-	value?: number;
-	validFrom?: string;
-	validTo?: string;
-	isActive?: boolean;
-}
+export type UpdateCouponDto = Partial<CreateCouponDto>;
 
 export const couponsApi = {
 	/**
 	 * Получить список купонов (для manager/admin)
 	 */
 	async getCoupons(): Promise<Coupon[]> {
-		return apiClient.get<Coupon[]>('/coupons');
+		return fetchAllPages<Coupon>('/coupons');
 	},
 
 	/**

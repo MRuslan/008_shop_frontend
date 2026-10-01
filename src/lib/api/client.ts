@@ -1,7 +1,7 @@
 // Базовый HTTP клиент для работы с API
 
 import { API_BASE_URL, TOKEN_STORAGE_KEY, REFRESH_TOKEN_STORAGE_KEY } from '$lib/utils/constants';
-import type { ApiError } from '$lib/types/api';
+import type { ApiError, PaginatedResponse } from '$lib/types/api';
 import { getOrCreateSessionId } from '$lib/utils/session';
 
 interface RequestOptions extends RequestInit {
@@ -9,8 +9,18 @@ interface RequestOptions extends RequestInit {
 	useSessionId?: boolean;
 }
 
+/** Есть ли сохранённый вход. Только в браузере: на сервере токенов нет */
+export function hasAccessToken(): boolean {
+	return typeof window !== 'undefined' && !!localStorage.getItem(TOKEN_STORAGE_KEY);
+}
+
+/** Событие окна: обновить пару токенов не удалось, пользователь вышел */
+export const AUTH_EXPIRED_EVENT = 'auth:expired';
+
 class ApiClient {
 	private baseUrl: string;
+	/** Один обмен refresh-токена на вкладку: параллельные 401 ждут его, а не шлют свой */
+	private refreshing: Promise<boolean> | null = null;
 
 	constructor(baseUrl: string) {
 		this.baseUrl = baseUrl;
@@ -51,9 +61,31 @@ class ApiClient {
 	}
 
 	/**
-	 * Обновляет токены через refresh endpoint
+	 * Обновляет токены через refresh endpoint.
+	 * Бэкенд считает повторный обмен одного refresh-токена кражей и отзывает сессию,
+	 * поэтому обмен идёт строго по одному: внутри вкладки через общий промис,
+	 * между вкладками через Web Locks. `staleToken` — access-токен, с которым пришёл 401:
+	 * если за время ожидания его уже заменили, новый обмен не нужен.
 	 */
-	private async refreshTokens(): Promise<boolean> {
+	private refreshTokens(staleToken: string | null): Promise<boolean> {
+		this.refreshing ??= this.withRefreshLock(() => this.exchangeRefreshToken(staleToken)).finally(() => {
+			this.refreshing = null;
+		});
+		return this.refreshing;
+	}
+
+	private withRefreshLock(task: () => Promise<boolean>): Promise<boolean> {
+		if (typeof navigator !== 'undefined' && navigator.locks) {
+			// Типы lib.dom считают результат Promise<Promise<boolean>>; then разворачивает вложенный промис
+			return navigator.locks.request('shop-auth-refresh', task).then((result) => result);
+		}
+		return task();
+	}
+
+	private async exchangeRefreshToken(staleToken: string | null): Promise<boolean> {
+		const current = this.getAccessToken();
+		if (current && current !== staleToken) return true;
+
 		const refreshToken = this.getRefreshToken();
 		if (!refreshToken) return false;
 
@@ -70,13 +102,14 @@ class ApiClient {
 				const data = await response.json();
 				this.setTokens(data.access_token, data.refresh_token);
 				return true;
-			} else {
-				this.clearTokens();
-				return false;
 			}
-		} catch (error) {
-			console.error('Failed to refresh tokens:', error);
+			// Сессия отозвана или истекла: выходим, чтобы интерфейс не считал пользователя вошедшим
 			this.clearTokens();
+			window.dispatchEvent(new CustomEvent(AUTH_EXPIRED_EVENT));
+			return false;
+		} catch (error) {
+			// Сеть недоступна: токены не трогаем, сессия ещё может быть жива
+			console.error('Failed to refresh tokens:', error);
 			return false;
 		}
 	}
@@ -90,15 +123,16 @@ class ApiClient {
 	): Promise<T> {
 		const { skipAuth = false, useSessionId = false, headers = {}, ...restOptions } = options;
 
-		// Формируем заголовки
+		// Формируем заголовки. У FormData тип с границей multipart ставит сам браузер
+		const isFormData = typeof FormData !== 'undefined' && restOptions.body instanceof FormData;
 		const requestHeaders: Record<string, string> = {
-			'Content-Type': 'application/json',
+			...(isFormData ? {} : { 'Content-Type': 'application/json' }),
 			...(headers as Record<string, string>)
 		};
 
 		// Добавляем авторизацию
+		const token = skipAuth ? null : this.getAccessToken();
 		if (!skipAuth) {
-			const token = this.getAccessToken();
 			if (token) {
 				requestHeaders['Authorization'] = `Bearer ${token}`;
 			} else if (useSessionId) {
@@ -116,9 +150,9 @@ class ApiClient {
 			headers: requestHeaders
 		});
 
-		// Если получили 401, пробуем обновить токен
-		if (response.status === 401 && !skipAuth && !useSessionId) {
-			const refreshed = await this.refreshTokens();
+		// Если получили 401 на запрос с токеном, пробуем обновить токен
+		if (response.status === 401 && token) {
+			const refreshed = await this.refreshTokens(token);
 			if (refreshed) {
 				// Повторяем запрос с новым токеном
 				const newToken = this.getAccessToken();
@@ -180,11 +214,52 @@ class ApiClient {
 	}
 
 	/**
+	 * POST multipart/form-data, например загрузка файла
+	 */
+	async upload<T>(endpoint: string, data: FormData, options?: RequestOptions): Promise<T> {
+		return this.request<T>(endpoint, { ...options, method: 'POST', body: data });
+	}
+
+	/**
+	 * PUT запрос
+	 */
+	async put<T>(endpoint: string, data?: any, options?: RequestOptions): Promise<T> {
+		return this.request<T>(endpoint, {
+			...options,
+			method: 'PUT',
+			body: data ? JSON.stringify(data) : undefined
+		});
+	}
+
+	/**
 	 * DELETE запрос
 	 */
 	async delete<T>(endpoint: string, options?: RequestOptions): Promise<T> {
 		return this.request<T>(endpoint, { ...options, method: 'DELETE' });
 	}
+}
+
+/**
+ * Все элементы постраничного списка: { data, total, page, limit } по 100 за запрос.
+ * Старый формат (просто массив) тоже понимаем. maxPages ограничивает число запросов
+ */
+export async function fetchAllPages<T>(
+	endpoint: string,
+	options: RequestOptions = {},
+	maxPages = 10
+): Promise<T[]> {
+	const separator = endpoint.includes('?') ? '&' : '?';
+	const items: T[] = [];
+	for (let page = 1; page <= maxPages; page++) {
+		const response = await apiClient.get<PaginatedResponse<T> | T[]>(
+			`${endpoint}${separator}page=${page}&limit=100`,
+			options
+		);
+		if (Array.isArray(response)) return response;
+		items.push(...response.data);
+		if (items.length >= response.total || response.data.length === 0) break;
+	}
+	return items;
 }
 
 // Экспортируем singleton экземпляр

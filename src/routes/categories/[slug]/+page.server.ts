@@ -4,6 +4,7 @@ import { categoriesApi } from '$lib/api/categories';
 import { productsApi } from '$lib/api/products';
 import { throwHttpError } from '$lib/utils/errors';
 import type { ProductFilters } from '$lib/types/product';
+import { parseSort } from '$lib/utils/sort';
 
 function parsePositiveInt(value: string | null, fallback: number, max = Number.MAX_SAFE_INTEGER) {
 	const parsed = Number.parseInt(value ?? '', 10);
@@ -14,8 +15,7 @@ function parsePositiveInt(value: string | null, fallback: number, max = Number.M
 export async function load({ params, url }) {
 	const page = parsePositiveInt(url.searchParams.get('page'), 1);
 	const limit = parsePositiveInt(url.searchParams.get('limit'), 20, 100);
-	const sortBy = (url.searchParams.get('sortBy') as 'price' | 'createAt' | 'name') || 'createAt';
-	const sortOrder = (url.searchParams.get('sortOrder') as 'ASC' | 'DESC') || 'DESC';
+	const { sortBy, sortOrder } = parseSort(url.searchParams);
 
 	// 404 остаётся 404, недоступный бэкенд превращается в 503, а не в «500 Ошибка загрузки»
 	const category = await categoriesApi
@@ -24,6 +24,8 @@ export async function load({ params, url }) {
 
 	const filters: ProductFilters = {
 		categoryId: category.id,
+		// Родительский раздел показывает и товары подкатегорий, иначе он выглядит пустым
+		includeDescendants: true,
 		page,
 		limit,
 		isActive: true,

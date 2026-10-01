@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/state';
 	import { storeSettings } from '$lib/stores/store';
-	import { generateOrganizationJsonLd } from '$lib/utils/seo';
+	import { generateOrganizationJsonLd, jsonLdScript } from '$lib/utils/seo';
 
 	const siteUrl = $derived(page.url.origin);
 	const siteName = $derived($storeSettings?.name || 'Интернет-магазин');
@@ -32,7 +32,8 @@
 	<link rel="canonical" href="{siteUrl}/" />
 
 	{#if $storeSettings}
-		{@html `<script type="application/ld+json">${JSON.stringify(generateOrganizationJsonLd($storeSettings, siteUrl))}</script>`}
+		<!-- eslint-disable-next-line svelte/no-at-html-tags -- jsonLdScript экранирует <, > и &, закрыть тег script нельзя -->
+		{@html jsonLdScript(generateOrganizationJsonLd($storeSettings, siteUrl))}
 	{/if}
 </svelte:head>
 

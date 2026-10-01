@@ -31,6 +31,16 @@ export function pluralize(count: number, forms: [string, string, string]): strin
 /**
  * Процент скидки от старой цены; 0, если старой цены нет или она не выше текущей
  */
+/**
+ * Средняя оценка с одним знаком: «4,5». Бэкенд отдаёт её строкой ("4.50") или null без отзывов
+ */
+export function formatRating(ratingAvg: string | null | undefined): string | null {
+	if (ratingAvg === null || ratingAvg === undefined) return null;
+	const value = Number.parseFloat(ratingAvg);
+	if (!Number.isFinite(value) || value <= 0) return null;
+	return value.toLocaleString('ru-RU', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+}
+
 export function discountPercent(price: string, compareAtPrice: string | null): number {
 	if (!compareAtPrice) return 0;
 	const now = parseFloat(price);

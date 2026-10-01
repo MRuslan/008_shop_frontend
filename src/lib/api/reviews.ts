@@ -1,6 +1,6 @@
 // API методы для отзывов
 
-import { apiClient } from './client';
+import { apiClient, fetchAllPages } from './client';
 import type { Review, CreateReviewDto } from '$lib/types/common';
 
 export const reviewsApi = {
@@ -8,7 +8,8 @@ export const reviewsApi = {
 	 * Получить отзывы по товару
 	 */
 	async getReviewsByProduct(productId: number): Promise<Review[]> {
-		return apiClient.get<Review[]>(`/reviews?productId=${productId}`, { skipAuth: true });
+		// Бэкенд отдаёт отзывы постранично; на странице товара показываем до 200 последних
+		return fetchAllPages<Review>(`/reviews?productId=${productId}`, { skipAuth: true }, 2);
 	},
 
 	/**

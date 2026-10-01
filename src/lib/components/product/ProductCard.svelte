@@ -1,12 +1,13 @@
 <script lang="ts">
 	import type { Product } from '$lib/types/product';
-	import { formatPrice, discountPercent } from '$lib/utils/format';
+	import { formatPrice, discountPercent, formatRating, pluralize } from '$lib/utils/format';
 	import { storeSettings } from '$lib/stores/store';
 	import { wishlistStore } from '$lib/stores/wishlist';
 	import CartControl from './CartControl.svelte';
 	import StockStatus from './StockStatus.svelte';
 	import Heart from '@lucide/svelte/icons/heart';
 	import ImageOff from '@lucide/svelte/icons/image-off';
+	import Star from '@lucide/svelte/icons/star';
 
 	interface Props {
 		product: Product;
@@ -19,7 +20,15 @@
 	let { product, eager = false, priority = false }: Props = $props();
 
 	const currency = $derived($storeSettings?.currency || 'RUB');
-	const image = $derived(product.images?.[0]?.url);
+	const cover = $derived(product.images?.[0]);
+	const image = $derived(cover?.url);
+	// Загруженное фото есть в двух размерах: превью 400 px хватает карточке на телефоне,
+	// полное берём только на широких экранах с плотными пикселями
+	const srcset = $derived(
+		cover?.thumbnailUrl ? `${cover.thumbnailUrl} 400w, ${cover.url} ${cover.width ?? 1600}w` : undefined
+	);
+	const rating = $derived(formatRating(product.ratingAvg));
+	const ratingCount = $derived(product.ratingCount ?? 0);
 	const discount = $derived(discountPercent(product.price, product.compareAtPrice));
 	const inStock = $derived(product.quantity > 0);
 	const isFavorite = $derived($wishlistStore.has(product.id));
@@ -31,7 +40,9 @@
 	<div class="relative aspect-square overflow-hidden rounded-xl bg-gray-50">
 		{#if image}
 			<img
-				src={image}
+				src={cover?.thumbnailUrl ?? image}
+				{srcset}
+				sizes={srcset ? '(min-width: 1280px) 17rem, (min-width: 768px) 30vw, 50vw' : undefined}
 				alt=""
 				loading={eager ? 'eager' : 'lazy'}
 				fetchpriority={priority ? 'high' : undefined}
@@ -78,6 +89,18 @@
 				{product.name}
 			</a>
 		</h2>
+
+		{#if rating && ratingCount > 0}
+			<p class="mt-1 flex items-center gap-1 text-label text-gray-600">
+				<Star class="size-3.5 shrink-0 text-ink" fill="currentColor" aria-hidden="true" />
+				<span class="tabular-nums">
+					<span class="font-medium text-gray-900">{rating}</span>
+					<span class="sr-only">из 5,</span>
+					<span aria-hidden="true">·</span>
+					{ratingCount}&nbsp;{pluralize(ratingCount, ['отзыв', 'отзыва', 'отзывов'])}
+				</span>
+			</p>
+		{/if}
 
 		<StockStatus quantity={product.quantity} class="mt-1.5 text-label" />
 

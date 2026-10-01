@@ -1,37 +1,15 @@
 <script lang="ts">
-	import type { Order } from '$lib/types/order';
+	import { invalidateAll } from '$app/navigation';
 	import { formatPrice, formatDateTime } from '$lib/utils/format';
+	import { orderStatusLabel, ORDER_STATUS_TONE } from '$lib/utils/order-status';
 	import { storeSettings } from '$lib/stores/store';
+	import Pagination from '$lib/components/catalog/Pagination.svelte';
+	import type { PageProps } from './$types';
 
-	interface Props {
-		data: {
-			orders: Order[];
-		};
-	}
+	let { data }: PageProps = $props();
 
-	let { data }: Props = $props();
-
-	function getStatusLabel(status: Order['status']): string {
-		const labels: Record<Order['status'], string> = {
-			pending: 'Ожидает подтверждения',
-			confirmed: 'Подтверждён',
-			shipped: 'Передан в доставку',
-			delivered: 'Доставлен',
-			cancelled: 'Отменён'
-		};
-		return labels[status] || status;
-	}
-
-	function getStatusColor(status: Order['status']): string {
-		const colors: Record<Order['status'], string> = {
-			pending: 'bg-yellow-100 text-yellow-800',
-			confirmed: 'bg-blue-100 text-blue-800',
-			shipped: 'bg-purple-100 text-purple-800',
-			delivered: 'bg-green-100 text-green-800',
-			cancelled: 'bg-red-100 text-red-800'
-		};
-		return colors[status] || 'bg-gray-100 text-gray-800';
-	}
+	const currency = $derived($storeSettings?.currency || 'RUB');
+	const totalPages = $derived(Math.max(1, Math.ceil(data.total / data.limit)));
 </script>
 
 <svelte:head>
@@ -42,7 +20,19 @@
 <div class="bg-white rounded-lg shadow-md p-6">
 	<h1 class="text-headline text-ink mb-6">Мои заказы</h1>
 
-	{#if data.orders.length === 0}
+	{#if data.failed}
+		<div class="text-center py-12" role="alert">
+			<p class="text-title-sm text-ink">Не удалось загрузить заказы</p>
+			<p class="mt-1 mb-4 text-body-sm text-gray-600">Проверьте соединение и попробуйте ещё раз.</p>
+			<button
+				type="button"
+				onclick={() => invalidateAll()}
+				class="inline-flex h-11 items-center rounded-xl bg-ink px-5 text-control text-white hover:bg-ink-hover"
+			>
+				Повторить
+			</button>
+		</div>
+	{:else if data.orders.length === 0}
 		<div class="text-center py-12">
 			<p class="text-title-sm text-ink">Заказов пока нет</p>
 			<p class="mt-1 mb-4 text-body-sm text-gray-600">Здесь появятся оформленные заказы и их статусы.</p>
@@ -57,26 +47,24 @@
 				>
 					<div class="flex items-start justify-between">
 						<div class="flex-1">
-							<div class="flex items-center space-x-4 mb-2">
+							<div class="flex flex-wrap items-center gap-x-4 gap-y-1 mb-2">
 								<h2 class="text-title-sm text-ink">
 									Заказ №{order.id}
 								</h2>
-								<span
-									class="px-2 py-1 rounded text-label font-medium {getStatusColor(order.status)}"
-								>
-									{getStatusLabel(order.status)}
+								<span class="px-2 py-1 rounded text-label font-medium {ORDER_STATUS_TONE[order.status]}">
+									{orderStatusLabel(order.status, order.deliveryType)}
 								</span>
 							</div>
-							
+
 							<p class="text-sm text-gray-600 mb-1">
 								{formatDateTime(order.createAt)} · {order.deliveryType === 'delivery' ? 'Доставка курьером' : 'Самовывоз'}
 							</p>
 
 							<p class="text-sm text-gray-600">
-								{order.items.reduce((sum, item) => sum + item.quantity, 0)}&nbsp;шт. · {formatPrice(order.totalAmount, $storeSettings?.currency || 'RUB')}
+								{order.items.reduce((sum, item) => sum + item.quantity, 0)}&nbsp;шт. · {formatPrice(order.totalAmount, currency)}
 							</p>
 						</div>
-						
+
 						<svg
 							aria-hidden="true"
 							class="w-5 h-5 text-gray-400 ml-4"
@@ -95,5 +83,12 @@
 				</a>
 			{/each}
 		</div>
+
+		<Pagination
+			current={data.page}
+			total={totalPages}
+			href={(pageNumber) => (pageNumber > 1 ? `/account/orders?page=${pageNumber}` : '/account/orders')}
+			label="Страницы заказов"
+		/>
 	{/if}
 </div>

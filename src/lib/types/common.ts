@@ -15,9 +15,24 @@ export interface Store {
 	timezone: string;
 	locale: string;
 	isActive: boolean;
-	settings: Record<string, any>;
+	/** Бэкенд всегда отдаёт полный объект, недостающее заполняет значениями по умолчанию */
+	settings: StoreSettings | null;
 	createAt: string;
 	updateAt: string;
+}
+
+export interface StoreSettings {
+	delivery: {
+		enabled: boolean;
+		price: string;
+		/** Доставка бесплатна от этой суммы товаров после скидки; null — порога нет */
+		freeFrom: string | null;
+		/** Минимальная сумма товаров после скидки для доставки; null — минимума нет */
+		minOrderAmount: string | null;
+	};
+	pickup: { enabled: boolean };
+	/** Ссылки подвала: URL или путь фронтенда; null убирает ссылку */
+	pages: { about: string | null; privacy: string | null; terms: string | null };
 }
 
 export interface Address {
@@ -91,10 +106,16 @@ export interface Coupon {
 	id: number;
 	code: string;
 	type: 'percent' | 'fixed';
-	value: number;
+	/** Строкой с двумя знаками: "10.00" */
+	value: string;
 	validFrom: string | null;
 	validTo: string | null;
 	isActive: boolean;
+	maxUses: number | null;
+	maxUsesPerUser: number | null;
+	minSubtotal: string | null;
+	/** Применений к активным заказам; отмена заказа уменьшает */
+	usedCount: number;
 	createAt: string;
-	updateAt: string;
+	updateAt?: string;
 }

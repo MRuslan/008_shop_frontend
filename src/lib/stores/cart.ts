@@ -4,7 +4,7 @@ import { writable, derived, get } from 'svelte/store';
 import { browser } from '$app/environment';
 import { cartApi } from '$lib/api/cart';
 import { authStore } from './auth';
-import { getOrCreateSessionId } from '$lib/utils/session';
+import { getOrCreateSessionId, clearSessionId } from '$lib/utils/session';
 import type { Cart } from '$lib/types/cart';
 
 function createCartStore() {
@@ -116,6 +116,8 @@ function createCartStore() {
 			try {
 				const cart = await cartApi.mergeSession({ sessionId });
 				set(cart);
+				// Бэкенд удалил гостевую корзину; после выхода начнётся новая
+				clearSessionId();
 			} catch (error) {
 				console.error('Failed to merge guest cart:', error);
 			}

@@ -2,7 +2,7 @@
 	import { authApi } from '$lib/api/auth';
 	import { authStore } from '$lib/stores/auth';
 	import type { RegisterDto } from '$lib/types/auth';
-	import { getErrorMessage, isApiError } from '$lib/utils/errors';
+	import { getErrorMessage, getFieldErrors, isApiError } from '$lib/utils/errors';
 
 	interface Props {
 		/** Email уже зарегистрирован: предлагаем войти, перенося введённый адрес */
@@ -33,16 +33,32 @@
 	});
 	const hasFieldErrors = $derived(Object.values(fieldErrors).some(Boolean));
 
+	// Сервер проверяет строже формы (например, домен email). Его ошибка висит у поля, пока поле не изменят
+	let serverErrors = $state<Record<string, string>>({});
+	let sentValues = { email: '', username: '', password: '' };
+	const shown = $derived({
+		email: (submitted && fieldErrors.email) || (email.trim() === sentValues.email ? serverErrors.email : null) || null,
+		username:
+			(submitted && fieldErrors.username) ||
+			(username.trim() === sentValues.username ? serverErrors.username : null) ||
+			null,
+		password:
+			(submitted && fieldErrors.password) || (password === sentValues.password ? serverErrors.password : null) || null,
+		confirm: submitted ? fieldErrors.confirm : null
+	});
+
 	async function handleSubmit() {
 		submitted = true;
 		error = null;
 		emailTaken = false;
+		serverErrors = {};
 		if (hasFieldErrors) return;
 
 		isLoading = true;
 
 		try {
 			const data: RegisterDto = { email: email.trim(), username: username.trim(), password };
+			sentValues = { email: data.email, username: data.username, password };
 			const response = await authApi.register(data);
 			await authStore.setUser(response.user);
 
@@ -50,7 +66,13 @@
 			window.dispatchEvent(new CustomEvent('auth:success'));
 		} catch (err) {
 			emailTaken = isApiError(err) && err.statusCode === 409;
-			error = getErrorMessage(err, 'Не удалось создать аккаунт. Попробуйте ещё раз.');
+			const byField = getFieldErrors(err);
+			const known = ['email', 'username', 'password'];
+			if (Object.keys(byField).length && Object.keys(byField).every((field) => known.includes(field))) {
+				serverErrors = byField;
+			} else {
+				error = getErrorMessage(err, 'Не удалось создать аккаунт. Попробуйте ещё раз.');
+			}
 		} finally {
 			isLoading = false;
 		}
@@ -86,12 +108,12 @@
 			autocomplete="email"
 			inputmode="email"
 			disabled={isLoading}
-			aria-invalid={submitted && !!fieldErrors.email}
-			aria-describedby={submitted && fieldErrors.email ? 'register-email-error' : undefined}
+			aria-invalid={!!shown.email}
+			aria-describedby={shown.email ? 'register-email-error' : undefined}
 			class="{inputClass} border-gray-300"
 		/>
-		{#if submitted && fieldErrors.email}
-			<p id="register-email-error" class="mt-1 text-sm text-red-700">{fieldErrors.email}</p>
+		{#if shown.email}
+			<p id="register-email-error" class="mt-1 text-sm text-red-700">{shown.email}</p>
 		{/if}
 	</div>
 
@@ -104,12 +126,12 @@
 			required
 			autocomplete="nickname"
 			disabled={isLoading}
-			aria-invalid={submitted && !!fieldErrors.username}
+			aria-invalid={!!shown.username}
 			aria-describedby="register-username-hint"
 			class="{inputClass} border-gray-300"
 		/>
-		<p id="register-username-hint" class="mt-1 text-sm {submitted && fieldErrors.username ? 'text-red-700' : 'text-gray-500'}">
-			{submitted && fieldErrors.username ? fieldErrors.username : `Его увидят в ваших отзывах. Не короче ${USERNAME_MIN} символов.`}
+		<p id="register-username-hint" class="mt-1 text-sm {shown.username ? 'text-red-700' : 'text-gray-500'}">
+			{shown.username ?? `Его увидят в ваших отзывах. Не короче ${USERNAME_MIN} символов.`}
 		</p>
 	</div>
 
@@ -122,12 +144,12 @@
 			required
 			autocomplete="new-password"
 			disabled={isLoading}
-			aria-invalid={submitted && !!fieldErrors.password}
+			aria-invalid={!!shown.password}
 			aria-describedby="register-password-hint"
 			class="{inputClass} border-gray-300"
 		/>
-		<p id="register-password-hint" class="mt-1 text-sm {submitted && fieldErrors.password ? 'text-red-700' : 'text-gray-500'}">
-			{submitted && fieldErrors.password ? fieldErrors.password : `Не короче ${PASSWORD_MIN} символов.`}
+		<p id="register-password-hint" class="mt-1 text-sm {shown.password ? 'text-red-700' : 'text-gray-500'}">
+			{shown.password ?? `Не короче ${PASSWORD_MIN} символов.`}
 		</p>
 	</div>
 
@@ -140,12 +162,12 @@
 			required
 			autocomplete="new-password"
 			disabled={isLoading}
-			aria-invalid={submitted && !!fieldErrors.confirm}
-			aria-describedby={submitted && fieldErrors.confirm ? 'register-confirm-error' : undefined}
+			aria-invalid={!!shown.confirm}
+			aria-describedby={shown.confirm ? 'register-confirm-error' : undefined}
 			class="{inputClass} border-gray-300"
 		/>
-		{#if submitted && fieldErrors.confirm}
-			<p id="register-confirm-error" class="mt-1 text-sm text-red-700">{fieldErrors.confirm}</p>
+		{#if shown.confirm}
+			<p id="register-confirm-error" class="mt-1 text-sm text-red-700">{shown.confirm}</p>
 		{/if}
 	</div>
 

@@ -31,3 +31,43 @@ export interface UpdateCartItemDto {
 export interface MergeSessionDto {
 	sessionId: string;
 }
+
+export interface CartShortage {
+	productId: number;
+	productName: string;
+	requested: number;
+	available: number;
+	/** insufficient — на точке не хватает; unavailable — товар снят с продажи */
+	reason: 'insufficient' | 'unavailable';
+}
+
+/** Где корзину можно забрать целиком и хватит ли её на доставку. Остатки не резервируются */
+export interface CartAvailability {
+	items: Array<{
+		cartItemId: number;
+		productId: number;
+		productName: string;
+		quantity: number;
+		isActive: boolean;
+		totalAvailable: number;
+	}>;
+	pickup: {
+		enabled: boolean;
+		points: Array<{
+			locationId: number;
+			name: string;
+			type: 'warehouse' | 'pickup_point' | 'retail';
+			city: string;
+			street: string;
+			building: string;
+			available: boolean;
+			shortages: CartShortage[];
+		}>;
+	};
+	delivery: {
+		enabled: boolean;
+		locationId: number | null;
+		available: boolean;
+		shortages: CartShortage[];
+	};
+}

@@ -10,7 +10,7 @@
 	import type { Product, ProductFilters as ProductFiltersType, Category } from '$lib/types/product';
 	import { storeSettings } from '$lib/stores/store';
 	import { pluralize } from '$lib/utils/format';
-	import { generateCollectionJsonLd, generateBreadcrumbJsonLd } from '$lib/utils/seo';
+	import { generateCollectionJsonLd, generateBreadcrumbJsonLd, jsonLdScript } from '$lib/utils/seo';
 	import SlidersHorizontal from '@lucide/svelte/icons/sliders-horizontal';
 	import X from '@lucide/svelte/icons/x';
 
@@ -166,9 +166,11 @@
 	<link rel="canonical" href={`${siteUrl}${selected ? buildUrl({ categoryId: selected.id }, 1) : '/catalog'}`} />
 
 	{#if !data.loadError}
-		{@html `<script type="application/ld+json">${JSON.stringify(generateCollectionJsonLd(data.products, selected ?? null, $storeSettings, siteUrl))}</script>`}
+		<!-- eslint-disable-next-line svelte/no-at-html-tags -- jsonLdScript экранирует <, > и &, закрыть тег script нельзя -->
+		{@html jsonLdScript(generateCollectionJsonLd(data.products, selected ?? null, $storeSettings, siteUrl))}
 	{/if}
-	{@html `<script type="application/ld+json">${JSON.stringify(generateBreadcrumbJsonLd(breadcrumbs, siteUrl))}</script>`}
+	<!-- eslint-disable-next-line svelte/no-at-html-tags -- jsonLdScript экранирует <, > и &, закрыть тег script нельзя -->
+	{@html jsonLdScript(generateBreadcrumbJsonLd(breadcrumbs, siteUrl))}
 </svelte:head>
 
 <div class="container py-4 md:py-6">

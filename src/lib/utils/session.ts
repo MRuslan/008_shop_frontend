@@ -3,7 +3,9 @@
 import { SESSION_ID_KEY } from './constants';
 
 /**
- * Генерирует или получает существующий sessionId для гостевой корзины
+ * Генерирует или получает существующий sessionId для гостевой корзины.
+ * Живёт в localStorage: в sessionStorage у каждой вкладки была бы своя корзина,
+ * и товар, открытый в новой вкладке, попадал бы в другую
  */
 export function getOrCreateSessionId(): string {
 	if (typeof window === 'undefined') {
@@ -11,12 +13,13 @@ export function getOrCreateSessionId(): string {
 		return '';
 	}
 
-	let sessionId = sessionStorage.getItem(SESSION_ID_KEY);
-	
+	let sessionId = localStorage.getItem(SESSION_ID_KEY);
+
 	if (!sessionId) {
-		// Генерируем UUID v4
-		sessionId = crypto.randomUUID();
-		sessionStorage.setItem(SESSION_ID_KEY, sessionId);
+		// Корзина, собранная до этого исправления, осталась в sessionStorage текущей вкладки
+		sessionId = sessionStorage.getItem(SESSION_ID_KEY) ?? crypto.randomUUID();
+		localStorage.setItem(SESSION_ID_KEY, sessionId);
+		sessionStorage.removeItem(SESSION_ID_KEY);
 	}
 	
 	return sessionId;
@@ -27,6 +30,6 @@ export function getOrCreateSessionId(): string {
  */
 export function clearSessionId(): void {
 	if (typeof window !== 'undefined') {
-		sessionStorage.removeItem(SESSION_ID_KEY);
+		localStorage.removeItem(SESSION_ID_KEY);
 	}
 }

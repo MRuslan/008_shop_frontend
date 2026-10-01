@@ -2,8 +2,10 @@
 	import { tick } from 'svelte';
 	import LoginForm from './LoginForm.svelte';
 	import RegisterForm from './RegisterForm.svelte';
+	import ForgotPasswordForm from './ForgotPasswordForm.svelte';
 
-	type Mode = 'login' | 'register';
+	// forgot — восстановление пароля: не вкладка, а отдельный шаг из формы входа
+	type Mode = 'login' | 'register' | 'forgot';
 
 	interface Props {
 		mode?: Mode;
@@ -20,7 +22,7 @@
 	// Нативный <dialog>: ловушка фокуса, Escape, верхний слой и возврат фокуса на кнопку-триггер бесплатно
 	let dialog: HTMLDialogElement | undefined = $state();
 
-	const tabs: Array<{ id: Mode; label: string }> = [
+	const tabs: Array<{ id: 'login' | 'register'; label: string }> = [
 		{ id: 'login', label: 'Вход' },
 		{ id: 'register', label: 'Регистрация' }
 	];
@@ -72,6 +74,12 @@
 		focusFirstField();
 	}
 
+	function openForgot(email: string) {
+		loginEmail = email;
+		mode = 'forgot';
+		focusFirstField();
+	}
+
 	async function switchToLoginWithEmail(email: string) {
 		loginEmail = email;
 		mode = 'login';
@@ -94,12 +102,15 @@
 	onclose={close}
 	onclick={handleBackdropClick}
 	onkeydown={handleDialogKeydown}
-	aria-label={mode === 'login' ? 'Вход в аккаунт' : 'Регистрация'}
+	aria-label={mode === 'login' ? 'Вход в аккаунт' : mode === 'register' ? 'Регистрация' : 'Восстановление пароля'}
 	class="m-auto w-[calc(100%-2rem)] max-w-md rounded-lg bg-white p-0 text-gray-900 shadow-xl backdrop:bg-black/50"
 >
 	{#if open}
 		<div class="p-6">
 			<div class="mb-6 flex items-center justify-between gap-4">
+				{#if mode === 'forgot'}
+					<h2 class="text-title text-ink">Восстановление пароля</h2>
+				{:else}
 				<div
 					role="tablist"
 					aria-label="Вход или регистрация"
@@ -124,6 +135,7 @@
 						</button>
 					{/each}
 				</div>
+				{/if}
 				<button
 					type="button"
 					onclick={close}
@@ -147,17 +159,21 @@
 				</button>
 			</div>
 
-			{#if reason}
+			{#if reason && mode !== 'forgot'}
 				<p class="mb-4 text-sm text-gray-600">{reason}</p>
 			{/if}
 
-			<div id="auth-panel" role="tabpanel" aria-labelledby="auth-tab-{mode}">
-				{#if mode === 'login'}
-					<LoginForm initialEmail={loginEmail} />
-				{:else}
-					<RegisterForm onSwitchToLogin={switchToLoginWithEmail} />
-				{/if}
-			</div>
+			{#if mode === 'forgot'}
+				<ForgotPasswordForm initialEmail={loginEmail} onBack={() => switchToLoginWithEmail(loginEmail)} />
+			{:else}
+				<div id="auth-panel" role="tabpanel" aria-labelledby="auth-tab-{mode}">
+					{#if mode === 'login'}
+						<LoginForm initialEmail={loginEmail} onForgot={openForgot} />
+					{:else}
+						<RegisterForm onSwitchToLogin={switchToLoginWithEmail} />
+					{/if}
+				</div>
+			{/if}
 		</div>
 	{/if}
 </dialog>

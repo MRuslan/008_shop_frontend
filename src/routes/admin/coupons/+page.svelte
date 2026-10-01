@@ -3,7 +3,7 @@
 	import { invalidateAll } from '$app/navigation';
 	import { couponsApi, type CreateCouponDto } from '$lib/api/coupons';
 	import type { Coupon } from '$lib/types/common';
-	import { formatDateTime } from '$lib/utils/format';
+	import { formatDateTime, formatPrice } from '$lib/utils/format';
 	import { getErrorMessage } from '$lib/utils/errors';
 	import { toast } from '$lib/stores/toast';
 	import { confirmDialog } from '$lib/stores/confirm';
@@ -43,7 +43,16 @@
 	let validFrom = $state('');
 	let validTo = $state('');
 	let isActive = $state(true);
+	// Лимиты: пустое поле — без ограничения
+	let maxUses = $state('');
+	let maxUsesPerUser = $state('');
+	let minSubtotal = $state('');
 	let isSubmitting = $state(false);
+
+	function optionalNumber(value: string | number): number | null {
+		const text = String(value ?? '').trim().replace(',', '.');
+		return text ? Number(text) : null;
+	}
 	let error = $state<string | null>(null);
 
 	function handleCreate() {
@@ -54,6 +63,9 @@
 		validFrom = '';
 		validTo = '';
 		isActive = true;
+		maxUses = '';
+		maxUsesPerUser = '';
+		minSubtotal = '';
 		showCouponForm = true;
 	}
 
@@ -61,10 +73,14 @@
 		editingCoupon = coupon;
 		code = coupon.code;
 		type = coupon.type;
-		value = coupon.value;
+		// Бэкенд отдаёт сумму строкой ("10.00"), а принимает числом
+		value = parseFloat(String(coupon.value));
 		validFrom = coupon.validFrom ? coupon.validFrom.split('T')[0] : '';
 		validTo = coupon.validTo ? coupon.validTo.split('T')[0] : '';
 		isActive = coupon.isActive;
+		maxUses = coupon.maxUses?.toString() ?? '';
+		maxUsesPerUser = coupon.maxUsesPerUser?.toString() ?? '';
+		minSubtotal = coupon.minSubtotal ? String(parseFloat(coupon.minSubtotal)) : '';
 		showCouponForm = true;
 	}
 
@@ -104,10 +120,24 @@
 			return;
 		}
 
+		const limits = {
+			maxUses: optionalNumber(maxUses),
+			maxUsesPerUser: optionalNumber(maxUsesPerUser),
+			minSubtotal: optionalNumber(minSubtotal)
+		};
+		if (
+			[limits.maxUses, limits.maxUsesPerUser].some((n) => n !== null && (!Number.isInteger(n) || n < 1)) ||
+			(limits.minSubtotal !== null && !(limits.minSubtotal >= 0))
+		) {
+			error = 'Лимиты применений — целые числа от 1, минимальная сумма — от 0';
+			return;
+		}
+
 		isSubmitting = true;
 
 		try {
 			const couponData: CreateCouponDto = {
+				...limits,
 				code: code.trim().toUpperCase(),
 				type,
 				value,
@@ -244,6 +274,24 @@
 					</div>
 				</div>
 
+				<fieldset class="m-0 min-w-0 border-0 p-0">
+					<legend class="mb-2 block text-sm font-medium text-gray-700">Ограничения <span class="font-normal text-gray-500">(пустое поле — без ограничения)</span></legend>
+					<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+						<div>
+							<label for="coupon-max-uses" class="block text-sm text-gray-700 mb-1">Всего применений</label>
+							<input id="coupon-max-uses" type="number" min="1" step="1" bind:value={maxUses} class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+						</div>
+						<div>
+							<label for="coupon-max-per-user" class="block text-sm text-gray-700 mb-1">На одного покупателя</label>
+							<input id="coupon-max-per-user" type="number" min="1" step="1" bind:value={maxUsesPerUser} class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+						</div>
+						<div>
+							<label for="coupon-min-subtotal" class="block text-sm text-gray-700 mb-1">Заказ от, ₽</label>
+							<input id="coupon-min-subtotal" type="number" min="0" step="0.01" bind:value={minSubtotal} class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+						</div>
+					</div>
+				</fieldset>
+
 				<div class="flex space-x-2 pt-4">
 					<button
 						type="submit"
@@ -276,6 +324,7 @@
 					<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Тип</th>
 					<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Значение</th>
 					<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Период действия</th>
+					<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Применений</th>
 					<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Статус</th>
 					<th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Действия</th>
 				</tr>
@@ -290,13 +339,22 @@
 							{coupon.type === 'percent' ? 'Процент' : 'Фиксированная'}
 						</td>
 						<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-							{coupon.type === 'percent' ? `${coupon.value}%` : coupon.value}
+							{coupon.type === 'percent' ? `${parseFloat(coupon.value)}%` : formatPrice(coupon.value)}
+							{#if coupon.minSubtotal}
+								<span class="block text-xs text-gray-500">от {formatPrice(coupon.minSubtotal)}</span>
+							{/if}
 						</td>
 						<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
 							{#if coupon.validFrom || coupon.validTo}
 								{coupon.validFrom ? formatDateTime(coupon.validFrom) : '—'} - {coupon.validTo ? formatDateTime(coupon.validTo) : '—'}
 							{:else}
 								Без ограничений
+							{/if}
+						</td>
+						<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 tabular-nums">
+							{coupon.usedCount ?? 0}{coupon.maxUses ? ` из ${coupon.maxUses}` : ''}
+							{#if coupon.maxUsesPerUser}
+								<span class="block text-xs text-gray-500">до {coupon.maxUsesPerUser} на покупателя</span>
 							{/if}
 						</td>
 						<td class="px-6 py-4 whitespace-nowrap">

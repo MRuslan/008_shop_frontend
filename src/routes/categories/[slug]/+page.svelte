@@ -8,7 +8,7 @@
 	import type { Product, Category, ProductFilters } from '$lib/types/product';
 	import { storeSettings } from '$lib/stores/store';
 	import { pluralize } from '$lib/utils/format';
-	import { generateCollectionJsonLd, generateBreadcrumbJsonLd } from '$lib/utils/seo';
+	import { generateCollectionJsonLd, generateBreadcrumbJsonLd, jsonLdScript } from '$lib/utils/seo';
 	import SlidersHorizontal from '@lucide/svelte/icons/sliders-horizontal';
 
 	interface Props {
@@ -95,8 +95,11 @@
 	<meta name="twitter:description" content={description} />
 	<link rel="canonical" href={categoryUrl} />
 
-	{@html `<script type="application/ld+json">${JSON.stringify(generateCollectionJsonLd(data.products, data.category, $storeSettings, siteUrl))}</script>`}
-	{@html `<script type="application/ld+json">${JSON.stringify(generateBreadcrumbJsonLd(breadcrumbs, siteUrl))}</script>`}
+	<!-- eslint-disable-next-line svelte/no-at-html-tags -- jsonLdScript экранирует <, > и &, закрыть тег script нельзя -->
+
+	{@html jsonLdScript(generateCollectionJsonLd(data.products, data.category, $storeSettings, siteUrl))}
+	<!-- eslint-disable-next-line svelte/no-at-html-tags -- jsonLdScript экранирует <, > и &, закрыть тег script нельзя -->
+	{@html jsonLdScript(generateBreadcrumbJsonLd(breadcrumbs, siteUrl))}
 </svelte:head>
 
 <div class="container py-4 md:py-6">

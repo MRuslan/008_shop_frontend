@@ -5,6 +5,22 @@
 import type { Product, Category } from '$lib/types/product';
 import type { Store } from '$lib/types/common';
 
+/**
+ * Готовый <script type="application/ld+json"> для {@html}. JSON.stringify не экранирует
+ * «</script>»: товар или категория с такой строкой в названии закрыли бы тег и выполнили
+ * свой скрипт у каждого посетителя. Поэтому <, >, & и разделители строк U+2028/U+2029
+ * заменяем на \u-последовательности: для JSON-парсера это те же символы
+ */
+export function jsonLdScript(data: unknown): string {
+	const json = JSON.stringify(data)
+		.replace(/</g, '\\u003c')
+		.replace(/>/g, '\\u003e')
+		.replace(/&/g, '\\u0026')
+		.replace(/\u2028/g, '\\u2028')
+		.replace(/\u2029/g, '\\u2029');
+	return `<script type="application/ld+json">${json}</script>`;
+}
+
 const DEFAULT_CURRENCY = 'RUB';
 
 function absoluteUrl(origin: string, path: string): string {

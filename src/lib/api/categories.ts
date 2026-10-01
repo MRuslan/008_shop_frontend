@@ -5,7 +5,8 @@ import type { Category } from '$lib/types/product';
 
 export interface CategoriesQuery {
 	tree?: boolean;
-	isActive?: boolean;
+	/** 'all' — вместе со скрытыми, только для сотрудника с токеном */
+	isActive?: boolean | 'all';
 	sortBy?: 'name' | 'sortOrder' | 'createAt';
 	sortOrder?: 'ASC' | 'DESC';
 }
@@ -14,7 +15,7 @@ export const categoriesApi = {
 	/**
 	 * Получить список категорий
 	 */
-	async getCategories(query?: CategoriesQuery): Promise<Category[]> {
+	async getCategories(query?: CategoriesQuery, options: { asStaff?: boolean } = {}): Promise<Category[]> {
 		const params = new URLSearchParams();
 		
 		if (query?.tree !== undefined) params.append('tree', query.tree.toString());
@@ -25,7 +26,7 @@ export const categoriesApi = {
 		const queryString = params.toString();
 		const endpoint = queryString ? `/categories?${queryString}` : '/categories';
 		
-		return apiClient.get<Category[]>(endpoint, { skipAuth: true });
+		return apiClient.get<Category[]>(endpoint, { skipAuth: !options.asStaff });
 	},
 
 	/**

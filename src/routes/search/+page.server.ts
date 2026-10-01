@@ -3,6 +3,7 @@
 import { productsApi } from '$lib/api/products';
 import { getErrorMessage } from '$lib/utils/errors';
 import type { ProductFilters } from '$lib/types/product';
+import { parseSort } from '$lib/utils/sort';
 
 function parsePositiveInt(value: string | null, fallback: number, max = Number.MAX_SAFE_INTEGER) {
 	const parsed = Number.parseInt(value ?? '', 10);
@@ -14,8 +15,7 @@ export async function load({ url }) {
 	const query = (url.searchParams.get('q') || '').trim();
 	const page = parsePositiveInt(url.searchParams.get('page'), 1);
 	const limit = parsePositiveInt(url.searchParams.get('limit'), 20, 100);
-	const sortBy = (url.searchParams.get('sortBy') as 'price' | 'createAt' | 'name') || 'createAt';
-	const sortOrder = (url.searchParams.get('sortOrder') as 'ASC' | 'DESC') || 'DESC';
+	const { sortBy, sortOrder } = parseSort(url.searchParams);
 
 	const filters: ProductFilters = {
 		search: query || undefined,

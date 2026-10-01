@@ -4,6 +4,7 @@ import { productsApi } from '$lib/api/products';
 import { categoriesApi } from '$lib/api/categories';
 import { getErrorMessage } from '$lib/utils/errors';
 import type { ProductFilters } from '$lib/types/product';
+import { parseSort } from '$lib/utils/sort';
 
 function parsePositiveInt(value: string | null, fallback: number, max = Number.MAX_SAFE_INTEGER) {
 	const parsed = Number.parseInt(value ?? '', 10);
@@ -25,14 +26,15 @@ export async function load({ url }) {
 	const minPrice = parseNumber(url.searchParams.get('minPrice'));
 	const maxPrice = parseNumber(url.searchParams.get('maxPrice'));
 	const inStock = url.searchParams.get('inStock') === 'true' ? true : undefined;
-	const sortBy = (url.searchParams.get('sortBy') as 'price' | 'createAt' | 'name') || 'createAt';
-	const sortOrder = (url.searchParams.get('sortOrder') as 'ASC' | 'DESC') || 'DESC';
+	const { sortBy, sortOrder } = parseSort(url.searchParams);
 
 	const filters: ProductFilters = {
 		page,
 		limit,
 		search,
 		categoryId,
+		// Родительский раздел показывает и товары подкатегорий, иначе он выглядит пустым
+		includeDescendants: categoryId ? true : undefined,
 		minPrice,
 		maxPrice,
 		inStock,

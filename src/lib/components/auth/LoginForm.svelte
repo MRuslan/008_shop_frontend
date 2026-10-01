@@ -7,9 +7,11 @@
 	interface Props {
 		/** Email, перенесённый из формы регистрации */
 		initialEmail?: string;
+		/** Забыли пароль: открыть восстановление, перенося введённый email */
+		onForgot?: (email: string) => void;
 	}
 
-	let { initialEmail = '' }: Props = $props();
+	let { initialEmail = '', onForgot }: Props = $props();
 
 	let email = $state(initialEmail);
 	let password = $state('');
@@ -72,6 +74,18 @@
 			disabled={isLoading}
 			class="w-full min-h-11 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
 		/>
+		<!-- После поля, а не у подписи: Tab из email ведёт прямо в пароль -->
+		{#if onForgot}
+			<div class="flex justify-end">
+				<button
+					type="button"
+					onclick={() => onForgot(email.trim())}
+					class="-mb-2 inline-flex min-h-11 items-center text-sm text-gray-600 underline-offset-4 hover:text-ink hover:underline"
+				>
+					Забыли пароль?
+				</button>
+			</div>
+		{/if}
 	</div>
 
 	<button

@@ -5,6 +5,7 @@ import { browser } from '$app/environment';
 import { authApi } from '$lib/api/auth';
 import type { User, Role } from '$lib/types/auth';
 import { TOKEN_STORAGE_KEY } from '$lib/utils/constants';
+import { AUTH_EXPIRED_EVENT } from '$lib/api/client';
 
 interface AuthState {
 	user: User | null;
@@ -18,6 +19,20 @@ function createAuthStore() {
 		isAuthenticated: false,
 		isLoading: true
 	});
+
+	// Корзина пользователя остаётся на сервере; после выхода показываем гостевую
+	async function reloadCartAsGuest() {
+		const { cartStore } = await import('./cart');
+		await cartStore.init();
+	}
+
+	// Refresh-токен отозван или истёк: интерфейс не должен считать пользователя вошедшим
+	if (browser) {
+		window.addEventListener(AUTH_EXPIRED_EVENT, () => {
+			set({ user: null, isAuthenticated: false, isLoading: false });
+			void reloadCartAsGuest();
+		});
+	}
 
 	return {
 		subscribe,
@@ -45,9 +60,12 @@ function createAuthStore() {
 					isLoading: false
 				});
 			} catch (error) {
-				// Токен невалиден, очищаем состояние
-				localStorage.removeItem(TOKEN_STORAGE_KEY);
-				localStorage.removeItem('refresh_token');
+				// Токены стираем, только если бэкенд их отверг (клиент уже пробовал refresh).
+				// Сбой сети не повод разлогинивать: при следующей загрузке вход восстановится
+				if ((error as { statusCode?: number })?.statusCode === 401) {
+					localStorage.removeItem(TOKEN_STORAGE_KEY);
+					localStorage.removeItem('refresh_token');
+				}
 				set({
 					user: null,
 					isAuthenticated: false,
@@ -80,6 +98,13 @@ function createAuthStore() {
 		},
 
 		/**
+		 * Обновить данные вошедшего пользователя (например, имя после правки профиля)
+		 */
+		patchUser(changes: Partial<User>) {
+			update((state) => (state.user ? { ...state, user: { ...state.user, ...changes } } : state));
+		},
+
+		/**
 		 * Выход из системы
 		 */
 		async logout() {
@@ -93,6 +118,7 @@ function createAuthStore() {
 					isAuthenticated: false,
 					isLoading: false
 				});
+				if (browser) await reloadCartAsGuest();
 			}
 		},
 

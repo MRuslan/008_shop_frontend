@@ -106,6 +106,42 @@ export const authApi = {
 	},
 
 	/**
+	 * Письмо со ссылкой восстановления. Ответ одинаковый для любого email,
+	 * чтобы по нему нельзя было узнать, зарегистрирован ли адрес
+	 */
+	async forgotPassword(email: string): Promise<{ message: string }> {
+		return apiClient.post<{ message: string }>('/auth/forgot-password', { email }, { skipAuth: true });
+	},
+
+	/**
+	 * Новый пароль по токену из письма. Все сессии пользователя отзываются: войти нужно заново
+	 */
+	async resetPassword(token: string, newPassword: string): Promise<{ message: string }> {
+		return apiClient.post<{ message: string }>(
+			'/auth/reset-password',
+			{ token, newPassword },
+			{ skipAuth: true }
+		);
+	},
+
+	/**
+	 * Смена пароля: текущая сессия остаётся, остальные устройства выходят
+	 */
+	async changePassword(
+		currentPassword: string,
+		newPassword: string
+	): Promise<{ message: string; revokedSessions: number }> {
+		return apiClient.post('/auth/change-password', { currentPassword, newPassword });
+	},
+
+	/**
+	 * Изменить своё имя (email и роль так не меняются)
+	 */
+	async updateProfile(username: string): Promise<User> {
+		return apiClient.patch<User>('/users/me', { username });
+	},
+
+	/**
 	 * Смена роли пользователя (только для admin)
 	 */
 	async updateUserRole(userId: number, data: UpdateRoleDto): Promise<User> {

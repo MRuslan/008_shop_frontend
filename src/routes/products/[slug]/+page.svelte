@@ -3,6 +3,7 @@
 	import type { Product, Category } from '$lib/types/product';
 	import type { Review } from '$lib/types/common';
 	import { formatPrice, discountPercent, pluralize } from '$lib/utils/format';
+	import { deliveryTerms } from '$lib/utils/delivery';
 	import { storeSettings } from '$lib/stores/store';
 	import { cartLines } from '$lib/stores/cart';
 	import { wishlistStore } from '$lib/stores/wishlist';
@@ -10,7 +11,7 @@
 	import CartControl from '$lib/components/product/CartControl.svelte';
 	import StockStatus from '$lib/components/product/StockStatus.svelte';
 	import Breadcrumbs from '$lib/components/catalog/Breadcrumbs.svelte';
-	import { generateProductJsonLd, generateBreadcrumbJsonLd } from '$lib/utils/seo';
+	import { generateProductJsonLd, generateBreadcrumbJsonLd, jsonLdScript } from '$lib/utils/seo';
 	import Heart from '@lucide/svelte/icons/heart';
 	import Star from '@lucide/svelte/icons/star';
 	import Store from '@lucide/svelte/icons/store';
@@ -25,7 +26,7 @@
 			category: Category | null;
 			reviews: Review[] | null;
 			rating: { average: number; count: number } | null;
-			pickupPoints: number | null;
+			pickup: { total: number; withStock: number | null } | null;
 		};
 	}
 
@@ -43,9 +44,30 @@
 	const isFavorite = $derived($wishlistStore.has(product.id));
 	const ratingLabel = $derived(
 		data.rating
-			? `${data.rating.average.toLocaleString('ru-RU', { maximumFractionDigits: 1 })} · ${data.rating.count} ${pluralize(data.rating.count, ['отзыв', 'отзыва', 'отзывов'])}`
+			? `${data.rating.average.toLocaleString('ru-RU', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} · ${data.rating.count} ${pluralize(data.rating.count, ['отзыв', 'отзыва', 'отзывов'])}`
 			: null
 	);
+	const attributes = $derived(product.attributes ?? []);
+
+	// Способы получения из настроек магазина; выключенный способ не обещаем
+	const settings = $derived($storeSettings?.settings ?? null);
+	const deliveryOn = $derived(settings?.delivery.enabled ?? true);
+	const pickupOn = $derived(settings?.pickup.enabled ?? true);
+	const deliveryText = $derived(deliveryTerms(settings?.delivery, currency) ?? 'Адрес выбирается при оформлении заказа');
+
+	const pickupText = $derived.by(() => {
+		const pickup = data.pickup;
+		if (!pickup || pickup.total === 0) return null;
+		const points = (n: number) => pluralize(n, ['точке', 'точках', 'точках']);
+		if (pickup.withStock === null) {
+			return `${pickup.total} ${pluralize(pickup.total, ['точка самовывоза', 'точки самовывоза', 'точек самовывоза'])}`;
+		}
+		if (pickup.withStock === 0) return 'Сейчас нет в точках самовывоза';
+		if (pickup.withStock === pickup.total) {
+			return pickup.total === 1 ? 'Есть в точке самовывоза' : 'Есть во всех точках самовывоза';
+		}
+		return `Есть в ${pickup.withStock} из ${pickup.total} ${points(pickup.total)}`;
+	});
 
 	// Галерея: одна лента со снэпом. На телефоне листается пальцем, на десктопе миниатюрами
 	let track: HTMLDivElement | undefined = $state();
@@ -125,8 +147,11 @@
 	<meta property="product:price:currency" content={currency} />
 	<link rel="canonical" href={productUrl} />
 
-	{@html `<script type="application/ld+json">${JSON.stringify(generateProductJsonLd(product, $storeSettings, siteUrl))}</script>`}
-	{@html `<script type="application/ld+json">${JSON.stringify(generateBreadcrumbJsonLd(breadcrumbs, siteUrl))}</script>`}
+	<!-- eslint-disable-next-line svelte/no-at-html-tags -- jsonLdScript экранирует <, > и &, закрыть тег script нельзя -->
+
+	{@html jsonLdScript(generateProductJsonLd(product, $storeSettings, siteUrl))}
+	<!-- eslint-disable-next-line svelte/no-at-html-tags -- jsonLdScript экранирует <, > и &, закрыть тег script нельзя -->
+	{@html jsonLdScript(generateBreadcrumbJsonLd(breadcrumbs, siteUrl))}
 </svelte:head>
 
 {#snippet price(sizeClass: string)}
@@ -166,6 +191,10 @@
 					{#each images as image, index (image.url)}
 						<img
 							src={image.url}
+							srcset={image.thumbnailUrl ? `${image.thumbnailUrl} 400w, ${image.url} ${image.width ?? 1600}w` : undefined}
+							sizes={image.thumbnailUrl ? '(min-width: 1024px) 50vw, 100vw' : undefined}
+							width={image.width ?? undefined}
+							height={image.height ?? undefined}
 							alt={index === 0 ? product.name : `${product.name}, фото ${index + 1}`}
 							loading={index === 0 ? 'eager' : 'lazy'}
 							fetchpriority={index === 0 ? 'high' : undefined}
@@ -197,7 +226,7 @@
 										? 'ring-2 ring-ink'
 										: 'ring-line hover:ring-gray-400'}"
 								>
-									<img src={image.url} alt="" loading="lazy" class="size-full object-contain mix-blend-multiply" />
+									<img src={image.thumbnailUrl ?? image.url} alt="" loading="lazy" class="size-full object-contain mix-blend-multiply" />
 								</button>
 							</li>
 						{/each}
@@ -256,25 +285,26 @@
 			</div>
 
 			<ul class="divide-y divide-line rounded-2xl bg-surface px-5 text-sm">
-				{#if data.pickupPoints}
+				{#if pickupOn && pickupText}
 					<li class="flex gap-3 py-4">
 						<Store class="mt-0.5 size-5 shrink-0 text-gray-500" aria-hidden="true" />
 						<div>
-							<p class="font-medium text-ink">Самовывоз</p>
+							<p class="font-medium text-ink">Самовывоз, бесплатно</p>
 							<a href="/contacts" class="text-gray-600 underline decoration-gray-300 hover:text-ink hover:decoration-ink">
-								{data.pickupPoints}
-								{pluralize(data.pickupPoints, ['точка самовывоза', 'точки самовывоза', 'точек самовывоза'])}
+								{pickupText}
 							</a>
 						</div>
 					</li>
 				{/if}
-				<li class="flex gap-3 py-4">
-					<Truck class="mt-0.5 size-5 shrink-0 text-gray-500" aria-hidden="true" />
-					<div>
-						<p class="font-medium text-ink">Доставка курьером</p>
-						<p class="text-gray-600">Адрес выбирается при оформлении заказа</p>
-					</div>
-				</li>
+				{#if deliveryOn}
+					<li class="flex gap-3 py-4">
+						<Truck class="mt-0.5 size-5 shrink-0 text-gray-500" aria-hidden="true" />
+						<div>
+							<p class="font-medium text-ink">Доставка курьером</p>
+							<p class="text-gray-600">{deliveryText}</p>
+						</div>
+					</li>
+				{/if}
 				<li class="flex gap-3 py-4">
 					<Wallet class="mt-0.5 size-5 shrink-0 text-gray-500" aria-hidden="true" />
 					<div>
@@ -288,6 +318,22 @@
 
 	<div class="mt-3 grid gap-3 lg:mt-6 lg:grid-cols-[minmax(0,1fr)_23rem] lg:gap-6">
 		<div class="min-w-0 space-y-3 lg:space-y-6">
+			{#if attributes.length > 0}
+				<section aria-labelledby="attributes-title" class="rounded-2xl bg-surface p-5 md:p-6">
+					<h2 id="attributes-title" class="text-title text-ink">Характеристики</h2>
+					<dl class="mt-3 max-w-[40rem] divide-y divide-line">
+						{#each attributes as attribute (attribute.id)}
+							<div class="grid grid-cols-[minmax(0,2fr)_minmax(0,3fr)] gap-4 py-2.5 text-body-sm">
+								<dt class="break-words text-gray-600">{attribute.name}</dt>
+								<dd class="break-words text-gray-900">
+									{attribute.value}{#if attribute.unit}&nbsp;{attribute.unit}{/if}
+								</dd>
+							</div>
+						{/each}
+					</dl>
+				</section>
+			{/if}
+
 			{#if product.description}
 				<section aria-labelledby="description-title" class="rounded-2xl bg-surface p-5 md:p-6">
 					<h2 id="description-title" class="text-title text-ink">Описание</h2>

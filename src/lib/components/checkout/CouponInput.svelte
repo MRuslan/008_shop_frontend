@@ -1,26 +1,34 @@
 <script lang="ts">
 	interface Props {
 		couponCode: string | null;
-		discountAmount: string | null;
-		onApply: (code: string) => Promise<void>;
+		/**
+		 * Что известно о промокоде после предрасчёта:
+		 * checking — идёт проверка, applied — скидка есть, rejected — не подходит,
+		 * unchecked — проверить заранее нельзя, сервер проверит при оформлении
+		 */
+		status: 'checking' | 'applied' | 'rejected' | 'unchecked';
+		/** Готовая сумма скидки для показа, например «−200 ₽» */
+		discountLabel?: string | null;
+		/** Почему промокод не подошёл, текст с сервера */
+		rejection?: string | null;
+		onApply: (code: string) => void;
 		onRemove: () => void;
 	}
 
-	let { couponCode, discountAmount, onApply, onRemove }: Props = $props();
+	let { couponCode, status, discountLabel = null, rejection = null, onApply, onRemove }: Props = $props();
 
 	const inputId = $props.id();
 
 	let inputCode = $state('');
 	let error = $state<string | null>(null);
 
-	// Промокод проверяет сервер при оформлении заказа: здесь его только запоминаем
-	async function handleApply() {
+	function handleApply() {
 		if (!inputCode.trim()) {
 			error = 'Введите промокод.';
 			return;
 		}
 		error = null;
-		await onApply(inputCode.trim().toUpperCase());
+		onApply(inputCode.trim().toUpperCase());
 		inputCode = '';
 	}
 </script>
@@ -29,12 +37,24 @@
 	<label for={inputId} class="block text-sm font-medium text-gray-700">Промокод</label>
 
 	{#if couponCode}
-		<div class="flex items-center justify-between gap-3 p-3 bg-gray-50 border border-gray-200 rounded-md">
-			<div>
+		<div
+			class="flex items-center justify-between gap-3 rounded-md border p-3 {status === 'rejected'
+				? 'border-red-200 bg-red-50'
+				: 'border-gray-200 bg-gray-50'}"
+		>
+			<div aria-live="polite">
 				<p class="text-sm font-medium text-gray-900">{couponCode}</p>
-				<p class="text-sm text-gray-600">
-					{discountAmount ? `Скидка: ${discountAmount}` : 'Проверим и применим при оформлении заказа'}
-				</p>
+				{#if status === 'checking'}
+					<p class="text-sm text-gray-600">Проверяем промокод…</p>
+				{:else if status === 'applied'}
+					<p class="text-sm text-positive">
+						{discountLabel ? `Скидка ${discountLabel}` : 'Промокод применён'}
+					</p>
+				{:else if status === 'rejected'}
+					<p class="text-sm text-negative">{rejection ?? 'Промокод не подходит к этому заказу.'}</p>
+				{:else}
+					<p class="text-sm text-gray-600">Проверим и применим при оформлении заказа</p>
+				{/if}
 			</div>
 			<button
 				type="button"

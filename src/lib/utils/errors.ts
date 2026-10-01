@@ -2,6 +2,7 @@
 
 import { error } from '@sveltejs/kit';
 import type { ApiError } from '$lib/types/api';
+import { formatPrice } from './format';
 
 export const NETWORK_ERROR_MESSAGE =
 	'Не удалось связаться с сервером. Проверьте соединение и попробуйте ещё раз.';
@@ -23,17 +24,17 @@ export function isNetworkError(err: unknown): boolean {
 const SESSION_EXPIRED_MESSAGE = 'Сессия истекла. Войдите снова.';
 
 /**
- * Сообщения бэкенда, которые покупатель не должен видеть как есть: английские тексты авторизации
- * и формулировки про «купон», когда в интерфейсе покупателя это «промокод».
+ * Бэкенд отвечает по-русски, но часть текстов покупателю лучше показать иначе:
+ * «купон» на витрине называется «промокод», технические формулировки про токены — «сессия истекла».
  */
 const KNOWN_MESSAGES: Record<string, string> = {
-	'Invalid credentials': 'Неверный email или пароль.',
-	'User with this email already exists': 'Аккаунт с таким email уже есть. Войдите в него.',
-	'User not found': 'Аккаунт не найден. Войдите заново.',
-	'Invalid password': 'Неверный пароль.',
-	'Invalid refresh token': SESSION_EXPIRED_MESSAGE,
-	'Token is invalid or expired': SESSION_EXPIRED_MESSAGE,
-	'Not an access token': SESSION_EXPIRED_MESSAGE,
+	'Пользователь с таким email уже зарегистрирован': 'Аккаунт с таким email уже есть. Войдите в него.',
+	'Недействительный refresh-токен': SESSION_EXPIRED_MESSAGE,
+	'Токен недействителен или истёк': SESSION_EXPIRED_MESSAGE,
+	'Нужен access-токен': SESSION_EXPIRED_MESSAGE,
+	'Требуется авторизация': 'Войдите, чтобы продолжить.',
+	'Аккаунт заблокирован': 'Аккаунт заблокирован. Если это ошибка, свяжитесь с магазином.',
+	// Стандартные тексты Nest без своего сообщения
 	Unauthorized: 'Войдите, чтобы продолжить.',
 	'Forbidden resource': 'Недостаточно прав для этого действия.',
 	'Купон не найден или недействителен': 'Промокод не найден или больше не действует. Уберите его или введите другой.',
@@ -48,6 +49,8 @@ const KNOWN_MESSAGES: Record<string, string> = {
 const FIELD_NAMES: Record<string, string> = {
 	email: 'Email',
 	password: 'Пароль',
+	currentPassword: 'Текущий пароль',
+	newPassword: 'Новый пароль',
 	username: 'Имя',
 	label: 'Название адреса',
 	city: 'Город',
@@ -61,54 +64,52 @@ const FIELD_NAMES: Record<string, string> = {
 	couponCode: 'Промокод'
 };
 
-function symbols(count: number): string {
-	const n = count % 100;
-	const n1 = n % 10;
-	if (n > 10 && n < 20) return 'символов';
-	if (n1 === 1) return 'символ';
-	if (n1 > 1 && n1 < 5) return 'символа';
-	return 'символов';
-}
-
-/** Стандартные английские сообщения class-validator → понятная русская подсказка */
-function translateValidation(message: string): string | null {
-	let match = message.match(/^(\w+) must be an email$/);
-	if (match) return 'Проверьте email: в адресе есть ошибка.';
-
-	match = message.match(/^(\w+) must be longer than or equal to (\d+) characters$/);
-	if (match) {
-		const n = Number(match[2]);
-		return `${FIELD_NAMES[match[1]] ?? 'Поле'}: не короче ${n} ${symbols(n)}.`;
-	}
-
-	match = message.match(/^(\w+) must be shorter than or equal to (\d+) characters$/);
-	if (match) {
-		const n = Number(match[2]);
-		return `${FIELD_NAMES[match[1]] ?? 'Поле'}: не длиннее ${n} ${symbols(n)}.`;
-	}
-
-	match = message.match(/^(\w+) (should not be empty|must be a string)$/);
-	if (match) return `Заполните поле «${FIELD_NAMES[match[1]] ?? match[1]}».`;
-
-	return null;
-}
-
 const hasCyrillic = (text: string) => /[А-Яа-яЁё]/.test(text);
 
-/** Одно сообщение бэкенда в текст для покупателя; null — показать запасной текст */
-function humanize(message: string): string | null {
+/** Имя поля для человека: `email` → «Email»; у вложенного пути берём последний сегмент */
+function fieldLabel(field: string): string {
+	return FIELD_NAMES[field] ?? FIELD_NAMES[field.split('.').pop() ?? ''] ?? field;
+}
+
+/**
+ * Одно сообщение бэкенда в текст для покупателя; null — показать запасной текст.
+ * Годится и для текстов вне ошибок, например для причины отказа промокода в предрасчёте
+ */
+export function humanizeMessage(message: string): string | null {
 	const trimmed = message.trim();
 	if (!trimmed) return null;
-	const known = KNOWN_MESSAGES[trimmed] ?? translateValidation(trimmed);
+	const known = KNOWN_MESSAGES[trimmed];
 	if (known) return known;
+
+	const minSubtotal = trimmed.match(/^Купон действует для заказов от ([\d.]+)$/);
+	if (minSubtotal) return `Промокод действует для заказов от\u00a0${formatPrice(minSubtotal[1])}.`;
+
+	// Валидация приходит строками «поле: текст»: имя поля переводим, текст оставляем
+	const validation = trimmed.match(/^([\w.]+): (.+)$/);
+	if (validation && hasCyrillic(validation[2])) return `${fieldLabel(validation[1])}: ${validation[2]}`;
+
 	// Непереведённый технический текст («Bad Request», стектрейс) покупателю не показываем
 	return hasCyrillic(trimmed) ? trimmed : null;
 }
 
 /**
+ * Ошибки валидации по полям из `errors` ответа 400: { email: 'Должно быть корректным email' }.
+ * По одному сообщению на поле, первое; формы показывают их рядом с полями
+ */
+export function getFieldErrors(err: unknown): Record<string, string> {
+	const result: Record<string, string> = {};
+	if (!isApiError(err) || !Array.isArray(err.errors)) return result;
+	for (const item of err.errors) {
+		if (!item?.field || !item.message || result[item.field]) continue;
+		result[item.field] = item.message.charAt(0).toUpperCase() + item.message.slice(1);
+	}
+	return result;
+}
+
+/**
  * Возвращает сообщение, которое можно показать пользователю.
  * Понимает ApiError бэкенда (message строкой или массивом), сетевые ошибки, Error и строки.
- * Английские сообщения бэкенда переводятся; всё, что перевести не удалось, заменяется на fallback.
+ * Нерусские технические тексты заменяются на fallback.
  */
 export function getErrorMessage(
 	err: unknown,
@@ -119,13 +120,13 @@ export function getErrorMessage(
 	if (isApiError(err)) {
 		const raw = Array.isArray(err.message) ? err.message : [err.message];
 		const messages = [
-			...new Set(raw.filter((m): m is string => typeof m === 'string').map(humanize).filter(Boolean))
+			...new Set(raw.filter((m): m is string => typeof m === 'string').map(humanizeMessage).filter(Boolean))
 		];
 		return messages.length ? messages.join(' ') : fallback;
 	}
 
-	if (err instanceof Error) return humanize(err.message) ?? fallback;
-	if (typeof err === 'string') return humanize(err) ?? fallback;
+	if (err instanceof Error) return humanizeMessage(err.message) ?? fallback;
+	if (typeof err === 'string') return humanizeMessage(err) ?? fallback;
 	return fallback;
 }
 

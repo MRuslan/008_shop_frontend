@@ -7,49 +7,44 @@
 	import { getErrorMessage } from '$lib/utils/errors';
 	import { toast } from '$lib/stores/toast';
 	import { confirmDialog } from '$lib/stores/confirm';
+	import {
+		orderStatusLabel,
+		orderStatusFilterLabel,
+		ORDER_STATUSES,
+		ORDER_STATUS_TONE,
+		ORDER_TRANSITIONS
+	} from '$lib/utils/order-status';
+	import Pagination from '$lib/components/catalog/Pagination.svelte';
+	import type { PageProps } from './$types';
 
-	interface Props {
-		data: {
-			orders: Order[];
-		};
-	}
+	let { data }: PageProps = $props();
 
-	let { data }: Props = $props();
+	// Поля фильтра стартуют со значений из адреса и дальше живут своей жизнью до «Применить»
+	let selectedStatus = $derived(data.filters.status);
+	let dateFrom = $derived(data.filters.dateFrom);
+	let dateTo = $derived(data.filters.dateTo);
 
-	let selectedStatus = $state<string>('');
-	let dateFrom = $state('');
-	let dateTo = $state('');
+	const totalPages = $derived(Math.max(1, Math.ceil(data.total / data.limit)));
 
-	function getStatusLabel(status: OrderStatus): string {
-		const labels: Record<OrderStatus, string> = {
-			pending: 'Ожидает подтверждения',
-			confirmed: 'Подтверждён',
-			shipped: 'Передан в доставку',
-			delivered: 'Доставлен',
-			cancelled: 'Отменён'
-		};
-		return labels[status] || status;
-	}
-
-	function getStatusColor(status: OrderStatus): string {
-		const colors: Record<OrderStatus, string> = {
-			pending: 'bg-yellow-100 text-yellow-800',
-			confirmed: 'bg-blue-100 text-blue-800',
-			shipped: 'bg-purple-100 text-purple-800',
-			delivered: 'bg-green-100 text-green-800',
-			cancelled: 'bg-red-100 text-red-800'
-		};
-		return colors[status] || 'bg-gray-100 text-gray-800';
+	function pageHref(pageNumber: number): string {
+		const params = new URLSearchParams();
+		if (data.filters.status) params.set('status', data.filters.status);
+		if (data.filters.dateFrom) params.set('dateFrom', data.filters.dateFrom);
+		if (data.filters.dateTo) params.set('dateTo', data.filters.dateTo);
+		if (pageNumber > 1) params.set('page', String(pageNumber));
+		const query = params.toString();
+		return query ? `/admin/orders?${query}` : '/admin/orders';
 	}
 
 	async function handleStatusChange(order: Order, select: HTMLSelectElement) {
 		const newStatus = select.value as OrderStatus;
 		if (newStatus === order.status) return;
 
+		const label = orderStatusLabel(newStatus, order.deliveryType);
 		const confirmed = await confirmDialog({
 			title: `Изменить статус заказа №${order.id}?`,
-			message: `Новый статус: ${getStatusLabel(newStatus)}.${
-				newStatus === 'cancelled' ? ' Остатки по позициям вернутся на склад.' : ''
+			message: `Новый статус: ${label}. Покупатель получит письмо.${
+				newStatus === 'cancelled' ? ' Остатки вернутся на точку, с которой были списаны.' : ''
 			}`,
 			confirmLabel: 'Изменить',
 			danger: newStatus === 'cancelled'
@@ -64,7 +59,7 @@
 		try {
 			await ordersApi.updateOrderStatus(order.id, { status: newStatus });
 			await invalidateAll();
-			toast.success(`Статус заказа №${order.id}: ${getStatusLabel(newStatus)}`);
+			toast.success(`Статус заказа №${order.id}: ${label}`);
 		} catch (err) {
 			select.value = order.status;
 			toast.error(getErrorMessage(err, 'Не удалось изменить статус заказа'));
@@ -94,11 +89,9 @@
 			class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
 		>
 			<option value="">Все статусы</option>
-			<option value="pending">Ожидает подтверждения</option>
-			<option value="confirmed">Подтверждён</option>
-			<option value="shipped">Передан в доставку</option>
-			<option value="delivered">Доставлен</option>
-			<option value="cancelled">Отменён</option>
+			{#each ORDER_STATUSES as status (status)}
+				<option value={status}>{orderStatusFilterLabel(status)}</option>
+			{/each}
 		</select>
 		<input
 			type="date"
@@ -135,6 +128,7 @@
 			</thead>
 			<tbody class="bg-white divide-y divide-gray-200">
 				{#each data.orders as order (order.id)}
+					{@const transitions = ORDER_TRANSITIONS[order.status]}
 					<tr class="hover:bg-gray-50">
 						<td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
 							#{order.id}
@@ -143,18 +137,23 @@
 							{formatDateTime(order.createAt)}
 						</td>
 						<td class="px-6 py-4 whitespace-nowrap">
-							<select
-								value={order.status}
-								aria-label="Статус заказа №{order.id}"
-								onchange={(e) => handleStatusChange(order, e.currentTarget)}
-								class="text-base md:text-sm px-2 py-1 rounded {getStatusColor(order.status)} border-0 focus:outline-none focus:ring-2 focus:ring-blue-500"
-							>
-								<option value="pending">Ожидает подтверждения</option>
-								<option value="confirmed">Подтверждён</option>
-								<option value="shipped">Передан в доставку</option>
-								<option value="delivered">Доставлен</option>
-								<option value="cancelled">Отменён</option>
-							</select>
+							<!-- В списке только переходы, которые примет бэкенд; конечный статус — просто метка -->
+							{#if transitions.length > 0}
+								<select
+									value={order.status}
+									aria-label="Статус заказа №{order.id}"
+									onchange={(e) => handleStatusChange(order, e.currentTarget)}
+									class="text-base md:text-sm px-2 py-1 rounded {ORDER_STATUS_TONE[order.status]} border-0 focus:outline-none focus:ring-2 focus:ring-blue-500"
+								>
+									{#each [order.status, ...transitions] as status (status)}
+										<option value={status}>{orderStatusLabel(status, order.deliveryType)}</option>
+									{/each}
+								</select>
+							{:else}
+								<span class="inline-block px-2 py-1 rounded text-sm {ORDER_STATUS_TONE[order.status]}">
+									{orderStatusLabel(order.status, order.deliveryType)}
+								</span>
+							{/if}
 						</td>
 						<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
 							{order.deliveryType === 'delivery' ? 'Доставка' : 'Самовывоз'}
@@ -176,9 +175,18 @@
 		</table>
 	</div>
 
-	{#if data.orders.length === 0}
+	{#if data.failed}
+		<div class="text-center py-8" role="alert">
+			<p class="text-gray-700">Не удалось загрузить заказы.</p>
+			<button type="button" onclick={() => invalidateAll()} class="mt-2 text-blue-600 underline underline-offset-4">
+				Повторить
+			</button>
+		</div>
+	{:else if data.orders.length === 0}
 		<div class="text-center py-8 text-gray-500">
 			Заказы не найдены
 		</div>
 	{/if}
+
+	<Pagination current={data.page} total={totalPages} href={pageHref} label="Страницы заказов" />
 </div>
