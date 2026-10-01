@@ -61,7 +61,34 @@ const FIELD_NAMES: Record<string, string> = {
 	phone: 'Телефон',
 	text: 'Текст отзыва',
 	comment: 'Комментарий',
-	couponCode: 'Промокод'
+	couponCode: 'Промокод',
+	// Админка
+	name: 'Название',
+	slug: 'Адрес в ссылке (slug)',
+	description: 'Описание',
+	price: 'Цена',
+	compareAtPrice: 'Старая цена',
+	sku: 'Артикул',
+	quantity: 'Количество',
+	value: 'Значение',
+	code: 'Код',
+	contactEmail: 'Email магазина',
+	contactPhone: 'Телефон магазина',
+	logoUrl: 'Ссылка на логотип',
+	faviconUrl: 'Ссылка на favicon',
+	legalName: 'Юридическое название',
+	inn: 'ИНН',
+	legalAddress: 'Юридический адрес',
+	currency: 'Валюта',
+	timezone: 'Часовой пояс',
+	locale: 'Локаль',
+	'settings.delivery.price': 'Стоимость доставки',
+	freeFrom: 'Бесплатно от',
+	minOrderAmount: 'Заказ с доставкой от',
+	maxUses: 'Всего применений',
+	maxUsesPerUser: 'Применений на покупателя',
+	minSubtotal: 'Минимальная сумма',
+	openingHours: 'График работы'
 };
 
 const hasCyrillic = (text: string) => /[А-Яа-яЁё]/.test(text);
@@ -92,18 +119,37 @@ export function humanizeMessage(message: string): string | null {
 	return hasCyrillic(trimmed) ? trimmed : null;
 }
 
+// Проверки типа: если поле нарушило такую проверку вместе с другими, значение просто не передали
+const TYPE_CONSTRAINTS = new Set(['isDefined', 'isNotEmpty', 'isString', 'isNumber', 'isInt', 'isBoolean']);
+
+/**
+ * Одна понятная ошибка на поле: { field, text } без заглавной буквы и точки.
+ * Для пустого поля class-validator шлёт сразу «должно быть строкой», «не короче» и «не длиннее»,
+ * человеку из этого нужно одно: «заполните поле»
+ */
+function fieldProblems(err: ApiError): Array<{ field: string; text: string }> {
+	const byField = new Map<string, Array<{ constraint: string; message: string }>>();
+	for (const item of err.errors ?? []) {
+		if (!item?.field || !item.message) continue;
+		const list = byField.get(item.field) ?? [];
+		list.push(item);
+		byField.set(item.field, list);
+	}
+	return [...byField].map(([field, items]) => {
+		const missing = items.length > 1 && items.some((item) => TYPE_CONSTRAINTS.has(item.constraint));
+		return { field, text: missing ? 'заполните это поле' : items[0].message };
+	});
+}
+
 /**
  * Ошибки валидации по полям из `errors` ответа 400: { email: 'Должно быть корректным email' }.
- * По одному сообщению на поле, первое; формы показывают их рядом с полями
+ * По одному сообщению на поле; формы показывают их рядом с полями
  */
 export function getFieldErrors(err: unknown): Record<string, string> {
-	const result: Record<string, string> = {};
-	if (!isApiError(err) || !Array.isArray(err.errors)) return result;
-	for (const item of err.errors) {
-		if (!item?.field || !item.message || result[item.field]) continue;
-		result[item.field] = item.message.charAt(0).toUpperCase() + item.message.slice(1);
-	}
-	return result;
+	if (!isApiError(err) || !Array.isArray(err.errors)) return {};
+	return Object.fromEntries(
+		fieldProblems(err).map(({ field, text }) => [field, text.charAt(0).toUpperCase() + text.slice(1)])
+	);
 }
 
 /**
@@ -118,6 +164,13 @@ export function getErrorMessage(
 	if (isNetworkError(err)) return NETWORK_ERROR_MESSAGE;
 
 	if (isApiError(err)) {
+		// Ошибки по полям: одна на поле, с человеческим названием поля
+		if (Array.isArray(err.errors) && err.errors.length > 0) {
+			return fieldProblems(err)
+				.map(({ field, text }) => `${fieldLabel(field)}: ${text}.`)
+				.join(' ');
+		}
+
 		const raw = Array.isArray(err.message) ? err.message : [err.message];
 		const messages = [
 			...new Set(raw.filter((m): m is string => typeof m === 'string').map(humanizeMessage).filter(Boolean))

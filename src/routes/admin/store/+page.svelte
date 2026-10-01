@@ -3,6 +3,7 @@
 	import { storeSettings } from '$lib/stores/store';
 	import type { Store } from '$lib/types/common';
 	import { getErrorMessage } from '$lib/utils/errors';
+	import { slugifyFromName } from '$lib/utils/slug';
 
 	interface Props {
 		data: {
@@ -13,7 +14,10 @@
 	let { data }: Props = $props();
 
 	let name = $state(data.store?.name || '');
+	let storeExists = $state(!!data.store);
 	let slug = $state(data.store?.slug || '');
+	// Бэкенд требует slug у магазина и, в отличие от товаров и категорий, сам его не придумывает
+	const autoSlug = $derived(slugifyFromName(name));
 	let logoUrl = $state(data.store?.logoUrl || '');
 	let faviconUrl = $state(data.store?.faviconUrl || '');
 	let contactEmail = $state(data.store?.contactEmail || '');
@@ -61,6 +65,11 @@
 			return;
 		}
 
+		if (!slug.trim() && !autoSlug) {
+			error = 'Из названия не получился slug: укажите его вручную латиницей';
+			return;
+		}
+
 		let delivery: { enabled: boolean; price: number | null; freeFrom: number | null; minOrderAmount: number | null };
 		try {
 			delivery = {
@@ -83,7 +92,7 @@
 		try {
 			const storeData: Partial<Store> = {
 				name: name.trim(),
-				slug: slug.trim() || undefined,
+				slug: slug.trim() || autoSlug,
 				logoUrl: logoUrl.trim() || undefined,
 				faviconUrl: faviconUrl.trim() || undefined,
 				contactEmail: contactEmail.trim() || undefined,
@@ -107,15 +116,18 @@
 				} as unknown as Store['settings']
 			};
 
-			if (data.store) {
+			if (storeExists) {
 				await storeApi.updateStore(storeData);
 			} else {
 				await storeApi.createStore(storeData);
+				// Следующее сохранение — уже правка, а не повторное создание
+				storeExists = true;
 			}
 
 			// Обновляем store в глобальном store
 			const updatedStore = await storeApi.getStore();
 			$storeSettings = updatedStore;
+			slug = updatedStore.slug;
 
 			success = true;
 			setTimeout(() => {
@@ -159,10 +171,11 @@
 			<h2 class="text-title text-ink mb-4">Основная информация</h2>
 			<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 				<div>
-					<label class="block text-sm font-medium text-gray-700 mb-1">
-						Название магазина <span class="text-red-500">*</span>
+					<label for="store-name" class="block text-sm font-medium text-gray-700 mb-1">
+						Название магазина <span class="text-red-500" aria-hidden="true">*</span>
 					</label>
 					<input
+						id="store-name"
 						type="text"
 						bind:value={name}
 						required
@@ -171,13 +184,19 @@
 				</div>
 
 				<div>
-					<label class="block text-sm font-medium text-gray-700 mb-1">Slug</label>
+					<label for="store-slug" class="block text-sm font-medium text-gray-700 mb-1">Slug</label>
+					<!-- Подсказка показывает, какой slug получится, если поле оставить пустым -->
 					<input
+						id="store-slug"
 						type="text"
 						bind:value={slug}
-						placeholder="Автоматически из названия"
+						placeholder={autoSlug || 'Автоматически из названия'}
+						aria-describedby="store-slug-hint"
 						class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
 					/>
+					<p id="store-slug-hint" class="mt-1 text-xs text-gray-500">
+						Латиница, цифры и дефисы. Пустое поле заполнится из названия.
+					</p>
 				</div>
 			</div>
 		</div>
