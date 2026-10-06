@@ -156,6 +156,40 @@
 html {
 	scrollbar-color: var(--color-gray-300) transparent;
 	-webkit-tap-highlight-color: transparent;
+	/*
+	 * Полоса прокрутки видна всегда. Иначе при переходе между длинной страницей (каталог) и короткой
+	 * (контакты) она появляется и пропадает, и весь макет сдвигается вбок на её ширину.
+	 * scrollbar-gutter: stable сделал бы то же без пустой полосы, но Chrome не соблюдает его
+	 * на корневом элементе (проверено замером). На телефонах и в macOS полосы поверх контента,
+	 * там это ничего не меняет
+	 */
+	overflow-y: scroll;
+}
+
+/*
+ * Смена страницы (View Transitions, см. onNavigate в +layout.svelte): короткое растворение старой
+ * страницы в новой. Скачок вёрстки при смене прячется внутри перехода, время перехода не растёт
+ */
+::view-transition-old(root),
+::view-transition-new(root) {
+	animation-duration: 180ms;
+	animation-timing-function: var(--ease-out-quart);
+}
+
+/* Шапка, нижние вкладки и полоса загрузки не растворяются и не едут: они меняются сразу */
+::view-transition-group(site-header),
+::view-transition-group(tab-bar),
+::view-transition-group(nav-progress),
+::view-transition-new(site-header),
+::view-transition-new(tab-bar),
+::view-transition-new(nav-progress) {
+	animation: none;
+}
+
+::view-transition-old(site-header),
+::view-transition-old(tab-bar),
+::view-transition-old(nav-progress) {
+	display: none;
 }
 
 body {

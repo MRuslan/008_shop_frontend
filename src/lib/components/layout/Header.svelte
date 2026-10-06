@@ -118,7 +118,8 @@
 	</form>
 {/snippet}
 
-<header class="bg-surface">
+<!-- Своё имя для View Transitions: шапка не растворяется при смене страницы -->
+<header class="bg-surface [view-transition-name:site-header]">
 	<!-- Служебная строка (десктоп) -->
 	<div class="hidden border-b border-line md:block">
 		<div class="container flex h-9 items-center justify-between gap-4 text-sm text-gray-500">

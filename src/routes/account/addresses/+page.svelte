@@ -4,6 +4,7 @@
 	import type { Address, CreateAddressDto, UpdateAddressDto } from '$lib/types/common';
 	import AddressList from '$lib/components/checkout/AddressList.svelte';
 	import AddressForm from '$lib/components/checkout/AddressForm.svelte';
+	import Skeleton from '$lib/components/ui/Skeleton.svelte';
 	import { getErrorMessage } from '$lib/utils/errors';
 
 	let addresses = $state<Address[]>([]);
@@ -93,8 +94,11 @@
 	{/if}
 
 	{#if isLoading}
-		<div class="text-center py-12">
-			<p class="text-gray-500" role="status">Загружаем адреса…</p>
+		<!-- Заглушка в форме карточек адресов -->
+		<div class="flex flex-col gap-3" role="status">
+			<span class="sr-only">Загружаем адреса…</span>
+			<Skeleton class="h-28 rounded-lg" />
+			<Skeleton class="h-28 rounded-lg" />
 		</div>
 	{:else if showAddressForm}
 		<AddressForm

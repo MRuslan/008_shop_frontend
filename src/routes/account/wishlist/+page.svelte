@@ -3,6 +3,7 @@
 	import { wishlistApi } from '$lib/api/wishlist';
 	import type { WishlistItem } from '$lib/types/common';
 	import ProductList from '$lib/components/product/ProductList.svelte';
+	import ProductGridSkeleton from '$lib/components/product/ProductGridSkeleton.svelte';
 	import { wishlistStore, wishlistReady } from '$lib/stores/wishlist';
 	import { getErrorMessage } from '$lib/utils/errors';
 
@@ -49,8 +50,9 @@
 	{/if}
 
 	{#if isLoading}
-		<div class="text-center py-12">
-			<p class="text-gray-500">Загрузка избранного...</p>
+		<div role="status">
+			<span class="sr-only">Загружаем избранное…</span>
+			<ProductGridSkeleton count={3} />
 		</div>
 	{:else if visibleItems.length === 0}
 		<div class="text-center py-12">

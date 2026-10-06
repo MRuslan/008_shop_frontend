@@ -20,6 +20,7 @@
 	import AddressForm from '$lib/components/checkout/AddressForm.svelte';
 	import PickupLocationSelect from '$lib/components/checkout/PickupLocationSelect.svelte';
 	import CouponInput from '$lib/components/checkout/CouponInput.svelte';
+	import Skeleton from '$lib/components/ui/Skeleton.svelte';
 
 	let isLoading = $state(true);
 	let isSubmitting = $state(false);
@@ -319,7 +320,8 @@
 
 			const order = await ordersApi.createOrder(orderData);
 
-			cartStore.clear();
+			// Бэкенд уже очистил корзину; перечитываем её, а не обнуляем: null страница корзины сочла бы ошибкой
+			void cartStore.init();
 			toast.success(`Заказ №${order.id} оформлен`);
 			await goto(`/account/orders/${order.id}`);
 		} catch (err) {
@@ -343,8 +345,35 @@
 	<h1 class="text-headline md:text-headline-lg text-balance text-ink mb-6">Оформление заказа</h1>
 
 	{#if isLoading}
-		<div class="text-center py-12" role="status">
-			<p class="text-gray-500">{$authStore.isLoading ? 'Проверяем вход…' : 'Загружаем адреса и точки самовывоза…'}</p>
+		<!-- Заглушка повторяет форму: способ получения, адрес, промокод, комментарий и итог справа -->
+		<div class="grid grid-cols-1 gap-6 lg:grid-cols-3" role="status">
+			<span class="sr-only">{$authStore.isLoading ? 'Проверяем вход…' : 'Загружаем адреса и точки самовывоза…'}</span>
+			<div class="space-y-6 lg:col-span-2">
+				<div class="rounded-lg bg-white p-6 shadow-md">
+					<Skeleton class="mb-4 h-7 w-48" />
+					<div class="space-y-3">
+						<Skeleton class="h-[4.5rem]" />
+						<Skeleton class="h-[4.5rem]" />
+					</div>
+				</div>
+				<div class="rounded-lg bg-white p-6 shadow-md">
+					<Skeleton class="mb-4 h-7 w-40" />
+					<Skeleton class="h-24" />
+				</div>
+				<div class="rounded-lg bg-white p-6 shadow-md">
+					<Skeleton class="mb-2 h-5 w-24" />
+					<Skeleton class="h-11" />
+				</div>
+			</div>
+			<div class="lg:col-span-1">
+				<div class="space-y-3 rounded-lg bg-white p-6 shadow-md">
+					<Skeleton class="mb-4 h-7 w-32" />
+					<Skeleton class="h-5" />
+					<Skeleton class="h-5 w-3/4" />
+					<Skeleton class="mt-4 h-8" />
+					<Skeleton class="mt-4 h-12" />
+				</div>
+			</div>
 		</div>
 	{:else if loadError}
 		<div role="alert" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">

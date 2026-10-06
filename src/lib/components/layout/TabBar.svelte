@@ -46,7 +46,7 @@
 
 <nav
 	aria-label="Разделы магазина"
-	class="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-surface pb-[env(safe-area-inset-bottom)] md:hidden"
+	class="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-surface pb-[env(safe-area-inset-bottom)] [view-transition-name:tab-bar] md:hidden"
 >
 	<ul class="grid h-(--tabbar-height) grid-cols-5">
 		{#each tabs as tab (tab.href)}

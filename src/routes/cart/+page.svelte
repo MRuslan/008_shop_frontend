@@ -1,52 +1,40 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { cartStore } from '$lib/stores/cart';
+	import { cartStore, cartReady } from '$lib/stores/cart';
 	import { authStore } from '$lib/stores/auth';
 	import { cartApi } from '$lib/api/cart';
 	import { confirmDialog } from '$lib/stores/confirm';
 	import CartItem from '$lib/components/cart/CartItem.svelte';
 	import CartSummary from '$lib/components/cart/CartSummary.svelte';
+	import Skeleton from '$lib/components/ui/Skeleton.svelte';
 	import { getErrorMessage } from '$lib/utils/errors';
 	import { toast } from '$lib/stores/toast';
 	import { pluralize } from '$lib/utils/format';
 
-	let isLoading = $state(true);
 	let isUpdating = $state(false);
-	let error = $state<string | null>(null);
 
-	onMount(async () => {
-		await loadCart();
+	// Корзину загружает layout, когда уже известно, вошёл ли пользователь. Пока её нет — заглушка;
+	// null после загрузки значит ошибку (пустую корзину бэкенд отдаёт с пустым items)
+	const isLoading = $derived(!$cartReady);
+	const loadFailed = $derived($cartReady && !$cartStore);
+
+	// Корзина уже в памяти: показываем её сразу и тихо обновляем, вдруг остатки или цены изменились
+	onMount(() => {
+		if ($cartReady) cartStore.init();
 	});
-
-	async function loadCart() {
-		isLoading = true;
-		error = null;
-
-		try {
-			const useSessionId = !$authStore.isAuthenticated;
-			const cart = await cartApi.getCart(useSessionId);
-			cartStore.setCart(cart);
-		} catch (err) {
-			error = getErrorMessage(err, 'Не удалось загрузить корзину.');
-			cartStore.clear();
-		} finally {
-			isLoading = false;
-		}
-	}
 
 	async function handleUpdateQuantity(itemId: number, quantity: number) {
 		if (quantity < 1) return;
 
 		isUpdating = true;
-		error = null;
 
 		try {
 			const useSessionId = !$authStore.isAuthenticated;
 			const cart = await cartApi.updateItem(itemId, { quantity }, useSessionId);
 			cartStore.setCart(cart);
 		} catch (err) {
-			error = getErrorMessage(err, 'Не удалось изменить количество. Корзина обновлена до актуального состояния.');
-			await loadCart(); // Перезагружаем корзину при ошибке
+			toast.error(getErrorMessage(err, 'Не удалось изменить количество. Показываем актуальную корзину.'));
+			await cartStore.init();
 		} finally {
 			isUpdating = false;
 		}
@@ -55,7 +43,6 @@
 	async function handleRemoveItem(itemId: number) {
 		const removed = $cartStore?.items.find((item) => item.id === itemId);
 		isUpdating = true;
-		error = null;
 
 		try {
 			const useSessionId = !$authStore.isAuthenticated;
@@ -68,8 +55,8 @@
 				});
 			}
 		} catch (err) {
-			error = getErrorMessage(err, 'Не удалось убрать товар. Попробуйте ещё раз.');
-			await loadCart(); // Перезагружаем корзину при ошибке
+			toast.error(getErrorMessage(err, 'Не удалось убрать товар. Попробуйте ещё раз.'));
+			await cartStore.init();
 		} finally {
 			isUpdating = false;
 		}
@@ -94,14 +81,13 @@
 		if (!confirmed) return;
 
 		isUpdating = true;
-		error = null;
 
 		try {
 			const useSessionId = !$authStore.isAuthenticated;
-			await cartApi.clearCart(useSessionId);
-			cartStore.clear();
+			// Бэкенд возвращает пустую корзину; null в сторе страница сочла бы ошибкой загрузки
+			cartStore.setCart(await cartApi.clearCart(useSessionId));
 		} catch (err) {
-			error = getErrorMessage(err, 'Не удалось очистить корзину. Попробуйте ещё раз.');
+			toast.error(getErrorMessage(err, 'Не удалось очистить корзину. Попробуйте ещё раз.'));
 		} finally {
 			isUpdating = false;
 		}
@@ -117,16 +103,22 @@
 	<h1 class="text-headline md:text-headline-lg text-balance text-ink mb-6">Корзина</h1>
 
 	{#if isLoading}
-		<div class="text-center py-12">
-			<p class="text-gray-500" role="status">Загружаем корзину…</p>
+		<!-- Заглушка в форме корзины: позиции слева, итог справа -->
+		<div class="grid grid-cols-1 gap-6 lg:grid-cols-3" role="status">
+			<span class="sr-only">Загружаем корзину…</span>
+			<div class="space-y-4 lg:col-span-2">
+				<Skeleton class="h-32 rounded-lg" />
+				<Skeleton class="h-32 rounded-lg" />
+			</div>
+			<Skeleton class="h-56 rounded-lg" />
 		</div>
-	{:else if error}
+	{:else if loadFailed}
 		<div role="alert" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-			{error}
+			Не удалось загрузить корзину. Проверьте соединение и попробуйте ещё раз.
 		</div>
 		<button
 			type="button"
-			onclick={loadCart}
+			onclick={() => cartStore.init()}
 			class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors text-control"
 		>
 			Попробовать снова

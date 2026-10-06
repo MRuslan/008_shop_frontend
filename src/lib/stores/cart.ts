@@ -7,6 +7,12 @@ import { authStore } from './auth';
 import { getOrCreateSessionId, clearSessionId } from '$lib/utils/session';
 import type { Cart } from '$lib/types/cart';
 
+/**
+ * Первая загрузка корзины закончилась (успешно или нет). До этого страницы показывают заглушку,
+ * а не «пустую корзину»: иначе на миг мелькает пустое состояние
+ */
+export const cartReady = writable(false);
+
 function createCartStore() {
 	const { subscribe, set, update } = writable<Cart | null>(null);
 
@@ -57,6 +63,8 @@ function createCartStore() {
 			} catch (error) {
 				console.error('Failed to load cart:', error);
 				set(null);
+			} finally {
+				cartReady.set(true);
 			}
 		},
 

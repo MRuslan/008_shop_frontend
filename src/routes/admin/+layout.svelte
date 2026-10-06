@@ -10,6 +10,7 @@
 	import TicketPercent from '@lucide/svelte/icons/ticket-percent';
 	import MapPin from '@lucide/svelte/icons/map-pin';
 	import Settings from '@lucide/svelte/icons/settings';
+	import SideMenuSkeleton from '$lib/components/ui/SideMenuSkeleton.svelte';
 
 	let { children } = $props();
 
@@ -42,9 +43,7 @@
 </script>
 
 {#if $authStore.isLoading}
-	<div class="container mx-auto px-4 py-8 text-center" role="status">
-		<p class="text-gray-500">Загрузка...</p>
-	</div>
+	<SideMenuSkeleton items={6} />
 {:else if $authStore.isAuthenticated && $isAdminOrManager}
 	<div class="container mx-auto px-4 py-8">
 		<div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
