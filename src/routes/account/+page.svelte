@@ -5,15 +5,18 @@
 	import { getErrorMessage, getFieldErrors } from '$lib/utils/errors';
 	import { toast } from '$lib/stores/toast';
 	import ChangePasswordForm from '$lib/components/account/ChangePasswordForm.svelte';
+	import EmailChange from '$lib/components/account/EmailChange.svelte';
 
 	const USERNAME_MIN = 3;
 
-	// Имя правится на месте; email и роль меняет только администратор
+	// Имя правится на месте; email меняется через письмо (блок ниже), роль — только администратором
 	let editingName = $state(false);
 	let nameDraft = $state('');
 	let nameError = $state<string | null>(null);
 	let savingName = $state(false);
 	let changingPassword = $state(false);
+	// Смена пароля гасит ожидающую смену email на бэкенде: после неё перечитываем заявку
+	let emailChange: ReturnType<typeof EmailChange> | undefined = $state();
 
 	function startEditingName() {
 		nameDraft = $authStore.user?.username ?? '';
@@ -152,10 +155,6 @@
 							{/if}
 						</dd>
 					</div>
-					<div>
-						<dt class="text-body-sm text-gray-500">Email</dt>
-						<dd class="mt-0.5 text-body text-ink">{$authStore.user.email}</dd>
-					</div>
 					{#if roleLabel}
 						<div>
 							<dt class="text-body-sm text-gray-500">Роль</dt>
@@ -165,11 +164,18 @@
 				</dl>
 			</div>
 
+			<EmailChange bind:this={emailChange} currentEmail={$authStore.user.email} />
+
 			<!-- Пароль -->
 			<div class="border-t pt-6">
 				<h2 class="text-title text-ink mb-2">Пароль</h2>
 				{#if changingPassword}
-					<ChangePasswordForm onDone={() => (changingPassword = false)} />
+					<ChangePasswordForm
+						onDone={() => {
+							changingPassword = false;
+							emailChange?.refresh();
+						}}
+					/>
 				{:else}
 					<p class="mb-4 text-sm text-gray-600">После смены пароля на других устройствах нужно будет войти заново.</p>
 					<button

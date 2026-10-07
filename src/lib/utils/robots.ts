@@ -6,6 +6,7 @@ export const NOINDEX_PREFIXES = [
 	'/cart',
 	'/checkout',
 	'/reset-password',
+	'/confirm-email',
 	'/search',
 	'/orders'
 ];

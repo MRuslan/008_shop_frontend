@@ -57,6 +57,7 @@ const FIELD_NAMES: Record<string, string> = {
 	password: 'Пароль',
 	currentPassword: 'Текущий пароль',
 	newPassword: 'Новый пароль',
+	newEmail: 'Новый email',
 	username: 'Имя',
 	label: 'Название адреса',
 	city: 'Город',

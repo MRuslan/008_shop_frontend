@@ -42,3 +42,9 @@ export interface DeleteAccountDto {
 export interface UpdateRoleDto {
 	role: Role;
 }
+
+/** Заявка на смену email: ждёт перехода по ссылке из письма на новый адрес */
+export interface PendingEmailChange {
+	pendingEmail: string | null;
+	expiresAt: string | null;
+}

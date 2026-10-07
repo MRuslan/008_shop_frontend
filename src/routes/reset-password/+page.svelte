@@ -43,9 +43,11 @@
 			// Одноразовый токен больше не нужен в адресной строке и истории
 			replaceState(page.url.pathname, {});
 		} catch (err) {
-			error =
-				getFieldErrors(err).newPassword ??
-				getErrorMessage(err, 'Не удалось сменить пароль. Запросите новое письмо.');
+			const byField = getFieldErrors(err);
+			// Токен не того формата — ссылку обрезал почтовик или её скопировали не целиком
+			error = byField.token
+				? 'Ссылка повреждена. Откройте её из письма целиком или запросите новое письмо.'
+				: (byField.newPassword ?? getErrorMessage(err, 'Не удалось сменить пароль. Запросите новое письмо.'));
 		} finally {
 			isLoading = false;
 		}

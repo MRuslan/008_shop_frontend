@@ -9,7 +9,8 @@ import type {
 	RefreshTokenDto,
 	RefreshTokenResponse,
 	DeleteAccountDto,
-	UpdateRoleDto
+	UpdateRoleDto,
+	PendingEmailChange
 } from '$lib/types/auth';
 
 export const authApi = {
@@ -132,6 +133,35 @@ export const authApi = {
 		newPassword: string
 	): Promise<{ message: string; revokedSessions: number }> {
 		return apiClient.post('/auth/change-password', { currentPassword, newPassword });
+	},
+
+	/**
+	 * Сменить email: на новый адрес уходит ссылка подтверждения. До перехода по ней вход по прежнему адресу.
+	 * Повторный вызов (и на тот же адрес) заменяет прежнюю заявку, старая ссылка гаснет
+	 */
+	async changeEmail(newEmail: string, password: string): Promise<PendingEmailChange & { message: string }> {
+		return apiClient.post('/auth/change-email', { newEmail, password });
+	},
+
+	/**
+	 * Ожидающая смена email для профиля; просроченная приходит как null
+	 */
+	async getEmailChange(): Promise<PendingEmailChange> {
+		return apiClient.get<PendingEmailChange>('/auth/change-email');
+	},
+
+	/**
+	 * Отменить ожидающую смену email: ссылка из письма перестаёт работать
+	 */
+	async cancelEmailChange(): Promise<{ message: string }> {
+		return apiClient.delete<{ message: string }>('/auth/change-email');
+	},
+
+	/**
+	 * Подтвердить новый email по токену из письма. Вход не нужен: ссылку могут открыть в другом браузере
+	 */
+	async confirmEmail(token: string): Promise<{ message: string; email: string }> {
+		return apiClient.post('/auth/confirm-email', { token }, { skipAuth: true });
 	},
 
 	/**
