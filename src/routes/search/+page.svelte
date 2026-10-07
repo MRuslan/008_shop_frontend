@@ -6,6 +6,7 @@
 	import Pagination from '$lib/components/catalog/Pagination.svelte';
 	import type { Product, ProductFilters } from '$lib/types/product';
 	import { pluralize } from '$lib/utils/format';
+	import { storeSettings } from '$lib/stores/store';
 
 	interface Props {
 		data: {
@@ -53,7 +54,7 @@
 </script>
 
 <svelte:head>
-	<title>{data.query ? `Поиск «${data.query}»` : 'Поиск товаров'} | Каталог</title>
+	<title>{data.query ? `Поиск «${data.query}»` : 'Поиск товаров'} | {$storeSettings?.name || 'Интернет-магазин'}</title>
 	<meta name="description" content="Результаты поиска товаров" />
 	<meta name="robots" content="noindex, follow" />
 </svelte:head>

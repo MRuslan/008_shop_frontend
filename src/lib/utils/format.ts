@@ -50,15 +50,33 @@ export function discountPercent(price: string, compareAtPrice: string | null): n
 }
 
 /**
+ * Часовой пояс магазина для всех дат на сайте. Без него сервер (обычно в UTC) и браузер
+ * покупателя показали бы разное время, и текст менялся бы после загрузки страницы.
+ * Задаёт корневой layout из настроек магазина
+ */
+let displayTimeZone = 'Europe/Moscow';
+
+export function setDisplayTimeZone(timeZone: string | null | undefined) {
+	if (!timeZone) return;
+	try {
+		new Intl.DateTimeFormat('ru-RU', { timeZone });
+		displayTimeZone = timeZone;
+	} catch {
+		// Неизвестный пояс в настройках: остаёмся на прежнем, а не роняем страницу
+	}
+}
+
+/**
  * Форматирует дату
  */
 export function formatDate(date: string | Date, locale: string = 'ru-RU'): string {
 	const dateObj = typeof date === 'string' ? new Date(date) : date;
-	
+
 	return new Intl.DateTimeFormat(locale, {
 		year: 'numeric',
 		month: 'long',
-		day: 'numeric'
+		day: 'numeric',
+		timeZone: displayTimeZone
 	}).format(dateObj);
 }
 
@@ -73,6 +91,7 @@ export function formatDateTime(date: string | Date, locale: string = 'ru-RU'): s
 		month: 'long',
 		day: 'numeric',
 		hour: '2-digit',
-		minute: '2-digit'
+		minute: '2-digit',
+		timeZone: displayTimeZone
 	}).format(dateObj);
 }

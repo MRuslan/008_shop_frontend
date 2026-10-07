@@ -13,13 +13,16 @@
 	import { storeSettings } from '$lib/stores/store';
 	import { authStore } from '$lib/stores/auth';
 	import { cartStore } from '$lib/stores/cart';
+	import { setDisplayTimeZone } from '$lib/utils/format';
 
 	let { data, children } = $props();
 
 	// Настройки магазина: сразу для SSR и первого рендера, и дальше при каждой инвалидации данных
 	storeSettings.set(data.store ?? null);
+	setDisplayTimeZone(data.store?.timezone);
 	$effect(() => {
 		storeSettings.set(data.store ?? null);
+		setDisplayTimeZone(data.store?.timezone);
 	});
 
 	// Админка — рабочий инструмент: нижние вкладки покупателя ей не нужны
@@ -53,6 +56,13 @@
 		await cartStore.init();
 	});
 </script>
+
+<svelte:head>
+	<!-- Своя иконка магазина из настроек; иначе остаётся общая из app.html -->
+	{#if data.store?.faviconUrl}
+		<link rel="icon" href={data.store.faviconUrl} />
+	{/if}
+</svelte:head>
 
 <NavigationProgress />
 

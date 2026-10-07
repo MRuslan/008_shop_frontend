@@ -1,5 +1,6 @@
 <script lang="ts">
-	import { goto, invalidateAll } from '$app/navigation';
+	import { siteOrigin } from '$lib/utils/site';
+	import { goto } from '$app/navigation';
 	import { page, navigating } from '$app/state';
 	import ProductList from '$lib/components/product/ProductList.svelte';
 	import ProductFilters from '$lib/components/product/ProductFilters.svelte';
@@ -22,7 +23,6 @@
 			limit: number;
 			categories: Category[];
 			filters: ProductFiltersType;
-			loadError: string | null;
 		};
 	}
 
@@ -71,15 +71,31 @@
 		].filter(Boolean).length
 	);
 
-	const siteUrl = $derived(page.url.origin);
+	const siteUrl = $derived(siteOrigin(page.url));
 	const siteName = $derived($storeSettings?.name || 'Интернет-магазин');
 	const description = $derived(`${title} в магазине ${siteName}: ${totalLabel}. Цены и наличие на сегодня.`);
 	const breadcrumbs = $derived([
 		{ name: 'Главная', url: '/' },
 		{ name: 'Каталог', url: '/catalog' },
-		...(parent ? [{ name: parent.name, url: buildUrl({ categoryId: parent.id }, 1) }] : []),
-		...(selected ? [{ name: selected.name, url: buildUrl({ categoryId: selected.id }, 1) }] : [])
+		// У раздела один адрес — /categories/<slug>; ссылки и разметка ведут туда, а не на ?categoryId=
+		...(parent ? [{ name: parent.name, url: `/categories/${parent.slug}` }] : []),
+		...(selected ? [{ name: selected.name, url: `/categories/${selected.slug}` }] : [])
 	]);
+
+	// Выборка с фильтрами (цена, наличие, поиск) — не отдельная страница для поисковиков:
+	// noindex и canonical на сам раздел. Сортировка тоже не новая страница, её в canonical нет
+	const isFiltered = $derived(
+		!!data.filters.search ||
+			data.filters.minPrice !== undefined ||
+			data.filters.maxPrice !== undefined ||
+			!!data.filters.inStock
+	);
+	const listPath = $derived(selected ? `/categories/${selected.slug}` : '/catalog');
+	const canonicalUrl = $derived(`${siteUrl}${listPath}${!isFiltered && data.page > 1 ? `?page=${data.page}` : ''}`);
+	const pageSuffix = $derived(data.page > 1 ? ` — страница ${data.page}` : '');
+	const ogImage = $derived(
+		data.products.find((product) => product.images?.[0]?.url)?.images?.[0]?.url ?? $storeSettings?.logoUrl ?? null
+	);
 
 	function buildUrl(filters: ProductFiltersType, pageNumber: number): string {
 		const params = new URLSearchParams();
@@ -116,17 +132,6 @@
 	// Идёт переход внутри каталога: приглушаем сетку, чтобы было видно, что список обновляется
 	const isUpdating = $derived(navigating.to?.url.pathname === '/catalog');
 
-	let retrying = $state(false);
-
-	async function retry() {
-		retrying = true;
-		try {
-			await invalidateAll();
-		} finally {
-			retrying = false;
-		}
-	}
-
 	// Лист фильтров на телефоне: нативный <dialog> даёт ловушку фокуса и подложку
 	let sheetOpen = $state(false);
 	let sheet: HTMLDialogElement | undefined = $state();
@@ -150,25 +155,26 @@
 </script>
 
 <svelte:head>
-	<title>{title} | {siteName}</title>
+	<title>{title}{pageSuffix} | {siteName}</title>
 	<meta name="description" content={description} />
+	{#if isFiltered}
+		<meta name="robots" content="noindex, follow" />
+	{/if}
 	<meta property="og:title" content={`${title} | ${siteName}`} />
 	<meta property="og:description" content={description} />
 	<meta property="og:type" content="website" />
-	<meta property="og:url" content={`${siteUrl}/catalog`} />
-	{#if $storeSettings?.logoUrl}
-		<meta property="og:image" content={$storeSettings.logoUrl} />
+	<meta property="og:url" content={canonicalUrl} />
+	{#if ogImage}
+		<meta property="og:image" content={ogImage} />
 	{/if}
 	<meta property="og:site_name" content={siteName} />
-	<meta name="twitter:card" content="summary" />
+	<meta name="twitter:card" content={ogImage ? 'summary_large_image' : 'summary'} />
 	<meta name="twitter:title" content={`${title} | ${siteName}`} />
 	<meta name="twitter:description" content={description} />
-	<link rel="canonical" href={`${siteUrl}${selected ? buildUrl({ categoryId: selected.id }, 1) : '/catalog'}`} />
+	<link rel="canonical" href={canonicalUrl} />
 
-	{#if !data.loadError}
-		<!-- eslint-disable-next-line svelte/no-at-html-tags -- jsonLdScript экранирует <, > и &, закрыть тег script нельзя -->
-		{@html jsonLdScript(generateCollectionJsonLd(data.products, selected ?? null, $storeSettings, siteUrl))}
-	{/if}
+	<!-- eslint-disable-next-line svelte/no-at-html-tags -- jsonLdScript экранирует <, > и &, закрыть тег script нельзя -->
+	{@html jsonLdScript(generateCollectionJsonLd(data.products, selected ?? null, siteUrl, canonicalUrl, (data.page - 1) * data.limit))}
 	<!-- eslint-disable-next-line svelte/no-at-html-tags -- jsonLdScript экранирует <, > и &, закрыть тег script нельзя -->
 	{@html jsonLdScript(generateBreadcrumbJsonLd(breadcrumbs, siteUrl))}
 </svelte:head>
@@ -178,9 +184,7 @@
 
 	<div class="mt-2 flex flex-wrap items-baseline gap-x-3 gap-y-1">
 		<h1 class="text-headline text-balance text-ink md:text-headline-lg">{title}</h1>
-		{#if !data.loadError}
-			<p class="text-gray-500" role="status">{totalLabel}</p>
-		{/if}
+		<p class="text-gray-500" role="status">{totalLabel}</p>
 	</div>
 
 	<!-- На десктопе те же разделы уже в боковой панели фильтров: второй раз их не показываем -->
@@ -215,37 +219,20 @@
 				</button>
 			</div>
 
-			{#if data.loadError}
-				<div role="alert" class="rounded-2xl bg-surface p-8 text-center">
-					<p class="font-semibold text-ink">Не удалось загрузить каталог</p>
-					<p class="mt-1 text-sm text-gray-600">{data.loadError}</p>
-					<button
-						type="button"
-						onclick={retry}
-						disabled={retrying}
-						class="mt-5 inline-flex h-11 items-center rounded-xl bg-ink px-5 text-sm font-medium text-white transition-colors hover:bg-ink-hover disabled:cursor-not-allowed disabled:opacity-60"
-					>
-						{retrying ? 'Обновляем…' : 'Попробовать снова'}
-					</button>
-				</div>
-			{:else if data.products.length === 0}
+			{#if data.products.length === 0}
+				<!-- Раздел показывает и товары подкатегорий, поэтому пусто — значит, правда пусто -->
 				<div class="rounded-2xl bg-surface px-6 py-12 text-center">
-					{#if selected?.children?.length && activeFilterCount === 1}
-						<p class="font-semibold text-ink">Товары этого раздела лежат в подкатегориях</p>
-						<p class="mt-1 text-sm text-gray-600">Выберите подкатегорию выше.</p>
-					{:else}
-						<p class="font-semibold text-ink">Ничего не нашлось</p>
-						<p class="mt-1 text-sm text-gray-600">
-							{activeFilterCount ? 'Попробуйте убрать часть фильтров.' : 'В каталоге пока нет товаров.'}
-						</p>
-						{#if activeFilterCount}
-							<a
-								href="/catalog"
-								class="mt-5 inline-flex h-11 items-center rounded-xl bg-ink px-5 text-sm font-medium text-white transition-colors hover:bg-ink-hover"
-							>
-								Сбросить фильтры
-							</a>
-						{/if}
+					<p class="font-semibold text-ink">Ничего не нашлось</p>
+					<p class="mt-1 text-sm text-gray-600">
+						{activeFilterCount ? 'Попробуйте убрать часть фильтров.' : 'В каталоге пока нет товаров.'}
+					</p>
+					{#if activeFilterCount}
+						<a
+							href="/catalog"
+							class="mt-5 inline-flex h-11 items-center rounded-xl bg-ink px-5 text-sm font-medium text-white transition-colors hover:bg-ink-hover"
+						>
+							Сбросить фильтры
+						</a>
 					{/if}
 				</div>
 			{:else}

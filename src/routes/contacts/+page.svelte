@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { siteOrigin } from '$lib/utils/site';
 	import { page } from '$app/state';
 	import { storeSettings } from '$lib/stores/store';
 	import { formatOpeningHours } from '$lib/utils/opening-hours';
@@ -13,7 +14,7 @@
 
 	let { data }: Props = $props();
 
-	const siteUrl = $derived(page.url.origin);
+	const siteUrl = $derived(siteOrigin(page.url));
 	const siteName = $derived($storeSettings?.name || 'Интернет-магазин');
 
 	const typeLabels: Record<Location['type'], string> = {

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { siteOrigin } from '$lib/utils/site';
 	import { page } from '$app/state';
 	import type { Product, Category } from '$lib/types/product';
 	import type { Review } from '$lib/types/common';
@@ -11,7 +12,7 @@
 	import CartControl from '$lib/components/product/CartControl.svelte';
 	import StockStatus from '$lib/components/product/StockStatus.svelte';
 	import Breadcrumbs from '$lib/components/catalog/Breadcrumbs.svelte';
-	import { generateProductJsonLd, generateBreadcrumbJsonLd, jsonLdScript } from '$lib/utils/seo';
+	import { generateProductJsonLd, generateBreadcrumbJsonLd, jsonLdScript, metaDescription } from '$lib/utils/seo';
 	import Heart from '@lucide/svelte/icons/heart';
 	import Star from '@lucide/svelte/icons/star';
 	import Store from '@lucide/svelte/icons/store';
@@ -112,10 +113,11 @@
 		return () => observer.disconnect();
 	});
 
-	const siteUrl = $derived(page.url.origin);
+	const siteUrl = $derived(siteOrigin(page.url));
 	const siteName = $derived($storeSettings?.name || 'Магазин');
 	const productUrl = $derived(`${siteUrl}/products/${product.slug}`);
-	const productDescription = $derived(product.description || product.name);
+	// В выдаче видно ~160 символов: длинное описание обрезаем по слову, а не отдаём целиком
+	const productDescription = $derived(metaDescription(product.description || product.name));
 	const mainImage = $derived(images[0]?.url);
 
 	const breadcrumbs = $derived([
@@ -148,8 +150,7 @@
 	<link rel="canonical" href={productUrl} />
 
 	<!-- eslint-disable-next-line svelte/no-at-html-tags -- jsonLdScript экранирует <, > и &, закрыть тег script нельзя -->
-
-	{@html jsonLdScript(generateProductJsonLd(product, $storeSettings, siteUrl))}
+	{@html jsonLdScript(generateProductJsonLd(product, $storeSettings, siteUrl, { rating: data.rating, reviews: data.reviews }))}
 	<!-- eslint-disable-next-line svelte/no-at-html-tags -- jsonLdScript экранирует <, > и &, закрыть тег script нельзя -->
 	{@html jsonLdScript(generateBreadcrumbJsonLd(breadcrumbs, siteUrl))}
 </svelte:head>

@@ -39,10 +39,16 @@ export default {
 cp .env.example .env
 ```
 
-И настройте `PUBLIC_API_URL` для вашего бэкенда:
+Переменные читаются при запуске сервера, а не при сборке: один и тот же билд можно запускать с разными адресами.
+
+| Переменная | Зачем | Пример |
+|---|---|---|
+| `PUBLIC_API_URL` | Адрес API бэкенда | `http://localhost:3380/api` |
+| `PUBLIC_SITE_URL` | Публичный адрес витрины без слэша на конце. От него строятся canonical, Open Graph, JSON-LD, `sitemap.xml` и `robots.txt`. **В продакшене обязателен:** без него адреса берутся из заголовка `Host`, а за nginx это внутренний `127.0.0.1:3000` | `https://shop.example.ru` |
 
 ```env
 PUBLIC_API_URL=http://localhost:3380/api
+PUBLIC_SITE_URL=https://shop.example.ru
 ```
 
 ## Разработка

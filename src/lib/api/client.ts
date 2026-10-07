@@ -9,6 +9,8 @@ interface RequestOptions extends RequestInit {
 	useSessionId?: boolean;
 }
 
+const SERVER_TIMEOUT_MS = 8000;
+
 /** Есть ли сохранённый вход. Только в браузере: на сервере токенов нет */
 export function hasAccessToken(): boolean {
 	return typeof window !== 'undefined' && !!localStorage.getItem(TOKEN_STORAGE_KEY);
@@ -142,6 +144,12 @@ class ApiClient {
 					requestHeaders['X-Session-Id'] = sessionId;
 				}
 			}
+		}
+
+		// На сервере SvelteKit зависший бэкенд не должен вешать отрисовку страницы:
+		// через 8 секунд запрос обрывается, и страница отвечает 503
+		if (typeof window === 'undefined' && !restOptions.signal) {
+			restOptions.signal = AbortSignal.timeout(SERVER_TIMEOUT_MS);
 		}
 
 		// Выполняем запрос

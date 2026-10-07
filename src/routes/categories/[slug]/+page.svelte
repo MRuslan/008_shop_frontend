@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { siteOrigin } from '$lib/utils/site';
 	import { page, navigating } from '$app/state';
 	import ProductList from '$lib/components/product/ProductList.svelte';
 	import Breadcrumbs from '$lib/components/catalog/Breadcrumbs.svelte';
@@ -53,9 +54,16 @@
 		return [];
 	});
 
-	const siteUrl = $derived(page.url.origin);
+	const siteUrl = $derived(siteOrigin(page.url));
 	const siteName = $derived($storeSettings?.name || 'Интернет-магазин');
 	const categoryUrl = $derived(`${siteUrl}/categories/${data.category.slug}`);
+	// У каждой страницы списка свой canonical: товары со второй страницы тоже должны находиться.
+	// Сортировка — не новая страница, её в canonical нет
+	const canonicalUrl = $derived(data.page > 1 ? `${categoryUrl}?page=${data.page}` : categoryUrl);
+	const pageSuffix = $derived(data.page > 1 ? ` — страница ${data.page}` : '');
+	const ogImage = $derived(
+		data.products.find((product) => product.images?.[0]?.url)?.images?.[0]?.url ?? $storeSettings?.logoUrl ?? null
+	);
 	const description = $derived(`${data.category.name} в магазине ${siteName}: ${totalLabel}. Цены и наличие на сегодня.`);
 	const breadcrumbs = $derived([
 		{ name: 'Главная', url: '/' },
@@ -80,24 +88,23 @@
 </script>
 
 <svelte:head>
-	<title>{data.category.name} | {siteName}</title>
+	<title>{data.category.name}{pageSuffix} | {siteName}</title>
 	<meta name="description" content={description} />
 	<meta property="og:title" content={`${data.category.name} | ${siteName}`} />
 	<meta property="og:description" content={description} />
 	<meta property="og:type" content="website" />
-	<meta property="og:url" content={categoryUrl} />
-	{#if $storeSettings?.logoUrl}
-		<meta property="og:image" content={$storeSettings.logoUrl} />
+	<meta property="og:url" content={canonicalUrl} />
+	{#if ogImage}
+		<meta property="og:image" content={ogImage} />
 	{/if}
 	<meta property="og:site_name" content={siteName} />
-	<meta name="twitter:card" content="summary" />
+	<meta name="twitter:card" content={ogImage ? 'summary_large_image' : 'summary'} />
 	<meta name="twitter:title" content={`${data.category.name} | ${siteName}`} />
 	<meta name="twitter:description" content={description} />
-	<link rel="canonical" href={categoryUrl} />
+	<link rel="canonical" href={canonicalUrl} />
 
 	<!-- eslint-disable-next-line svelte/no-at-html-tags -- jsonLdScript экранирует <, > и &, закрыть тег script нельзя -->
-
-	{@html jsonLdScript(generateCollectionJsonLd(data.products, data.category, $storeSettings, siteUrl))}
+	{@html jsonLdScript(generateCollectionJsonLd(data.products, data.category, siteUrl, canonicalUrl, (data.page - 1) * data.limit))}
 	<!-- eslint-disable-next-line svelte/no-at-html-tags -- jsonLdScript экранирует <, > и &, закрыть тег script нельзя -->
 	{@html jsonLdScript(generateBreadcrumbJsonLd(breadcrumbs, siteUrl))}
 </svelte:head>

@@ -16,9 +16,15 @@ export function isApiError(err: unknown): err is ApiError {
 	);
 }
 
-/** fetch бросает TypeError и в браузере («Failed to fetch»), и в Node («fetch failed») */
+/**
+ * fetch бросает TypeError и в браузере («Failed to fetch»), и в Node («fetch failed»).
+ * Оборванный по таймауту запрос — TimeoutError, отменённый — AbortError
+ */
 export function isNetworkError(err: unknown): boolean {
-	return err instanceof TypeError || (err instanceof Error && err.name === 'AbortError');
+	return (
+		err instanceof TypeError ||
+		(err instanceof Error && (err.name === 'AbortError' || err.name === 'TimeoutError'))
+	);
 }
 
 const SESSION_EXPIRED_MESSAGE = 'Сессия истекла. Войдите снова.';
@@ -201,6 +207,10 @@ export function throwHttpError(err: unknown, options: HttpErrorOptions = {}): ne
 		}
 		if (err.statusCode === 403) error(403, 'У вас нет доступа к этой странице');
 		if (err.statusCode === 401) error(401, 'Войдите, чтобы открыть эту страницу');
+		// Бэкенд упал или прокси не достучался (502, 504): это временно, поисковику — «зайди позже»
+		if (err.statusCode >= 500) {
+			error(503, 'Сервис временно недоступен. Попробуйте обновить страницу через минуту.');
+		}
 	}
 
 	if (isNetworkError(err)) {

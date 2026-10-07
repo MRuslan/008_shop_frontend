@@ -1,9 +1,10 @@
 <script lang="ts">
+	import { siteOrigin } from '$lib/utils/site';
 	import { page } from '$app/state';
 	import { storeSettings } from '$lib/stores/store';
-	import { generateOrganizationJsonLd, jsonLdScript } from '$lib/utils/seo';
+	import { generateOrganizationJsonLd, generateWebSiteJsonLd, jsonLdScript } from '$lib/utils/seo';
 
-	const siteUrl = $derived(page.url.origin);
+	const siteUrl = $derived(siteOrigin(page.url));
 	const siteName = $derived($storeSettings?.name || 'Интернет-магазин');
 	const description = $derived(
 		$storeSettings?.name
@@ -23,7 +24,7 @@
 		<meta property="og:image" content={$storeSettings.logoUrl} />
 	{/if}
 	<meta property="og:site_name" content={siteName} />
-	<meta name="twitter:card" content="summary_large_image" />
+	<meta name="twitter:card" content={$storeSettings?.logoUrl ? 'summary_large_image' : 'summary'} />
 	<meta name="twitter:title" content={siteName} />
 	<meta name="twitter:description" content={description} />
 	{#if $storeSettings?.logoUrl}
@@ -31,6 +32,9 @@
 	{/if}
 	<link rel="canonical" href="{siteUrl}/" />
 
+	<!-- Название сайта в выдаче и строка поиска по сайту прямо в результатах -->
+	<!-- eslint-disable-next-line svelte/no-at-html-tags -- jsonLdScript экранирует <, > и &, закрыть тег script нельзя -->
+	{@html jsonLdScript(generateWebSiteJsonLd(siteName, siteUrl))}
 	{#if $storeSettings}
 		<!-- eslint-disable-next-line svelte/no-at-html-tags -- jsonLdScript экранирует <, > и &, закрыть тег script нельзя -->
 		{@html jsonLdScript(generateOrganizationJsonLd($storeSettings, siteUrl))}

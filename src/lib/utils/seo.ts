@@ -1,9 +1,9 @@
 // Утилиты для SEO (JSON-LD).
-// Абсолютные URL строятся от origin, который страницы берут из page.url: так сервер и клиент
-// отдают одинаковую разметку, а краулер получает полные адреса.
+// Абсолютные URL строятся от адреса сайта (siteOrigin: PUBLIC_SITE_URL, в разработке origin запроса),
+// так сервер и клиент отдают одинаковую разметку, а краулер получает полные адреса.
 
 import type { Product, Category } from '$lib/types/product';
-import type { Store } from '$lib/types/common';
+import type { Store, Review } from '$lib/types/common';
 
 /**
  * Готовый <script type="application/ld+json"> для {@html}. JSON.stringify не экранирует
@@ -27,16 +27,28 @@ function absoluteUrl(origin: string, path: string): string {
 	return `${origin.replace(/\/$/, '')}${path}`;
 }
 
+// Атрибуты, из которых берём бренд товара для разметки
+const BRAND_ATTRIBUTES = ['бренд', 'производитель', 'марка', 'brand'];
+
 /**
- * JSON-LD для товара
+ * JSON-LD для товара. Рейтинг и отзывы добавляем, только когда они реально есть:
+ * за выдуманные оценки поисковики снимают расширенный сниппет
  */
 export function generateProductJsonLd(
 	product: Product,
 	store?: Store | null,
-	origin = ''
+	origin = '',
+	extras: {
+		rating?: { average: number; count: number } | null;
+		reviews?: Review[] | null;
+	} = {}
 ): object {
 	const images = product.images?.map((img) => img.url) || [];
 	const currency = store?.currency || DEFAULT_CURRENCY;
+	const brand = product.attributes?.find((attribute) =>
+		BRAND_ATTRIBUTES.includes(attribute.name.trim().toLowerCase())
+	)?.value;
+	const reviews = (extras.reviews ?? []).filter((review) => review.isVisible).slice(0, 5);
 
 	return {
 		'@context': 'https://schema.org/',
@@ -45,6 +57,8 @@ export function generateProductJsonLd(
 		description: product.description || product.name,
 		image: images,
 		sku: product.sku || undefined,
+		brand: brand ? { '@type': 'Brand', name: brand } : undefined,
+		category: product.category?.name || undefined,
 		offers: {
 			'@type': 'Offer',
 			price: product.price,
@@ -52,13 +66,27 @@ export function generateProductJsonLd(
 			availability:
 				product.quantity > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
 			url: absoluteUrl(origin, `/products/${product.slug}`),
-			priceValidUntil: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000)
-				.toISOString()
-				.split('T')[0]
+			itemCondition: 'https://schema.org/NewCondition'
 		},
-		...(product.category && {
-			category: product.category.name
-		})
+		aggregateRating:
+			extras.rating && extras.rating.count > 0
+				? {
+						'@type': 'AggregateRating',
+						ratingValue: Number(extras.rating.average.toFixed(1)),
+						reviewCount: extras.rating.count,
+						bestRating: 5,
+						worstRating: 1
+					}
+				: undefined,
+		review: reviews.length
+			? reviews.map((review) => ({
+					'@type': 'Review',
+					reviewRating: { '@type': 'Rating', ratingValue: review.rating, bestRating: 5, worstRating: 1 },
+					author: { '@type': 'Person', name: review.user?.username || 'Покупатель' },
+					datePublished: review.createAt.split('T')[0],
+					reviewBody: review.text || undefined
+				}))
+			: undefined
 	};
 }
 
@@ -70,7 +98,9 @@ export function generateOrganizationJsonLd(store: Store, origin = ''): object {
 		'@context': 'https://schema.org/',
 		'@type': 'Organization',
 		name: store.name,
-		url: origin || undefined,
+		legalName: store.legalName || undefined,
+		taxID: store.inn || undefined,
+		url: origin ? `${origin}/` : undefined,
 		logo: store.logoUrl || undefined,
 		contactPoint: {
 			'@type': 'ContactPoint',
@@ -82,9 +112,26 @@ export function generateOrganizationJsonLd(store: Store, origin = ''): object {
 			? {
 					'@type': 'PostalAddress',
 					addressCountry: 'RU',
-					addressLocality: store.legalAddress
+					streetAddress: store.legalAddress
 				}
 			: undefined
+	};
+}
+
+/**
+ * JSON-LD для сайта: название в выдаче и строка поиска по сайту прямо в результатах
+ */
+export function generateWebSiteJsonLd(name: string, origin: string): object {
+	return {
+		'@context': 'https://schema.org/',
+		'@type': 'WebSite',
+		name,
+		url: `${origin}/`,
+		potentialAction: {
+			'@type': 'SearchAction',
+			target: { '@type': 'EntryPoint', urlTemplate: `${origin}/search?q={search_term_string}` },
+			'query-input': 'required name=search_term_string'
+		}
 	};
 }
 
@@ -108,46 +155,43 @@ export function generateBreadcrumbJsonLd(
 }
 
 /**
- * JSON-LD для коллекции товаров (каталог или категория)
+ * JSON-LD для коллекции товаров (каталог или категория). Только ссылки на товары:
+ * полная разметка Product с ценами нужна на странице товара, в списках Google её не учитывает
+ * и может счесть ошибкой
  */
 export function generateCollectionJsonLd(
 	products: Product[],
 	category?: Category | null,
-	store?: Store | null,
-	origin = ''
+	origin = '',
+	canonicalUrl?: string,
+	/** Позиция первого товара на странице: на второй странице нумерация продолжается */
+	offset = 0
 ): object {
-	const currency = store?.currency || DEFAULT_CURRENCY;
-
 	return {
 		'@context': 'https://schema.org/',
 		'@type': 'CollectionPage',
 		name: category ? category.name : 'Каталог товаров',
-		description: category
-			? `Товары категории ${category.name}`
-			: 'Каталог товаров нашего магазина',
-		url: absoluteUrl(origin, category ? `/categories/${category.slug}` : '/catalog'),
+		url: canonicalUrl ?? absoluteUrl(origin, category ? `/categories/${category.slug}` : '/catalog'),
 		mainEntity: {
 			'@type': 'ItemList',
 			numberOfItems: products.length,
 			itemListElement: products.map((product, index) => ({
 				'@type': 'ListItem',
-				position: index + 1,
-				item: {
-					'@type': 'Product',
-					name: product.name,
-					url: absoluteUrl(origin, `/products/${product.slug}`),
-					image: product.images?.[0]?.url || undefined,
-					offers: {
-						'@type': 'Offer',
-						price: product.price,
-						priceCurrency: currency,
-						availability:
-							product.quantity > 0
-								? 'https://schema.org/InStock'
-								: 'https://schema.org/OutOfStock'
-					}
-				}
+				position: offset + index + 1,
+				url: absoluteUrl(origin, `/products/${product.slug}`),
+				name: product.name
 			}))
 		}
 	};
+}
+
+/**
+ * Описание для meta description: без переносов, не длиннее ~160 символов, обрезка по слову
+ */
+export function metaDescription(text: string, max = 160): string {
+	const flat = text.replace(/\s+/g, ' ').trim();
+	if (flat.length <= max) return flat;
+	const cut = flat.slice(0, max - 1);
+	const lastSpace = cut.lastIndexOf(' ');
+	return `${(lastSpace > max * 0.6 ? cut.slice(0, lastSpace) : cut).replace(/[\s,.;:–—-]+$/, '')}…`;
 }

@@ -1,8 +1,9 @@
 // Server-side загрузка данных для каталога
 
+import { error } from '@sveltejs/kit';
 import { productsApi } from '$lib/api/products';
 import { categoriesApi } from '$lib/api/categories';
-import { getErrorMessage } from '$lib/utils/errors';
+import { throwHttpError } from '$lib/utils/errors';
 import type { ProductFilters } from '$lib/types/product';
 import { parseSort } from '$lib/utils/sort';
 
@@ -43,32 +44,24 @@ export async function load({ url }) {
 		sortOrder
 	};
 
-	try {
-		const [productsResponse, categories] = await Promise.all([
-			productsApi.getProducts(filters),
-			categoriesApi.getCategories({ tree: true, isActive: true })
-		]);
+	// Сбой API — честный 503 (страница ошибки с повтором), а не пустой каталог с кодом 200:
+	// иначе поисковик проиндексирует «каталог временно недоступен»
+	const [productsResponse, categories] = await Promise.all([
+		productsApi.getProducts(filters),
+		categoriesApi.getCategories({ tree: true, isActive: true })
+	]).catch((err) => throwHttpError(err));
 
-		return {
-			products: productsResponse.data,
-			total: productsResponse.total,
-			page: productsResponse.page,
-			limit: productsResponse.limit,
-			categories,
-			filters,
-			loadError: null as string | null
-		};
-	} catch (err) {
-		console.error('Failed to load catalog:', err);
-		// Не выдаём пустую страницу «Товары не найдены» за успех: страница покажет ошибку и кнопку повтора
-		return {
-			products: [],
-			total: 0,
-			page,
-			limit,
-			categories: [],
-			filters,
-			loadError: getErrorMessage(err, 'Каталог временно недоступен. Попробуйте обновить страницу.')
-		};
+	// Страницы за пределами списка не существуют: 404, а не пустая страница
+	if (page > 1 && page > Math.ceil(productsResponse.total / productsResponse.limit)) {
+		error(404, 'Такой страницы в каталоге нет');
 	}
+
+	return {
+		products: productsResponse.data,
+		total: productsResponse.total,
+		page: productsResponse.page,
+		limit: productsResponse.limit,
+		categories,
+		filters
+	};
 }

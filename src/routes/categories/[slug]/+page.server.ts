@@ -2,6 +2,7 @@
 
 import { categoriesApi } from '$lib/api/categories';
 import { productsApi } from '$lib/api/products';
+import { error } from '@sveltejs/kit';
 import { throwHttpError } from '$lib/utils/errors';
 import type { ProductFilters } from '$lib/types/product';
 import { parseSort } from '$lib/utils/sort';
@@ -40,6 +41,11 @@ export async function load({ params, url }) {
 			? categoriesApi.getCategoryById(category.parentId).catch(() => null)
 			: Promise.resolve(null)
 	]);
+
+	// Страницы за пределами списка не существуют: 404, а не пустая страница
+	if (page > 1 && page > Math.ceil(productsResponse.total / productsResponse.limit)) {
+		error(404, 'Такой страницы в разделе нет');
+	}
 
 	return {
 		category,

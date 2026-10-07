@@ -1,80 +1,86 @@
-// Генерация sitemap.xml
+// Генерация sitemap.xml: главная, каталог, контакты, все разделы и все активные товары
 
 import { productsApi } from '$lib/api/products';
 import { categoriesApi } from '$lib/api/categories';
+import { siteOrigin } from '$lib/utils/site';
+import type { Category } from '$lib/types/product';
 import type { RequestHandler } from '@sveltejs/kit';
 
+interface Entry {
+	path: string;
+	lastmod?: string;
+}
+
+// Защита от бесконечного цикла, если бэкенд вдруг начнёт врать о total: до 50 000 товаров
+const MAX_PRODUCT_PAGES = 500;
+
+function escapeXml(value: string): string {
+	return value
+		.replace(/&/g, '&amp;')
+		.replace(/</g, '&lt;')
+		.replace(/>/g, '&gt;')
+		.replace(/"/g, '&quot;')
+		.replace(/'/g, '&apos;');
+}
+
+function day(date: string | undefined): string | undefined {
+	return date ? date.split('T')[0] : undefined;
+}
+
+// Дерево разделов любой глубины в плоский список
+function flatten(categories: Category[]): Category[] {
+	return categories.flatMap((category) => [category, ...flatten(category.children ?? [])]);
+}
+
 export const GET: RequestHandler = async ({ url }) => {
-	const baseUrl = url.origin;
-	const urls: string[] = [];
+	const origin = siteOrigin(url);
 
 	try {
-		// Главная страница
-		urls.push(baseUrl);
-		urls.push(`${baseUrl}/catalog`);
+		// Главная со слэшем — так же, как в её canonical
+		const entries: Entry[] = [{ path: '/' }, { path: '/catalog' }, { path: '/contacts' }];
 
-		// Получаем все категории
 		const categories = await categoriesApi.getCategories({ tree: true, isActive: true });
-		
-		for (const category of categories) {
-			urls.push(`${baseUrl}/categories/${category.slug}`);
-			
-			// Добавляем дочерние категории
-			if (category.children) {
-				for (const child of category.children) {
-					if (child.isActive) {
-						urls.push(`${baseUrl}/categories/${child.slug}`);
-					}
-				}
-			}
+		for (const category of flatten(categories)) {
+			if (category.isActive === false) continue;
+			entries.push({ path: `/categories/${category.slug}`, lastmod: day(category.updateAt) });
 		}
 
-		// Получаем все активные товары (постранично)
-		let page = 1;
-		const limit = 100;
-		let hasMore = true;
-
-		while (hasMore) {
-			try {
-				const response = await productsApi.getProducts({
-					page,
-					limit,
-					isActive: true
-				});
-
-				for (const product of response.data) {
-					urls.push(`${baseUrl}/products/${product.slug}`);
-				}
-
-				hasMore = response.data.length === limit;
-				page++;
-			} catch (error) {
-				console.error('Error fetching products for sitemap:', error);
-				hasMore = false;
+		let collected = 0;
+		for (let page = 1; page <= MAX_PRODUCT_PAGES; page++) {
+			const response = await productsApi.getProducts({ page, limit: 100, isActive: true });
+			for (const product of response.data) {
+				entries.push({ path: `/products/${product.slug}`, lastmod: day(product.updateAt) });
 			}
+			collected += response.data.length;
+			if (response.data.length === 0 || collected >= response.total) break;
 		}
-	} catch (error) {
-		console.error('Error generating sitemap:', error);
-	}
 
-	// Генерируем XML
-	const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
+		const body = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${urls
+${entries
 	.map(
-		(url) => `  <url>
-    <loc>${url}</loc>
-    <changefreq>weekly</changefreq>
-    <priority>${url === baseUrl ? '1.0' : url.includes('/products/') ? '0.8' : '0.6'}</priority>
-  </url>`
+		(entry) =>
+			`  <url>\n    <loc>${escapeXml(origin + encodeURI(entry.path))}</loc>${
+				entry.lastmod ? `\n    <lastmod>${entry.lastmod}</lastmod>` : ''
+			}\n  </url>`
 	)
 	.join('\n')}
-</urlset>`;
+</urlset>
+`;
 
-	return new Response(sitemap, {
-		headers: {
-			'Content-Type': 'application/xml; charset=utf-8',
-			'Cache-Control': 'public, max-age=3600' // Кэшируем на 1 час
-		}
-	});
+		return new Response(body, {
+			headers: {
+				'Content-Type': 'application/xml; charset=utf-8',
+				'Cache-Control': 'public, max-age=3600'
+			}
+		});
+	} catch (error) {
+		// Неполный sitemap с кодом 200 поисковик принял бы за правду и выкинул бы товары из индекса.
+		// 503 значит «зайди позже», прежняя версия у него останется
+		console.error('Error generating sitemap:', error);
+		return new Response('Sitemap временно недоступен', {
+			status: 503,
+			headers: { 'Content-Type': 'text/plain; charset=utf-8', 'Retry-After': '600', 'Cache-Control': 'no-store' }
+		});
+	}
 };
