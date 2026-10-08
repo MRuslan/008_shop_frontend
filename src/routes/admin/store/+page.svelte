@@ -302,7 +302,7 @@
 		</div>
 
 		<!-- Получение заказа -->
-		<fieldset class="m-0 min-w-0 border-0 p-0">
+		<fieldset class="min-w-0 border-0 p-0">
 			<legend class="text-title text-ink mb-4">Получение заказа</legend>
 			<div class="space-y-4">
 				<label class="flex min-h-11 cursor-pointer items-center gap-2.5">
@@ -364,7 +364,7 @@
 		</fieldset>
 
 		<!-- Ссылки подвала -->
-		<fieldset class="m-0 min-w-0 border-0 p-0">
+		<fieldset class="min-w-0 border-0 p-0">
 			<legend class="text-title text-ink mb-1">Ссылки в подвале</legend>
 			<p class="mb-4 text-body-sm text-gray-500">Адрес страницы или путь на сайте. Пустое поле убирает ссылку.</p>
 			<div class="grid grid-cols-1 gap-4 md:grid-cols-3">

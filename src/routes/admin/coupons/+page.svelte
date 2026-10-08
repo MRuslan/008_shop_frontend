@@ -284,7 +284,7 @@
 					</div>
 				</div>
 
-				<fieldset class="m-0 min-w-0 border-0 p-0">
+				<fieldset class="min-w-0 border-0 p-0">
 					<legend class="mb-3 text-title-sm text-ink">Ограничения <span class="font-normal text-gray-500">(пустое поле — без ограничения)</span></legend>
 					<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
 						<div>

@@ -396,7 +396,7 @@
 			<!-- Основная форма -->
 			<div class="space-y-3 lg:col-span-2 lg:space-y-6">
 				<!-- Тип доставки -->
-				<fieldset class="m-0 min-w-0 border-0 rounded-2xl bg-surface p-5 md:p-6" aria-labelledby="checkout-delivery-type">
+				<fieldset class="min-w-0 border-0 rounded-2xl bg-surface p-5 md:p-6" aria-labelledby="checkout-delivery-type">
 					<h2 id="checkout-delivery-type" class="text-title text-ink mb-4">Способ получения</h2>
 					<div class="space-y-3">
 						<label

@@ -45,7 +45,7 @@
 	}
 </script>
 
-<fieldset class="m-0 flex min-w-0 flex-col gap-3 border-0 p-0">
+<fieldset class="flex min-w-0 flex-col gap-3 border-0 p-0">
 	<legend class="sr-only">{legend}</legend>
 
 	{#each addresses as address (address.id)}

@@ -300,7 +300,7 @@
 		</div>
 
 		<!-- Остатки по точкам -->
-		<fieldset class="m-0 min-w-0 border-0 p-0">
+		<fieldset class="min-w-0 border-0 p-0">
 			<legend class="mb-3 text-title-sm text-ink">
 				Остатки по точкам <span class="font-normal text-gray-500">· всего {stockTotal}&nbsp;шт.</span>
 			</legend>
@@ -341,7 +341,7 @@
 		</fieldset>
 
 		<!-- Характеристики -->
-		<fieldset class="m-0 min-w-0 border-0 p-0">
+		<fieldset class="min-w-0 border-0 p-0">
 			<legend class="mb-3 text-title-sm text-ink">Характеристики</legend>
 			<div class="space-y-2">
 				{#each attributes as attribute, index (index)}
@@ -391,7 +391,7 @@
 		</fieldset>
 
 		<!-- Изображения -->
-		<fieldset class="m-0 min-w-0 border-0 p-0">
+		<fieldset class="min-w-0 border-0 p-0">
 			<legend class="mb-3 text-title-sm text-ink">Изображения</legend>
 			<div class="space-y-2">
 				{#each images as image, index (image.url)}
