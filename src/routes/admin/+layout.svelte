@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/state';
 	import { authStore, hasRole, isAdminOrManager } from '$lib/stores/auth';
+	import { unreadNewOrders } from '$lib/stores/notifications';
 	import type { Role } from '$lib/types/auth';
 	import type { Component } from 'svelte';
 	import Package from '@lucide/svelte/icons/package';
@@ -57,7 +58,13 @@
 									aria-current={isCurrent(item.href) ? 'page' : undefined}
 								>
 									<item.icon class="size-4.5 shrink-0" aria-hidden="true" />
-									<span>{item.label}</span>
+									<span class="flex-1">{item.label}</span>
+									<!-- Новые заказы, о которых пришли уведомления: видно из любого раздела админки -->
+									{#if item.href === '/admin/orders' && $unreadNewOrders > 0}
+										<span class="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-ink px-1.5 text-tab leading-none font-semibold text-white tabular-nums">
+											{$unreadNewOrders}<span class="sr-only"> новых</span>
+										</span>
+									{/if}
 								</a>
 							{/if}
 						{/each}

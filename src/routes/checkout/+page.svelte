@@ -14,6 +14,7 @@
 	import { deliveryTerms as describeDelivery } from '$lib/utils/delivery';
 	import { storeSettings } from '$lib/stores/store';
 	import { toast } from '$lib/stores/toast';
+	import { notifications } from '$lib/stores/notifications';
 	import { getErrorMessage, humanizeMessage, isApiError } from '$lib/utils/errors';
 	import AddressList from '$lib/components/checkout/AddressList.svelte';
 	import AddressForm from '$lib/components/checkout/AddressForm.svelte';
@@ -321,7 +322,8 @@
 
 			// Бэкенд уже очистил корзину; перечитываем её, а не обнуляем: null страница корзины сочла бы ошибкой
 			void cartStore.reload();
-			toast.success(`Заказ №${order.id} оформлен`);
+			// Подтверждение с суммой придёт уведомлением «Заказ №N оформлен»; свой тост — только если их нет
+			if (!$notifications.available) toast.success(`Заказ №${order.id} оформлен`);
 			await goto(`/account/orders/${order.id}`);
 		} catch (err) {
 			submitError = couponToPromo(getErrorMessage(err, 'Не удалось оформить заказ. Попробуйте ещё раз.'));

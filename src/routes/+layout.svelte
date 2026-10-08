@@ -8,6 +8,7 @@
 	import Footer from '$lib/components/layout/Footer.svelte';
 	import TabBar from '$lib/components/layout/TabBar.svelte';
 	import NavigationProgress from '$lib/components/layout/NavigationProgress.svelte';
+	import ConnectionBanner from '$lib/components/layout/ConnectionBanner.svelte';
 	import Toaster from '$lib/components/ui/Toaster.svelte';
 	import ConfirmDialog from '$lib/components/ui/ConfirmDialog.svelte';
 	import { storeSettings } from '$lib/stores/store';
@@ -93,6 +94,7 @@
 		? 'pb-[calc(var(--tabbar-height)+env(safe-area-inset-bottom))] md:pb-0'
 		: ''}"
 >
+	<ConnectionBanner />
 	<Header />
 	<main id="main" tabindex="-1" class="flex-grow">
 		{@render children()}

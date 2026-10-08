@@ -5,6 +5,8 @@
 	import { cartItemsCount } from '$lib/stores/cart';
 	import { storeSettings } from '$lib/stores/store';
 	import AuthModal from '$lib/components/auth/AuthModal.svelte';
+	import NotificationBell from '$lib/components/notifications/NotificationBell.svelte';
+	import { notifications } from '$lib/stores/notifications';
 	import CartBadge from './CartBadge.svelte';
 	import LayoutGrid from '@lucide/svelte/icons/layout-grid';
 	import Search from '@lucide/svelte/icons/search';
@@ -12,6 +14,7 @@
 	import Heart from '@lucide/svelte/icons/heart';
 	import ShoppingCart from '@lucide/svelte/icons/shopping-cart';
 	import Phone from '@lucide/svelte/icons/phone';
+	import Bell from '@lucide/svelte/icons/bell';
 
 	let showAuthModal = $state(false);
 	let authMode: 'login' | 'register' | 'forgot' = $state('login');
@@ -163,8 +166,26 @@
 				{@render searchForm('header-search')}
 			</div>
 
+			<!-- Телефон: уведомления в шапке, нижние вкладки уже заняты; ведут на полный список -->
+			{#if $authStore.isAuthenticated}
+				<a
+					href="/account/notifications"
+					class="relative ml-auto inline-flex size-11 items-center justify-center rounded-xl text-gray-600 hover:text-ink md:hidden"
+					aria-label={$notifications.unread > 0 ? `Уведомления, непрочитанных: ${$notifications.unread}` : 'Уведомления'}
+					aria-current={isActive('/account/notifications') ? 'page' : undefined}
+				>
+					<Bell class="size-5.5" aria-hidden="true" />
+					{#if $notifications.unread > 0}
+						<span class="pointer-events-none absolute top-0.5 right-0.5 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-ink px-1 text-tab leading-none font-semibold text-white tabular-nums ring-2 ring-surface" aria-hidden="true">
+							{$notifications.unread > 99 ? '99+' : $notifications.unread}
+						</span>
+					{/if}
+				</a>
+			{/if}
+
 			<nav class="ml-auto hidden items-center gap-1 md:flex" aria-label="Покупки">
 				{#if $authStore.isAuthenticated}
+					<NotificationBell buttonClass={actionClass} />
 					<a href="/account" class={actionClass} aria-current={isActive('/account') ? 'page' : undefined}>
 						<User class="size-5.5" aria-hidden="true" />
 						<span class="max-w-20 truncate">{$authStore.user?.username ?? 'Профиль'}</span>

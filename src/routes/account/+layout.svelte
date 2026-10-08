@@ -6,6 +6,8 @@
 	import Package from '@lucide/svelte/icons/package';
 	import MapPin from '@lucide/svelte/icons/map-pin';
 	import Heart from '@lucide/svelte/icons/heart';
+	import Bell from '@lucide/svelte/icons/bell';
+	import { notifications } from '$lib/stores/notifications';
 	import LayoutDashboard from '@lucide/svelte/icons/layout-dashboard';
 	import LogOut from '@lucide/svelte/icons/log-out';
 	import CategoryChips from '$lib/components/catalog/CategoryChips.svelte';
@@ -18,7 +20,8 @@
 		{ href: '/account', label: 'Профиль', icon: User },
 		{ href: '/account/orders', label: 'Мои заказы', icon: Package },
 		{ href: '/account/addresses', label: 'Адреса', icon: MapPin },
-		{ href: '/account/wishlist', label: 'Избранное', icon: Heart }
+		{ href: '/account/wishlist', label: 'Избранное', icon: Heart },
+		{ href: '/account/notifications', label: 'Уведомления', icon: Bell }
 	];
 
 	// Данные перечитываются вместе с переходом: шапка и корзина станут гостевыми уже на главной
@@ -63,7 +66,12 @@
 									aria-current={isCurrent(item.href) ? 'page' : undefined}
 								>
 									<item.icon class="size-4.5 shrink-0" aria-hidden="true" />
-									<span>{item.label}</span>
+									<span class="flex-1">{item.label}</span>
+									{#if item.href === '/account/notifications' && $notifications.unread > 0}
+										<span class="text-label font-semibold text-ink tabular-nums">
+											{$notifications.unread}<span class="sr-only"> непрочитанных</span>
+										</span>
+									{/if}
 								</a>
 							</li>
 						{/each}

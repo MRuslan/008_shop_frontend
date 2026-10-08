@@ -6,6 +6,7 @@
 	import { goto, invalidateAll } from '$app/navigation';
 	import { getErrorMessage } from '$lib/utils/errors';
 	import { toast } from '$lib/stores/toast';
+	import { notifications, unreadNewOrders, isNewShopOrder } from '$lib/stores/notifications';
 	import { confirmDialog } from '$lib/stores/confirm';
 	import {
 		orderStatusLabel,
@@ -18,6 +19,12 @@
 	import type { PageProps } from './$types';
 
 	let { data }: PageProps = $props();
+
+	// Список заказов перед глазами (он сам обновляется при новом заказе): уведомления о новых заказах
+	// прочитаны, значок у раздела в меню гаснет
+	$effect(() => {
+		if ($unreadNewOrders > 0) void notifications.markReadWhere(isNewShopOrder);
+	});
 
 	// Поля фильтра стартуют со значений из адреса и дальше живут своей жизнью до «Применить»
 	let selectedStatus = $derived(data.filters.status);

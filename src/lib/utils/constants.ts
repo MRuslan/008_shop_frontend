@@ -13,4 +13,7 @@ export const ANONYMOUS_HEADER = 'x-anonymous';
 /** Ответ /api: сервер витрины не смог продлить вход и стёр cookie сессии */
 export const SESSION_ENDED_HEADER = 'x-session-ended';
 
+/** Зависимость load списков заказов: перечитываются, когда приходит уведомление о заказе */
+export const ORDERS_DEPENDENCY = 'app:orders';
+
 export const CART_ITEMS_LIMIT = 100; // Максимальное количество товаров в корзине

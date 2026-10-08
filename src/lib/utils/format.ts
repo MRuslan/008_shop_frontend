@@ -81,6 +81,20 @@ export function formatDate(date: string | Date, locale: string = 'ru-RU'): strin
 }
 
 /**
+ * Когда это было, по-человечески: «только что», «12 минут назад», «3 часа назад»; старше суток — дата и время
+ */
+export function formatRelativeTime(date: string | Date, now: Date = new Date()): string {
+	const dateObj = typeof date === 'string' ? new Date(date) : date;
+	const minutes = Math.round((now.getTime() - dateObj.getTime()) / 60_000);
+	if (minutes < 1) return 'только что';
+	const relative = new Intl.RelativeTimeFormat('ru-RU', { numeric: 'auto' });
+	if (minutes < 60) return relative.format(-minutes, 'minute');
+	const hours = Math.round(minutes / 60);
+	if (hours < 24) return relative.format(-hours, 'hour');
+	return formatDateTime(dateObj);
+}
+
+/**
  * Форматирует дату и время
  */
 export function formatDateTime(date: string | Date, locale: string = 'ru-RU'): string {

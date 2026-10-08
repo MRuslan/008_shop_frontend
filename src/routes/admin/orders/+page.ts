@@ -2,11 +2,13 @@
 
 import { ordersApi } from '$lib/api/orders';
 import type { Order } from '$lib/types/order';
+import { ORDERS_DEPENDENCY } from '$lib/utils/constants';
 import type { PageLoad } from './$types';
 
 const PAGE_SIZE = 50;
 
-export const load: PageLoad = async ({ url, fetch }) => {
+export const load: PageLoad = async ({ url, fetch, depends }) => {
+	depends(ORDERS_DEPENDENCY);
 	const filters = {
 		status: url.searchParams.get('status') || '',
 		dateFrom: url.searchParams.get('dateFrom') || '',

@@ -3,9 +3,11 @@
 import { error } from '@sveltejs/kit';
 import { ordersApi } from '$lib/api/orders';
 import { throwHttpError } from '$lib/utils/errors';
+import { ORDERS_DEPENDENCY } from '$lib/utils/constants';
 import type { PageLoad } from './$types';
 
-export const load: PageLoad = async ({ params, fetch }) => {
+export const load: PageLoad = async ({ params, fetch, depends }) => {
+	depends(ORDERS_DEPENDENCY);
 	const id = Number.parseInt(params.id, 10);
 
 	if (!Number.isInteger(id) || id <= 0) {

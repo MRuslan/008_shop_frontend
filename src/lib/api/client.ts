@@ -4,6 +4,7 @@
 
 import { API_BASE_URL, ANONYMOUS_HEADER, SESSION_ENDED_HEADER } from '$lib/utils/constants';
 import type { ApiError, PaginatedResponse } from '$lib/types/api';
+import { connectivity } from '$lib/stores/connectivity';
 
 export interface RequestOptions extends RequestInit {
 	/** Без входа и гостевой корзины: публичные данные одинаковы для всех */
@@ -49,14 +50,29 @@ class ApiClient {
 			restOptions.signal = AbortSignal.timeout(SERVER_TIMEOUT_MS);
 		}
 
-		const response = await (loadFetch ?? fetch)(`${viaProxy ? PROXY_BASE : API_BASE_URL}${endpoint}`, {
-			...restOptions,
-			headers: requestHeaders
-		});
+		let response: Response;
+		try {
+			response = await (loadFetch ?? fetch)(`${viaProxy ? PROXY_BASE : API_BASE_URL}${endpoint}`, {
+				...restOptions,
+				headers: requestHeaders
+			});
+		} catch (error) {
+			// Сеть оборвалась или свой сервер не отвечает. Отмену запроса (AbortError) сбоем не считаем
+			if (!onServer && (error instanceof TypeError || (error as Error)?.name === 'TimeoutError')) {
+				connectivity.reportFailure();
+			}
+			throw error;
+		}
 
-		// Вход закончился на сервере: интерфейс должен перестать считать пользователя вошедшим
-		if (!onServer && response.headers.get(SESSION_ENDED_HEADER)) {
-			window.dispatchEvent(new CustomEvent(AUTH_EXPIRED_EVENT));
+		if (!onServer) {
+			// 502–504: сервер витрины не достучался до бэкенда. Баннер о сбое вместо ошибки на каждом действии
+			if (response.status >= 502 && response.status <= 504) connectivity.reportFailure();
+			else connectivity.reportSuccess();
+
+			// Вход закончился на сервере: интерфейс должен перестать считать пользователя вошедшим
+			if (response.headers.get(SESSION_ENDED_HEADER)) {
+				window.dispatchEvent(new CustomEvent(AUTH_EXPIRED_EVENT));
+			}
 		}
 
 		// Обрабатываем ответ
