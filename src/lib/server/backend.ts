@@ -1,7 +1,7 @@
 // Запросы сервера SvelteKit к бэкенду от имени посетителя: с его входом из cookie и его IP
 
 import type { Cookies, RequestEvent } from '@sveltejs/kit';
-import type { User } from '$lib/types/auth';
+import type { User, Visitor } from '$lib/types/auth';
 import type { Cart } from '$lib/types/cart';
 import { clientHeaders, upstreamUrl } from './upstream';
 import { COOKIE_OPTIONS, renewSession } from './session';
@@ -38,22 +38,30 @@ export async function callBackend(event: RequestEvent, path: string, init: Backe
 	return send(renewed);
 }
 
-/** Пользователь по входу из cookie. Один запрос /auth/me на запрос к витрине, сколько бы load его ни ждали */
-export function currentUser(event: RequestEvent): Promise<User | null> {
-	event.locals.user ??= fetchCurrentUser(event);
-	return event.locals.user;
+/** Посетитель по входу из cookie. Один запрос /auth/me на запрос к витрине, сколько бы load его ни ждали */
+export function currentVisitor(event: RequestEvent): Promise<Visitor> {
+	event.locals.visitor ??= fetchVisitor(event);
+	return event.locals.visitor;
 }
 
-async function fetchCurrentUser(event: RequestEvent): Promise<User | null> {
-	if (!event.locals.accessToken) return null;
+async function fetchVisitor(event: RequestEvent): Promise<Visitor> {
+	if (!event.locals.accessToken) return { signedIn: false, user: null };
+
+	let user: User | null = null;
 	try {
 		const response = await callBackend(event, 'auth/me', { timeoutMs: 5_000 });
-		return response.ok ? await response.json() : null;
+		if (response.ok) {
+			user = await response.json();
+		} else {
+			if (response.status !== 401) console.error(`[auth] /auth/me answered ${response.status}`);
+			await response.body?.cancel();
+		}
 	} catch (error) {
-		// Бэкенд недоступен: страница откроется как для гостя, вход восстановится при следующей загрузке
 		console.error('[auth] /auth/me failed:', error);
-		return null;
 	}
+	// Вход закончился, только если сервер витрины стёр cookie: бэкенд отверг и access-, и refresh-токен.
+	// 429, 5xx и сбой сети — временно: посетитель остаётся вошедшим, а не выглядит вышедшим из аккаунта
+	return { signedIn: !!event.locals.accessToken, user };
 }
 
 // Гостевая корзина живёт на бэкенде по X-Session-Id. Номер — в httpOnly-cookie, как и вход

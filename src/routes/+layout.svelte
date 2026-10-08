@@ -25,7 +25,7 @@
 	untrack(() => {
 		storeSettings.set(data.store ?? null);
 		setDisplayTimeZone(data.store?.timezone);
-		authStore.hydrate(data.user ?? null);
+		authStore.hydrate(data.user ?? null, data.signedIn);
 		cartStore.hydrate(data.cart ?? null);
 	});
 	$effect(() => {
@@ -35,8 +35,10 @@
 	// data корневого layout меняется, только когда он загрузился заново. Обычный переход его не трогает,
 	// поэтому корзину, только что изменённую в браузере, эффект не откатит к снимку с сервера
 	$effect(() => {
-		authStore.hydrate(data.user ?? null);
+		authStore.hydrate(data.user ?? null, data.signedIn);
 		cartStore.hydrate(data.cart ?? null);
+		// Вход есть, а профиль сервер получить не смог (бэкенд перегружен или перезапускается): догружаем
+		if (data.signedIn && !data.user) void authStore.loadProfile();
 	});
 
 	// Админка — рабочий инструмент: нижние вкладки покупателя ей не нужны

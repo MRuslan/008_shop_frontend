@@ -62,6 +62,16 @@
 	};
 	const roleLabel = $derived($authStore.user ? (ROLE_LABELS[$authStore.user.role] ?? null) : null);
 
+	// Вход есть, а профиль бэкенд не отдал (перегрузка, перезапуск): даём повторить, не выкидывая из кабинета
+	let reloadingProfile = $state(false);
+	let profileStillMissing = $state(false);
+
+	async function retryProfile() {
+		reloadingProfile = true;
+		profileStillMissing = !(await authStore.loadProfile());
+		reloadingProfile = false;
+	}
+
 	async function handleDeleteAccount() {
 		if (!deletePassword.trim()) {
 			deleteError = 'Введите пароль, чтобы подтвердить удаление.';
@@ -249,5 +259,14 @@
 				{/if}
 			</div>
 		</div>
+	{:else}
+		<div role="alert" class="notice-error">
+			{profileStillMissing
+				? 'Сервер магазина всё ещё не отвечает. Попробуйте через минуту.'
+				: 'Не удалось загрузить данные профиля: сервер магазина не ответил. Вход сохранён.'}
+		</div>
+		<button type="button" onclick={retryProfile} disabled={reloadingProfile} class="btn-secondary mt-4">
+			{reloadingProfile ? 'Загружаем…' : 'Попробовать снова'}
+		</button>
 	{/if}
 </div>

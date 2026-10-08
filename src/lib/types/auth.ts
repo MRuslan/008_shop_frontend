@@ -9,6 +9,15 @@ export interface User {
 	role: Role;
 }
 
+/**
+ * Посетитель по входу из cookie. signedIn без user — вход действует, но бэкенд не ответил на /auth/me
+ * (перегрузка, перезапуск): это временно, профиль догрузит браузер
+ */
+export interface Visitor {
+	signedIn: boolean;
+	user: User | null;
+}
+
 /** Ответ входа и регистрации: токены сервер витрины оставил в httpOnly-cookie */
 export interface SignInResponse {
 	user: User;

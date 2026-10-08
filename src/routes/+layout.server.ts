@@ -1,7 +1,7 @@
 // Server-side layout: настройки магазина, вошедший пользователь и корзина посетителя
 
 import { API_BASE_URL } from '$lib/utils/constants';
-import { callBackend, currentUser, emptyCart, guestSessionId } from '$lib/server/backend';
+import { callBackend, currentVisitor, emptyCart, guestSessionId } from '$lib/server/backend';
 import type { Store } from '$lib/types/common';
 import type { Cart } from '$lib/types/cart';
 import type { RequestEvent } from '@sveltejs/kit';
@@ -65,10 +65,10 @@ async function loadCart(event: RequestEvent): Promise<Cart | null> {
 // Вход и корзина известны уже при отрисовке на сервере: шапка сразу с именем и счётчиком корзины,
 // закрытые разделы проверяют доступ до отрисовки. Загрузка повторяется после входа и выхода (invalidateAll)
 export async function load(event) {
-	const [store, user, cart] = await Promise.all([
+	const [store, visitor, cart] = await Promise.all([
 		loadStore(event.isDataRequest),
-		currentUser(event),
+		currentVisitor(event),
 		loadCart(event)
 	]);
-	return { store, user, cart };
+	return { store, user: visitor.user, signedIn: visitor.signedIn, cart };
 }

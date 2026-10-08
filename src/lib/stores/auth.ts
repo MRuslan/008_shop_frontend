@@ -31,10 +31,25 @@ function createAuthStore() {
 		subscribe,
 
 		/**
-		 * Пользователь с сервера (корневой layout): при SSR, первом рендере и после повторной загрузки
+		 * Вход с сервера (корневой layout): при SSR, первом рендере и после повторной загрузки.
+		 * signedIn без user — вход действует, а профиль бэкенд не отдал: его догрузит loadProfile
 		 */
-		hydrate(user: User | null) {
-			set(user ? { user, isAuthenticated: true } : SIGNED_OUT);
+		hydrate(user: User | null, signedIn = user !== null) {
+			set(signedIn ? { user, isAuthenticated: true } : SIGNED_OUT);
+		},
+
+		/**
+		 * Догрузить профиль вошедшего, если сервер не получил его при отрисовке. При сбое store не меняется;
+		 * если вход уже закончился, клиент API сам сообщит об этом (AUTH_EXPIRED_EVENT)
+		 */
+		async loadProfile(): Promise<boolean> {
+			try {
+				const user = await authApi.getMe();
+				update((state) => (state.isAuthenticated ? { user, isAuthenticated: true } : state));
+				return true;
+			} catch {
+				return false;
+			}
 		},
 
 		/**

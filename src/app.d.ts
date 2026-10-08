@@ -1,7 +1,7 @@
 // See https://svelte.dev/docs/kit/types#app.d.ts
 // for information about these interfaces
 import type { Store } from '$lib/types/common';
-import type { User } from '$lib/types/auth';
+import type { User, Visitor } from '$lib/types/auth';
 import type { Cart } from '$lib/types/cart';
 
 declare global {
@@ -15,13 +15,15 @@ declare global {
 			 * Браузер узнает об этом из заголовка ответа
 			 */
 			sessionEnded: boolean;
-			/** Пользователь из /auth/me: запрашивается один раз за запрос (см. currentUser) */
-			user?: Promise<User | null>;
+			/** Посетитель по /auth/me: запрашивается один раз за запрос (см. currentVisitor) */
+			visitor?: Promise<Visitor>;
 		}
 		interface PageData {
 			store?: Store | null;
-			/** Вошедший пользователь; null — гость */
+			/** Профиль вошедшего; null у гостя и когда бэкенд не ответил на /auth/me */
 			user?: User | null;
+			/** Вход действует, даже если профиль не загрузился */
+			signedIn?: boolean;
 			/** Корзина посетителя; null — не загрузилась */
 			cart?: Cart | null;
 		}
