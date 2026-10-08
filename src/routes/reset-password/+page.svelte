@@ -1,10 +1,9 @@
 <script lang="ts">
 	import { page } from '$app/state';
-	import { replaceState } from '$app/navigation';
+	import { invalidateAll, replaceState } from '$app/navigation';
 	import { authApi } from '$lib/api/auth';
 	import { authStore } from '$lib/stores/auth';
 	import { getErrorMessage, getFieldErrors } from '$lib/utils/errors';
-	import { TOKEN_STORAGE_KEY, REFRESH_TOKEN_STORAGE_KEY } from '$lib/utils/constants';
 
 	const PASSWORD_MIN = 6;
 
@@ -35,10 +34,12 @@
 		isLoading = true;
 		try {
 			await authApi.resetPassword(token, password);
-			// Бэкенд отозвал все сессии: вход на этом устройстве тоже больше не действует
-			localStorage.removeItem(TOKEN_STORAGE_KEY);
-			localStorage.removeItem(REFRESH_TOKEN_STORAGE_KEY);
-			if ($authStore.isAuthenticated) await authStore.logout();
+			// Бэкенд отозвал все сессии аккаунта. В этом браузере мог быть вход (этим или другим аккаунтом):
+			// выходим, чтобы шапка не показывала недействительный вход
+			if ($authStore.isAuthenticated) {
+				await authStore.logout();
+				await invalidateAll();
+			}
 			done = true;
 			// Одноразовый токен больше не нужен в адресной строке и истории
 			replaceState(page.url.pathname, {});

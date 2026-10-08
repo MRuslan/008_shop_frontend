@@ -1,129 +1,39 @@
-// Базовый HTTP клиент для работы с API
+// Базовый HTTP клиент для работы с API.
+// В браузере запросы идут на свой сервер (/api): вход и гостевую корзину подставляет сервер SvelteKit
+// из httpOnly-cookie (см. $lib/server/proxy). Токенов у страницы нет, украсть их скриптом нельзя
 
-import { API_BASE_URL, TOKEN_STORAGE_KEY, REFRESH_TOKEN_STORAGE_KEY } from '$lib/utils/constants';
+import { API_BASE_URL, ANONYMOUS_HEADER, SESSION_ENDED_HEADER } from '$lib/utils/constants';
 import type { ApiError, PaginatedResponse } from '$lib/types/api';
-import { getOrCreateSessionId } from '$lib/utils/session';
 
-interface RequestOptions extends RequestInit {
+export interface RequestOptions extends RequestInit {
+	/** Без входа и гостевой корзины: публичные данные одинаковы для всех */
 	skipAuth?: boolean;
-	useSessionId?: boolean;
+	/**
+	 * fetch из load. На сервере SvelteKit передаёт с ним cookie посетителя в свой /api,
+	 * поэтому кабинет и админка рендерятся на сервере уже с данными
+	 */
+	fetch?: typeof fetch;
 }
 
-const SERVER_TIMEOUT_MS = 8000;
+/** Для методов API, которые вызываются из load: `ordersApi.getMyOrders(query, { fetch })` */
+export type LoadOptions = Pick<RequestOptions, 'fetch'>;
 
-/** Есть ли сохранённый вход. Только в браузере: на сервере токенов нет */
-export function hasAccessToken(): boolean {
-	return typeof window !== 'undefined' && !!localStorage.getItem(TOKEN_STORAGE_KEY);
-}
-
-/** Событие окна: обновить пару токенов не удалось, пользователь вышел */
+/** Событие окна: сервер витрины не смог продлить вход (сессию отозвали или она истекла) */
 export const AUTH_EXPIRED_EVENT = 'auth:expired';
 
+const PROXY_BASE = '/api';
+const SERVER_TIMEOUT_MS = 8000;
+
 class ApiClient {
-	private baseUrl: string;
-	/** Один обмен refresh-токена на вкладку: параллельные 401 ждут его, а не шлют свой */
-	private refreshing: Promise<boolean> | null = null;
-
-	constructor(baseUrl: string) {
-		this.baseUrl = baseUrl;
-	}
-
 	/**
-	 * Получает access token из localStorage
+	 * Выполняет запрос и разбирает ответ; ошибка бэкенда пробрасывается как ApiError
 	 */
-	private getAccessToken(): string | null {
-		if (typeof window === 'undefined') return null;
-		return localStorage.getItem(TOKEN_STORAGE_KEY);
-	}
-
-	/**
-	 * Получает refresh token из localStorage
-	 */
-	private getRefreshToken(): string | null {
-		if (typeof window === 'undefined') return null;
-		return localStorage.getItem(REFRESH_TOKEN_STORAGE_KEY);
-	}
-
-	/**
-	 * Сохраняет токены в localStorage
-	 */
-	private setTokens(accessToken: string, refreshToken: string): void {
-		if (typeof window === 'undefined') return;
-		localStorage.setItem(TOKEN_STORAGE_KEY, accessToken);
-		localStorage.setItem(REFRESH_TOKEN_STORAGE_KEY, refreshToken);
-	}
-
-	/**
-	 * Очищает токены
-	 */
-	private clearTokens(): void {
-		if (typeof window === 'undefined') return;
-		localStorage.removeItem(TOKEN_STORAGE_KEY);
-		localStorage.removeItem(REFRESH_TOKEN_STORAGE_KEY);
-	}
-
-	/**
-	 * Обновляет токены через refresh endpoint.
-	 * Бэкенд считает повторный обмен одного refresh-токена кражей и отзывает сессию,
-	 * поэтому обмен идёт строго по одному: внутри вкладки через общий промис,
-	 * между вкладками через Web Locks. `staleToken` — access-токен, с которым пришёл 401:
-	 * если за время ожидания его уже заменили, новый обмен не нужен.
-	 */
-	private refreshTokens(staleToken: string | null): Promise<boolean> {
-		this.refreshing ??= this.withRefreshLock(() => this.exchangeRefreshToken(staleToken)).finally(() => {
-			this.refreshing = null;
-		});
-		return this.refreshing;
-	}
-
-	private withRefreshLock(task: () => Promise<boolean>): Promise<boolean> {
-		if (typeof navigator !== 'undefined' && navigator.locks) {
-			// Типы lib.dom считают результат Promise<Promise<boolean>>; then разворачивает вложенный промис
-			return navigator.locks.request('shop-auth-refresh', task).then((result) => result);
-		}
-		return task();
-	}
-
-	private async exchangeRefreshToken(staleToken: string | null): Promise<boolean> {
-		const current = this.getAccessToken();
-		if (current && current !== staleToken) return true;
-
-		const refreshToken = this.getRefreshToken();
-		if (!refreshToken) return false;
-
-		try {
-			const response = await fetch(`${this.baseUrl}/auth/refresh`, {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json'
-				},
-				body: JSON.stringify({ refresh_token: refreshToken })
-			});
-
-			if (response.ok) {
-				const data = await response.json();
-				this.setTokens(data.access_token, data.refresh_token);
-				return true;
-			}
-			// Сессия отозвана или истекла: выходим, чтобы интерфейс не считал пользователя вошедшим
-			this.clearTokens();
-			window.dispatchEvent(new CustomEvent(AUTH_EXPIRED_EVENT));
-			return false;
-		} catch (error) {
-			// Сеть недоступна: токены не трогаем, сессия ещё может быть жива
-			console.error('Failed to refresh tokens:', error);
-			return false;
-		}
-	}
-
-	/**
-	 * Выполняет запрос с автоматической обработкой токенов
-	 */
-	async request<T>(
-		endpoint: string,
-		options: RequestOptions = {}
-	): Promise<T> {
-		const { skipAuth = false, useSessionId = false, headers = {}, ...restOptions } = options;
+	async request<T>(endpoint: string, options: RequestOptions = {}): Promise<T> {
+		const { skipAuth = false, fetch: loadFetch, headers = {}, ...restOptions } = options;
+		const onServer = typeof window === 'undefined';
+		// Сервер без fetch из load — это загрузка публичной страницы: в бэкенд напрямую и без входа.
+		// Иначе через свой /api, где сервер подставит вход посетителя
+		const viaProxy = !onServer || loadFetch !== undefined;
 
 		// Формируем заголовки. У FormData тип с границей multipart ставит сам браузер
 		const isFormData = typeof FormData !== 'undefined' && restOptions.body instanceof FormData;
@@ -131,47 +41,22 @@ class ApiClient {
 			...(isFormData ? {} : { 'Content-Type': 'application/json' }),
 			...(headers as Record<string, string>)
 		};
-
-		// Добавляем авторизацию
-		const token = skipAuth ? null : this.getAccessToken();
-		if (!skipAuth) {
-			if (token) {
-				requestHeaders['Authorization'] = `Bearer ${token}`;
-			} else if (useSessionId) {
-				// Для гостевой корзины используем sessionId
-				const sessionId = getOrCreateSessionId();
-				if (sessionId) {
-					requestHeaders['X-Session-Id'] = sessionId;
-				}
-			}
-		}
+		if (skipAuth && viaProxy) requestHeaders[ANONYMOUS_HEADER] = '1';
 
 		// На сервере SvelteKit зависший бэкенд не должен вешать отрисовку страницы:
 		// через 8 секунд запрос обрывается, и страница отвечает 503
-		if (typeof window === 'undefined' && !restOptions.signal) {
+		if (onServer && !restOptions.signal) {
 			restOptions.signal = AbortSignal.timeout(SERVER_TIMEOUT_MS);
 		}
 
-		// Выполняем запрос
-		let response = await fetch(`${this.baseUrl}${endpoint}`, {
+		const response = await (loadFetch ?? fetch)(`${viaProxy ? PROXY_BASE : API_BASE_URL}${endpoint}`, {
 			...restOptions,
 			headers: requestHeaders
 		});
 
-		// Если получили 401 на запрос с токеном, пробуем обновить токен
-		if (response.status === 401 && token) {
-			const refreshed = await this.refreshTokens(token);
-			if (refreshed) {
-				// Повторяем запрос с новым токеном
-				const newToken = this.getAccessToken();
-				if (newToken) {
-					requestHeaders['Authorization'] = `Bearer ${newToken}`;
-					response = await fetch(`${this.baseUrl}${endpoint}`, {
-						...restOptions,
-						headers: requestHeaders
-					});
-				}
-			}
+		// Вход закончился на сервере: интерфейс должен перестать считать пользователя вошедшим
+		if (!onServer && response.headers.get(SESSION_ENDED_HEADER)) {
+			window.dispatchEvent(new CustomEvent(AUTH_EXPIRED_EVENT));
 		}
 
 		// Обрабатываем ответ
@@ -271,4 +156,4 @@ export async function fetchAllPages<T>(
 }
 
 // Экспортируем singleton экземпляр
-export const apiClient = new ApiClient(API_BASE_URL);
+export const apiClient = new ApiClient();

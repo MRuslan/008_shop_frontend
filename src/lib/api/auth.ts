@@ -1,13 +1,13 @@
-// API методы для авторизации
+// API методы для авторизации.
+// Вход, регистрация и выход идут через сервер витрины: он кладёт токены в httpOnly-cookie
+// и отдаёт браузеру только пользователя (см. $lib/server/proxy)
 
 import { apiClient } from './client';
 import type {
-	AuthResponse,
+	SignInResponse,
 	User,
 	RegisterDto,
 	LoginDto,
-	RefreshTokenDto,
-	RefreshTokenResponse,
 	DeleteAccountDto,
 	UpdateRoleDto,
 	PendingEmailChange
@@ -15,54 +15,17 @@ import type {
 
 export const authApi = {
 	/**
-	 * Регистрация нового пользователя
+	 * Регистрация нового пользователя: сразу и вход
 	 */
-	async register(data: RegisterDto): Promise<AuthResponse> {
-		const response = await apiClient.post<AuthResponse>('/auth/register', data, {
-			skipAuth: true
-		});
-		
-		// Сохраняем токены
-		if (typeof window !== 'undefined') {
-			localStorage.setItem('access_token', response.access_token);
-			localStorage.setItem('refresh_token', response.refresh_token);
-		}
-		
-		return response;
+	async register(data: RegisterDto): Promise<SignInResponse> {
+		return apiClient.post<SignInResponse>('/auth/register', data);
 	},
 
 	/**
-	 * Вход в систему
+	 * Вход в систему. Гостевая корзина переезжает в корзину аккаунта на сервере
 	 */
-	async login(data: LoginDto): Promise<AuthResponse> {
-		const response = await apiClient.post<AuthResponse>('/auth/login', data, {
-			skipAuth: true
-		});
-		
-		// Сохраняем токены
-		if (typeof window !== 'undefined') {
-			localStorage.setItem('access_token', response.access_token);
-			localStorage.setItem('refresh_token', response.refresh_token);
-		}
-		
-		return response;
-	},
-
-	/**
-	 * Обновление токенов
-	 */
-	async refresh(data: RefreshTokenDto): Promise<RefreshTokenResponse> {
-		const response = await apiClient.post<RefreshTokenResponse>('/auth/refresh', data, {
-			skipAuth: true
-		});
-		
-		// Сохраняем новые токены
-		if (typeof window !== 'undefined') {
-			localStorage.setItem('access_token', response.access_token);
-			localStorage.setItem('refresh_token', response.refresh_token);
-		}
-		
-		return response;
+	async login(data: LoginDto): Promise<SignInResponse> {
+		return apiClient.post<SignInResponse>('/auth/login', data);
 	},
 
 	/**
@@ -73,37 +36,21 @@ export const authApi = {
 	},
 
 	/**
-	 * Выход из системы
+	 * Выход: бэкенд отзывает сессию, сервер витрины стирает cookie
 	 */
 	async logout(): Promise<{ message: string }> {
-		const response = await apiClient.post<{ message: string }>('/auth/logout');
-		
-		// Очищаем токены
-		if (typeof window !== 'undefined') {
-			localStorage.removeItem('access_token');
-			localStorage.removeItem('refresh_token');
-		}
-		
-		return response;
+		return apiClient.post<{ message: string }>('/auth/logout');
 	},
 
 	/**
-	 * Удаление аккаунта
+	 * Удаление аккаунта. Сессия после него недействительна: вызывающий выходит (authStore.logout)
 	 */
 	async deleteAccount(data: DeleteAccountDto): Promise<{ message: string }> {
 		// DELETE с body требует специальной обработки
-		const response = await apiClient.request<{ message: string }>('/auth/account', {
+		return apiClient.request<{ message: string }>('/auth/account', {
 			method: 'DELETE',
 			body: JSON.stringify(data)
 		});
-		
-		// Очищаем токены
-		if (typeof window !== 'undefined') {
-			localStorage.removeItem('access_token');
-			localStorage.removeItem('refresh_token');
-		}
-		
-		return response;
 	},
 
 	/**

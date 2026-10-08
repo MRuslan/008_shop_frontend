@@ -42,7 +42,7 @@
 		Оформить заказ
 	</a>
 
-	{#if !$authStore.isLoading && !$authStore.isAuthenticated}
+	{#if !$authStore.isAuthenticated}
 		<p class="mt-3 text-body-sm text-gray-600">
 			Для оформления понадобится войти или зарегистрироваться. Товары в корзине сохранятся.
 		</p>

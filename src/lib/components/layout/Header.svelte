@@ -63,7 +63,7 @@
 
 	// Пришли с защищённой страницы: открываем окно входа, как только точно знаем, что пользователь не авторизован
 	$effect(() => {
-		if (redirectTarget && !$authStore.isLoading && !$authStore.isAuthenticated) {
+		if (redirectTarget && !$authStore.isAuthenticated) {
 			openLogin(reasonForRedirect(redirectTarget));
 		}
 	});

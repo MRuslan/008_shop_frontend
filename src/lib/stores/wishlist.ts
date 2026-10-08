@@ -17,7 +17,6 @@ function createWishlistStore() {
 
 	if (browser) {
 		authStore.subscribe(async ($auth) => {
-			if ($auth.isLoading) return;
 			if (!$auth.isAuthenticated || !$auth.user) {
 				loadedForUserId = null;
 				ids.set(new Set());

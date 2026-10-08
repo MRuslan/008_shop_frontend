@@ -28,10 +28,6 @@ export interface UpdateCartItemDto {
 	quantity: number;
 }
 
-export interface MergeSessionDto {
-	sessionId: string;
-}
-
 export interface CartShortage {
 	productId: number;
 	productName: string;

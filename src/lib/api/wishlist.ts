@@ -1,15 +1,15 @@
 // API методы для избранного
 
-import { apiClient, fetchAllPages } from './client';
+import { apiClient, fetchAllPages, type LoadOptions } from './client';
 import type { WishlistItem } from '$lib/types/common';
 
 export const wishlistApi = {
 	/**
 	 * Получить список избранного
 	 */
-	async getWishlist(): Promise<WishlistItem[]> {
+	async getWishlist(options: LoadOptions = {}): Promise<WishlistItem[]> {
 		// Постраничный ответ: сердечкам на карточках нужен весь список
-		return fetchAllPages<WishlistItem>('/wishlist');
+		return fetchAllPages<WishlistItem>('/wishlist', options);
 	},
 
 	/**

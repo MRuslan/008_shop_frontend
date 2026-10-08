@@ -8,17 +8,11 @@
 	import Heart from '@lucide/svelte/icons/heart';
 	import LayoutDashboard from '@lucide/svelte/icons/layout-dashboard';
 	import LogOut from '@lucide/svelte/icons/log-out';
-	import SideMenuSkeleton from '$lib/components/ui/SideMenuSkeleton.svelte';
 	import CategoryChips from '$lib/components/catalog/CategoryChips.svelte';
 
 	let { children } = $props();
 
-	// Редирект только после завершения инициализации авторизации, иначе перезагрузка выбрасывает залогиненного
-	$effect(() => {
-		if (!$authStore.isLoading && !$authStore.isAuthenticated) {
-			goto('/?redirect=/account');
-		}
-	});
+	// Гостя отправляет на вход сервер (+layout.server.ts), до отрисовки кабинета
 
 	const menuItems = [
 		{ href: '/account', label: 'Профиль', icon: User },
@@ -27,9 +21,10 @@
 		{ href: '/account/wishlist', label: 'Избранное', icon: Heart }
 	];
 
+	// Данные перечитываются вместе с переходом: шапка и корзина станут гостевыми уже на главной
 	async function handleLogout() {
 		await authStore.logout();
-		goto('/');
+		await goto('/', { invalidateAll: true });
 	}
 
 	// Профиль — только сам /account; остальные разделы подсвечиваются и на вложенных страницах (заказ №N)
@@ -39,9 +34,7 @@
 	}
 </script>
 
-{#if $authStore.isLoading}
-	<SideMenuSkeleton items={5} />
-{:else if $authStore.isAuthenticated}
+{#if $authStore.isAuthenticated}
 	<div class="container py-4 md:py-6">
 		<!-- Телефон: разделы строкой чипсов, как в каталоге; первый экран остаётся за содержимым -->
 		<div class="mb-3 lg:hidden">

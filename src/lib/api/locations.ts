@@ -1,6 +1,6 @@
 // API методы для точек продаж
 
-import { apiClient } from './client';
+import { apiClient, type LoadOptions } from './client';
 import type { Location } from '$lib/types/order';
 
 export interface LocationsQuery {
@@ -12,7 +12,7 @@ export const locationsApi = {
 	/**
 	 * Получить список точек продаж
 	 */
-	async getLocations(query?: LocationsQuery): Promise<Location[]> {
+	async getLocations(query?: LocationsQuery, options: LoadOptions = {}): Promise<Location[]> {
 		const params = new URLSearchParams();
 		if (query?.storeId) params.append('storeId', query.storeId.toString());
 		if (query?.isActive !== undefined) params.append('isActive', query.isActive.toString());
@@ -20,7 +20,7 @@ export const locationsApi = {
 		const queryString = params.toString();
 		const endpoint = queryString ? `/locations?${queryString}` : '/locations';
 		
-		return apiClient.get<Location[]>(endpoint, { skipAuth: true });
+		return apiClient.get<Location[]>(endpoint, { ...options, skipAuth: true });
 	},
 
 	/**

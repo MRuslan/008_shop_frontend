@@ -1,5 +1,5 @@
 // Разделы, которые не должны попадать в поиск: личные, служебные и результаты поиска по сайту.
-// Используются и в robots.txt, и в заголовке X-Robots-Tag (у кабинета и админки нет серверного <head>)
+// Используются и в robots.txt, и в заголовке X-Robots-Tag (его видят и ответы /api, у которых нет <head>)
 export const NOINDEX_PREFIXES = [
 	'/account',
 	'/admin',
@@ -8,7 +8,8 @@ export const NOINDEX_PREFIXES = [
 	'/reset-password',
 	'/confirm-email',
 	'/search',
-	'/orders'
+	'/orders',
+	'/api'
 ];
 
 export function isNoindexPath(pathname: string): boolean {

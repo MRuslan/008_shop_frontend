@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { cartStore, cartReady } from '$lib/stores/cart';
-	import { authStore } from '$lib/stores/auth';
 	import { cartApi } from '$lib/api/cart';
 	import { confirmDialog } from '$lib/stores/confirm';
 	import CartItem from '$lib/components/cart/CartItem.svelte';
@@ -14,14 +13,14 @@
 
 	let isUpdating = $state(false);
 
-	// Корзину загружает layout, когда уже известно, вошёл ли пользователь. Пока её нет — заглушка;
-	// null после загрузки значит ошибку (пустую корзину бэкенд отдаёт с пустым items)
+	// Корзину отдаёт корневой layout вместе со страницей. null значит ошибку загрузки
+	// (пустую корзину бэкенд отдаёт с пустым items)
 	const isLoading = $derived(!$cartReady);
 	const loadFailed = $derived($cartReady && !$cartStore);
 
-	// Корзина уже в памяти: показываем её сразу и тихо обновляем, вдруг остатки или цены изменились
+	// Корзина уже на странице: показываем её сразу и тихо обновляем, вдруг остатки или цены изменились
 	onMount(() => {
-		if ($cartReady) cartStore.init();
+		if ($cartStore) cartStore.reload();
 	});
 
 	async function handleUpdateQuantity(itemId: number, quantity: number) {
@@ -30,12 +29,11 @@
 		isUpdating = true;
 
 		try {
-			const useSessionId = !$authStore.isAuthenticated;
-			const cart = await cartApi.updateItem(itemId, { quantity }, useSessionId);
+			const cart = await cartApi.updateItem(itemId, { quantity });
 			cartStore.setCart(cart);
 		} catch (err) {
 			toast.error(getErrorMessage(err, 'Не удалось изменить количество. Показываем актуальную корзину.'));
-			await cartStore.init();
+			await cartStore.reload();
 		} finally {
 			isUpdating = false;
 		}
@@ -46,8 +44,7 @@
 		isUpdating = true;
 
 		try {
-			const useSessionId = !$authStore.isAuthenticated;
-			const cart = await cartApi.removeItem(itemId, useSessionId);
+			const cart = await cartApi.removeItem(itemId);
 			cartStore.setCart(cart);
 			if (removed) {
 				// Удаление без подтверждения, зато с возможностью сразу вернуть товар
@@ -57,7 +54,7 @@
 			}
 		} catch (err) {
 			toast.error(getErrorMessage(err, 'Не удалось убрать товар. Попробуйте ещё раз.'));
-			await cartStore.init();
+			await cartStore.reload();
 		} finally {
 			isUpdating = false;
 		}
@@ -84,9 +81,8 @@
 		isUpdating = true;
 
 		try {
-			const useSessionId = !$authStore.isAuthenticated;
 			// Бэкенд возвращает пустую корзину; null в сторе страница сочла бы ошибкой загрузки
-			cartStore.setCart(await cartApi.clearCart(useSessionId));
+			cartStore.setCart(await cartApi.clearCart());
 		} catch (err) {
 			toast.error(getErrorMessage(err, 'Не удалось очистить корзину. Попробуйте ещё раз.'));
 		} finally {
@@ -119,7 +115,7 @@
 		</div>
 		<button
 			type="button"
-			onclick={() => cartStore.init()}
+			onclick={() => cartStore.reload()}
 			class="btn-primary"
 		>
 			Попробовать снова

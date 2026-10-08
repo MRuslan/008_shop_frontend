@@ -73,8 +73,9 @@
 
 		try {
 			await authApi.deleteAccount({ password: deletePassword });
+			// Сессия удалённого аккаунта уже недействительна: стираем cookie и уходим с перечитыванием данных
 			await authStore.logout();
-			goto('/');
+			await goto('/', { invalidateAll: true });
 		} catch (err) {
 			deleteError = getErrorMessage(err, 'Не удалось удалить аккаунт. Попробуйте ещё раз.');
 		} finally {

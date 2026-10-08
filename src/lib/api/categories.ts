@@ -1,6 +1,6 @@
 // API методы для категорий
 
-import { apiClient } from './client';
+import { apiClient, type LoadOptions } from './client';
 import type { Category } from '$lib/types/product';
 
 export interface CategoriesQuery {
@@ -15,7 +15,7 @@ export const categoriesApi = {
 	/**
 	 * Получить список категорий
 	 */
-	async getCategories(query?: CategoriesQuery, options: { asStaff?: boolean } = {}): Promise<Category[]> {
+	async getCategories(query?: CategoriesQuery, options: LoadOptions & { asStaff?: boolean } = {}): Promise<Category[]> {
 		const params = new URLSearchParams();
 		
 		if (query?.tree !== undefined) params.append('tree', query.tree.toString());
@@ -26,7 +26,7 @@ export const categoriesApi = {
 		const queryString = params.toString();
 		const endpoint = queryString ? `/categories?${queryString}` : '/categories';
 		
-		return apiClient.get<Category[]>(endpoint, { skipAuth: !options.asStaff });
+		return apiClient.get<Category[]>(endpoint, { fetch: options.fetch, skipAuth: !options.asStaff });
 	},
 
 	/**

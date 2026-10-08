@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
 	import { authStore, hasRole, isAdminOrManager } from '$lib/stores/auth';
 	import type { Role } from '$lib/types/auth';
@@ -10,24 +9,11 @@
 	import TicketPercent from '@lucide/svelte/icons/ticket-percent';
 	import MapPin from '@lucide/svelte/icons/map-pin';
 	import Settings from '@lucide/svelte/icons/settings';
-	import SideMenuSkeleton from '$lib/components/ui/SideMenuSkeleton.svelte';
 	import CategoryChips from '$lib/components/catalog/CategoryChips.svelte';
 
 	let { children } = $props();
 
-	// Редирект только после завершения инициализации авторизации, иначе перезагрузка выбрасывает залогиненного
-	$effect(() => {
-		if (!$authStore.isLoading) {
-			if (!$authStore.isAuthenticated) {
-				goto('/?redirect=/admin');
-				return;
-			}
-			if (!$isAdminOrManager) {
-				goto('/');
-				return;
-			}
-		}
-	});
+	// Гостя и покупателя не пускает сервер (+layout.server.ts), до отрисовки админки
 
 	const menuItems: { href: string; label: string; icon: Component; roles: Role[] }[] = [
 		{ href: '/admin/products', label: 'Товары', icon: Package, roles: ['manager', 'admin'] },
@@ -43,9 +29,7 @@
 	}
 </script>
 
-{#if $authStore.isLoading}
-	<SideMenuSkeleton items={6} />
-{:else if $authStore.isAuthenticated && $isAdminOrManager}
+{#if $authStore.isAuthenticated && $isAdminOrManager}
 	<div class="container py-4 md:py-6">
 		<!-- Телефон: разделы строкой чипсов; админка рассчитана на десктоп, но не ломается на телефоне -->
 		<div class="mb-3 lg:hidden">

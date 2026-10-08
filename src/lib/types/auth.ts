@@ -9,15 +9,9 @@ export interface User {
 	role: Role;
 }
 
-export interface AuthResponse {
+/** Ответ входа и регистрации: токены сервер витрины оставил в httpOnly-cookie */
+export interface SignInResponse {
 	user: User;
-	access_token: string;
-	refresh_token: string;
-}
-
-export interface RefreshTokenResponse {
-	access_token: string;
-	refresh_token: string;
 }
 
 export interface RegisterDto {
@@ -29,10 +23,6 @@ export interface RegisterDto {
 export interface LoginDto {
 	email: string;
 	password: string;
-}
-
-export interface RefreshTokenDto {
-	refresh_token: string;
 }
 
 export interface DeleteAccountDto {

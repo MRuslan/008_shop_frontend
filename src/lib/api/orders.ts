@@ -1,6 +1,6 @@
 // API методы для заказов
 
-import { apiClient } from './client';
+import { apiClient, type LoadOptions } from './client';
 import type { PaginatedResponse } from '$lib/types/api';
 import type {
 	Order,
@@ -49,15 +49,15 @@ export const ordersApi = {
 	/**
 	 * Свои заказы, новые первыми, постранично
 	 */
-	async getMyOrders(filters?: OrdersQuery): Promise<PaginatedResponse<Order>> {
-		return apiClient.get<PaginatedResponse<Order>>(`/orders${toQuery(filters)}`);
+	async getMyOrders(filters?: OrdersQuery, options: LoadOptions = {}): Promise<PaginatedResponse<Order>> {
+		return apiClient.get<PaginatedResponse<Order>>(`/orders${toQuery(filters)}`, options);
 	},
 
 	/**
 	 * Получить заказ по ID
 	 */
-	async getOrderById(id: number): Promise<Order> {
-		return apiClient.get<Order>(`/orders/${id}`);
+	async getOrderById(id: number, options: LoadOptions = {}): Promise<Order> {
+		return apiClient.get<Order>(`/orders/${id}`, options);
 	},
 
 	/**
@@ -70,8 +70,8 @@ export const ordersApi = {
 	/**
 	 * Все заказы магазина (для admin/manager), постранично
 	 */
-	async getAllOrders(filters?: OrdersQuery): Promise<PaginatedResponse<Order>> {
-		return apiClient.get<PaginatedResponse<Order>>(`/orders${toQuery(filters, { scope: 'all' })}`);
+	async getAllOrders(filters?: OrdersQuery, options: LoadOptions = {}): Promise<PaginatedResponse<Order>> {
+		return apiClient.get<PaginatedResponse<Order>>(`/orders${toQuery(filters, { scope: 'all' })}`, options);
 	},
 
 	/**

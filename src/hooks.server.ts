@@ -4,6 +4,8 @@ import type { Handle } from '@sveltejs/kit';
 import { dev } from '$app/environment';
 import { isNoindexPath } from '$lib/utils/robots';
 import { isSiteUrlConfigured } from '$lib/utils/site';
+import { SESSION_ENDED_HEADER } from '$lib/utils/constants';
+import { restoreSession } from '$lib/server/session';
 
 // Без PUBLIC_SITE_URL canonical, sitemap и robots.txt строятся от заголовка Host. За прокси это
 // внутренний адрес (127.0.0.1:3000), и поисковик получит неверные ссылки. Предупреждаем один раз
@@ -31,10 +33,22 @@ function withHeader(response: Response, name: string, value: string): Response {
 }
 
 export const handle: Handle = async ({ event, resolve }) => {
-	let response = await resolve(event);
+	// Вход посетителя из httpOnly-cookie; истекающий access-токен обновляется здесь, до загрузки страницы
+	await restoreSession(event);
 
-	// Кабинет и админка рисуются только в браузере, своего <head> с noindex в HTML у них нет:
-	// запрет индексации отдаём заголовком. Он же страхует корзину, оформление и поиск
+	let response = await resolve(event, {
+		// Universal load кабинета и админки при SSR ходят в свой /api, а клиент API читает content-type ответа
+		filterSerializedResponseHeaders: (name) => name === 'content-type'
+	});
+
+	// Входа больше нет (продлить не удалось или cookie стёр выход в соседней вкладке):
+	// браузер по этому заголовку перестаёт считать пользователя вошедшим
+	if (event.locals.sessionEnded) {
+		response = withHeader(response, SESSION_ENDED_HEADER, '1');
+	}
+
+	// Личные и служебные страницы закрыты от индексации заголовком: он работает и для ответов /api,
+	// и для страниц без своего <meta name="robots">. Страхует корзину, оформление и поиск
 	if (isNoindexPath(event.url.pathname)) {
 		response = withHeader(response, 'x-robots-tag', 'noindex, nofollow');
 	}

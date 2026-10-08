@@ -1,17 +1,15 @@
-// Универсальная загрузка: купоны запрашиваются только на клиенте (нужен токен из localStorage)
+// Купоны для админки. При SSR запрос идёт через свой /api с cookie сотрудника
 
-import { browser } from '$app/environment';
 import { couponsApi } from '$lib/api/coupons';
+import type { Coupon } from '$lib/types/common';
+import type { PageLoad } from './$types';
 
-export async function load() {
-	if (!browser) {
-		return { coupons: [] };
-	}
+export const load: PageLoad = async ({ fetch }) => {
 	try {
-		const coupons = await couponsApi.getCoupons();
+		const coupons = await couponsApi.getCoupons({ fetch });
 		return { coupons };
 	} catch (error) {
 		console.error('Failed to load coupons:', error);
-		return { coupons: [] };
+		return { coupons: [] as Coupon[] };
 	}
-}
+};

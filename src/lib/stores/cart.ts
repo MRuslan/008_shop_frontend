@@ -1,32 +1,37 @@
-// Store для управления корзиной
+// Store для управления корзиной.
+// Корзину посетителя (вошедшего — по входу, гостя — по cookie гостевой корзины) отдаёт корневой layout,
+// дальше store меняется на месте при каждом действии с корзиной
 
-import { writable, derived, get } from 'svelte/store';
-import { browser } from '$app/environment';
+import { writable, derived } from 'svelte/store';
 import { cartApi } from '$lib/api/cart';
-import { authStore } from './auth';
-import { getOrCreateSessionId, clearSessionId } from '$lib/utils/session';
 import type { Cart } from '$lib/types/cart';
 
 /**
- * Первая загрузка корзины закончилась (успешно или нет). До этого страницы показывают заглушку,
- * а не «пустую корзину»: иначе на миг мелькает пустое состояние
+ * Корзина пришла с сервера (или не смогла). До этого страницы показывают заглушку, а не «пустую корзину».
+ * После SSR это верно с первого рендера; ложно только на страницах ошибки без корневых данных
  */
 export const cartReady = writable(false);
 
 function createCartStore() {
-	const { subscribe, set, update } = writable<Cart | null>(null);
-
-	// Гостевая корзина живёт по X-Session-Id, пользовательская по JWT
-	const isGuest = () => !get(authStore).isAuthenticated;
+	const { subscribe, set } = writable<Cart | null>(null);
 
 	return {
 		subscribe,
 
 		/**
+		 * Корзина с сервера (корневой layout): при SSR, первом рендере и после повторной загрузки.
+		 * null — не загрузилась (пустую корзину бэкенд отдаёт с пустым items)
+		 */
+		hydrate(cart: Cart | null) {
+			set(cart);
+			cartReady.set(true);
+		},
+
+		/**
 		 * Положить товар в корзину. Ошибку (например, нехватку остатка) пробрасываем вызывающему
 		 */
 		async add(productId: number, quantity = 1) {
-			const cart = await cartApi.addItem({ productId, quantity }, isGuest());
+			const cart = await cartApi.addItem({ productId, quantity });
 			set(cart);
 			return cart;
 		},
@@ -36,99 +41,29 @@ function createCartStore() {
 		 */
 		async setQuantity(itemId: number, quantity: number) {
 			const cart =
-				quantity > 0
-					? await cartApi.updateItem(itemId, { quantity }, isGuest())
-					: await cartApi.removeItem(itemId, isGuest());
+				quantity > 0 ? await cartApi.updateItem(itemId, { quantity }) : await cartApi.removeItem(itemId);
 			set(cart);
 			return cart;
 		},
 
 		/**
-		 * Инициализация: загрузка корзины
+		 * Перечитать корзину: остатки и цены могли измениться. При сбое остаётся прежняя корзина
 		 */
-		async init() {
-			if (!browser) return;
-
+		async reload() {
 			try {
-				// Получаем текущее состояние авторизации
-				let authState: { isAuthenticated: boolean } = { isAuthenticated: false };
-				const unsubscribe = authStore.subscribe((auth) => {
-					authState = auth;
-				});
-				unsubscribe();
-
-				const useSessionId = !authState.isAuthenticated;
-				const cart = await cartApi.getCart(useSessionId);
-				set(cart);
+				set(await cartApi.getCart());
 			} catch (error) {
 				console.error('Failed to load cart:', error);
-				set(null);
 			} finally {
 				cartReady.set(true);
 			}
 		},
 
 		/**
-		 * Установка корзины
+		 * Установка корзины из ответа API
 		 */
 		setCart(cart: Cart) {
 			set(cart);
-		},
-
-		/**
-		 * Очистка корзины
-		 */
-		clear() {
-			set(null);
-		},
-
-		/**
-		 * Обновление количества товара в корзине
-		 */
-		updateItemQuantity(itemId: number, quantity: number) {
-			update((cart) => {
-				if (!cart) return cart;
-				
-				const item = cart.items.find((i) => i.id === itemId);
-				if (item) {
-					item.quantity = quantity;
-				}
-				
-				return cart;
-			});
-		},
-
-		/**
-		 * Удаление товара из корзины
-		 */
-		removeItem(itemId: number) {
-			update((cart) => {
-				if (!cart) return cart;
-				
-				return {
-					...cart,
-					items: cart.items.filter((i) => i.id !== itemId)
-				};
-			});
-		},
-
-		/**
-		 * Слияние гостевой корзины с корзиной пользователя
-		 */
-		async mergeGuestCart() {
-			if (!browser) return;
-
-			const sessionId = getOrCreateSessionId();
-			if (!sessionId) return;
-
-			try {
-				const cart = await cartApi.mergeSession({ sessionId });
-				set(cart);
-				// Бэкенд удалил гостевую корзину; после выхода начнётся новая
-				clearSessionId();
-			} catch (error) {
-				console.error('Failed to merge guest cart:', error);
-			}
 		}
 	};
 }

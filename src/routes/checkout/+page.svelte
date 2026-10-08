@@ -1,8 +1,7 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import { tick } from 'svelte';
+	import { tick, untrack } from 'svelte';
 	import { cartStore, cartTotal } from '$lib/stores/cart';
-	import { authStore } from '$lib/stores/auth';
 	import { cartApi } from '$lib/api/cart';
 	import { ordersApi } from '$lib/api/orders';
 	import { addressesApi } from '$lib/api/addresses';
@@ -22,10 +21,15 @@
 	import CouponInput from '$lib/components/checkout/CouponInput.svelte';
 	import Skeleton from '$lib/components/ui/Skeleton.svelte';
 
-	let isLoading = $state(true);
+	let { data } = $props();
+
+	// Данные формы приходят с сервера вместе со страницей; isLoading — только повторная загрузка.
+	// Дальше страница обновляет их сама (loadData), поэтому берём начальное значение
+	const initial = untrack(() => data);
+	let isLoading = $state(false);
 	let isSubmitting = $state(false);
 	// Ошибка загрузки блокирует страницу, ошибка отправки показывается рядом с кнопкой и не прячет форму
-	let loadError = $state<string | null>(null);
+	let loadError = $state<string | null>(initial.loadError);
 	let submitError = $state<string | null>(null);
 
 	// Состояние формы
@@ -77,24 +81,9 @@
 	// Условия доставки одной строкой под вариантом «Доставка курьером»
 	const deliveryTerms = $derived(describeDelivery(deliverySettings, currency));
 
-	let dataRequested = false;
-
-	// Ждём инициализацию авторизации: иначе перезагрузка страницы выбрасывает залогиненного пользователя в корзину
-	$effect(() => {
-		if ($authStore.isLoading) return;
-		if (!$authStore.isAuthenticated) {
-			goto('/cart?redirect=/checkout');
-			return;
-		}
-		if (!dataRequested) {
-			dataRequested = true;
-			loadData();
-		}
-	});
-
 	async function loadAvailability() {
 		try {
-			availability = await cartApi.getAvailability(false);
+			availability = await cartApi.getAvailability();
 		} catch (err) {
 			// Старый бэкенд без наличия по точкам: остатки проверит оформление заказа
 			console.error('Failed to load cart availability:', err);
@@ -109,33 +98,43 @@
 		}
 	}
 
+	function applyLoaded(loaded: { addresses: Address[]; locations: Location[] }) {
+		addresses = loaded.addresses;
+
+		// Адрес по умолчанию, если пользователь ещё ничего не выбрал
+		if (selectedAddressId === null || !loaded.addresses.some((a) => a.id === selectedAddressId)) {
+			const defaultAddress = loaded.addresses.find((a) => a.isDefault) ?? loaded.addresses[0];
+			selectedAddressId = defaultAddress?.id ?? null;
+		}
+
+		// Склад не выдаёт заказы: бэкенд принимает самовывоз только из пунктов выдачи и магазинов
+		locations = loaded.locations.filter((location) => location.type !== 'warehouse');
+		pickDefaultLocation();
+
+		// Выключенный магазином способ не предлагаем по умолчанию
+		if (deliveryType === 'delivery' && !deliveryEnabled && pickupEnabled) deliveryType = 'pickup';
+		if (deliveryType === 'pickup' && !pickupEnabled && deliveryEnabled) deliveryType = 'delivery';
+	}
+
+	if (initial.checkout) {
+		availability = initial.checkout.availability;
+		applyLoaded(initial.checkout);
+	}
+
+	// Повторная загрузка: после ошибки и после правки адресов. Корзину тоже перечитываем
 	async function loadData() {
 		isLoading = true;
 		loadError = null;
 
 		try {
 			const [cart, userAddresses, allLocations] = await Promise.all([
-				cartApi.getCart(false),
+				cartApi.getCart(),
 				addressesApi.getAddresses(),
 				locationsApi.getLocations({ isActive: true }),
 				loadAvailability()
 			]);
 			cartStore.setCart(cart);
-			addresses = userAddresses;
-
-			// Адрес по умолчанию, если пользователь ещё ничего не выбрал
-			if (selectedAddressId === null || !userAddresses.some((a) => a.id === selectedAddressId)) {
-				const defaultAddress = userAddresses.find((a) => a.isDefault) ?? userAddresses[0];
-				selectedAddressId = defaultAddress?.id ?? null;
-			}
-
-			// Склад не выдаёт заказы: бэкенд принимает самовывоз только из пунктов выдачи и магазинов
-			locations = allLocations.filter((location) => location.type !== 'warehouse');
-			pickDefaultLocation();
-
-			// Выключенный магазином способ не предлагаем по умолчанию
-			if (deliveryType === 'delivery' && !deliveryEnabled && pickupEnabled) deliveryType = 'pickup';
-			if (deliveryType === 'pickup' && !pickupEnabled && deliveryEnabled) deliveryType = 'delivery';
+			applyLoaded({ addresses: userAddresses, locations: allLocations });
 		} catch (err) {
 			loadError = getErrorMessage(err, 'Не удалось загрузить адреса и точки самовывоза.');
 		} finally {
@@ -321,7 +320,7 @@
 			const order = await ordersApi.createOrder(orderData);
 
 			// Бэкенд уже очистил корзину; перечитываем её, а не обнуляем: null страница корзины сочла бы ошибкой
-			void cartStore.init();
+			void cartStore.reload();
 			toast.success(`Заказ №${order.id} оформлен`);
 			await goto(`/account/orders/${order.id}`);
 		} catch (err) {
@@ -347,7 +346,7 @@
 	{#if isLoading}
 		<!-- Заглушка повторяет форму: способ получения, адрес, промокод, комментарий и итог справа -->
 		<div class="grid grid-cols-1 gap-3 lg:grid-cols-3 lg:gap-6" role="status">
-			<span class="sr-only">{$authStore.isLoading ? 'Проверяем вход…' : 'Загружаем адреса и точки самовывоза…'}</span>
+			<span class="sr-only">Загружаем адреса и точки самовывоза…</span>
 			<div class="space-y-3 lg:col-span-2 lg:space-y-6">
 				<div class="rounded-2xl bg-surface p-5 md:p-6">
 					<Skeleton class="mb-4 h-7 w-48" />

@@ -1,9 +1,9 @@
 <script lang="ts">
 	import '@fontsource-variable/onest';
 	import '../lib/styles/global.css';
-	import { onMount } from 'svelte';
+	import { onMount, untrack } from 'svelte';
 	import { page } from '$app/state';
-	import { onNavigate } from '$app/navigation';
+	import { invalidateAll, onNavigate } from '$app/navigation';
 	import Header from '$lib/components/layout/Header.svelte';
 	import Footer from '$lib/components/layout/Footer.svelte';
 	import TabBar from '$lib/components/layout/TabBar.svelte';
@@ -14,15 +14,29 @@
 	import { authStore } from '$lib/stores/auth';
 	import { cartStore } from '$lib/stores/cart';
 	import { setDisplayTimeZone } from '$lib/utils/format';
+	import { migrateLegacySession } from '$lib/utils/legacy-session';
 
 	let { data, children } = $props();
 
-	// Настройки магазина: сразу для SSR и первого рендера, и дальше при каждой инвалидации данных
-	storeSettings.set(data.store ?? null);
-	setDisplayTimeZone(data.store?.timezone);
+	// Настройки магазина, вход и корзина: сразу для SSR и первого рендера, и дальше при каждой
+	// повторной загрузке корневого layout (вход, выход, invalidateAll). Сторы общие для всех запросов
+	// сервера, но SSR синхронный: значения пишутся в начале рендера и читаются в том же проходе,
+	// чужой запрос между ними не вклинится. Включая experimental.async, это место надо пересмотреть
+	untrack(() => {
+		storeSettings.set(data.store ?? null);
+		setDisplayTimeZone(data.store?.timezone);
+		authStore.hydrate(data.user ?? null);
+		cartStore.hydrate(data.cart ?? null);
+	});
 	$effect(() => {
 		storeSettings.set(data.store ?? null);
 		setDisplayTimeZone(data.store?.timezone);
+	});
+	// data корневого layout меняется, только когда он загрузился заново. Обычный переход его не трогает,
+	// поэтому корзину, только что изменённую в браузере, эффект не откатит к снимку с сервера
+	$effect(() => {
+		authStore.hydrate(data.user ?? null);
+		cartStore.hydrate(data.cart ?? null);
 	});
 
 	// Админка — рабочий инструмент: нижние вкладки покупателя ей не нужны
@@ -51,9 +65,7 @@
 	});
 
 	onMount(async () => {
-		await authStore.init();
-		// Корзина зависит от того, авторизован ли пользователь
-		await cartStore.init();
+		if (await migrateLegacySession()) await invalidateAll();
 	});
 </script>
 

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import { untrack } from 'svelte';
 	import { addressesApi } from '$lib/api/addresses';
 	import type { Address, CreateAddressDto, UpdateAddressDto } from '$lib/types/common';
 	import AddressList from '$lib/components/checkout/AddressList.svelte';
@@ -7,15 +7,15 @@
 	import Skeleton from '$lib/components/ui/Skeleton.svelte';
 	import { getErrorMessage } from '$lib/utils/errors';
 
-	let addresses = $state<Address[]>([]);
-	let isLoading = $state(true);
-	let error = $state<string | null>(null);
+	let { data } = $props();
+
+	// Первый список пришёл с сервера вместе со страницей; после правок перечитываем его здесь
+	const initial = untrack(() => data);
+	let addresses = $state<Address[]>(initial.addresses);
+	let isLoading = $state(false);
+	let error = $state<string | null>(initial.error);
 	let showAddressForm = $state(false);
 	let editingAddress = $state<Address | null>(null);
-
-	onMount(async () => {
-		await loadAddresses();
-	});
 
 	async function loadAddresses() {
 		isLoading = true;

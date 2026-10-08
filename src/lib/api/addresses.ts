@@ -1,14 +1,14 @@
 // API методы для адресов доставки
 
-import { apiClient } from './client';
+import { apiClient, type LoadOptions } from './client';
 import type { Address, CreateAddressDto, UpdateAddressDto } from '$lib/types/common';
 
 export const addressesApi = {
 	/**
 	 * Получить список адресов пользователя
 	 */
-	async getAddresses(): Promise<Address[]> {
-		return apiClient.get<Address[]>('/addresses');
+	async getAddresses(options: LoadOptions = {}): Promise<Address[]> {
+		return apiClient.get<Address[]>('/addresses', options);
 	},
 
 	/**

@@ -1,6 +1,6 @@
 // API методы для товаров
 
-import { apiClient } from './client';
+import { apiClient, type LoadOptions } from './client';
 import type {
 	Product,
 	ProductsResponse,
@@ -9,8 +9,8 @@ import type {
 	ProductStock
 } from '$lib/types/product';
 
-/** Сотрудник запрашивает с токеном: бэкенд тогда отдаёт и скрытые товары */
-interface StaffOption {
+/** Сотрудник запрашивает со своим входом: бэкенд тогда отдаёт и скрытые товары */
+interface StaffOption extends LoadOptions {
 	asStaff?: boolean;
 }
 
@@ -40,7 +40,7 @@ export const productsApi = {
 		const query = params.toString();
 		const endpoint = query ? `/products?${query}` : '/products';
 		
-		return apiClient.get<ProductsResponse>(endpoint, { skipAuth: !options.asStaff });
+		return apiClient.get<ProductsResponse>(endpoint, { fetch: options.fetch, skipAuth: !options.asStaff });
 	},
 
 	/**

@@ -1,6 +1,6 @@
 // API методы для купонов
 
-import { apiClient, fetchAllPages } from './client';
+import { apiClient, fetchAllPages, type LoadOptions } from './client';
 import type { Coupon } from '$lib/types/common';
 
 export interface CreateCouponDto {
@@ -22,8 +22,8 @@ export const couponsApi = {
 	/**
 	 * Получить список купонов (для manager/admin)
 	 */
-	async getCoupons(): Promise<Coupon[]> {
-		return fetchAllPages<Coupon>('/coupons');
+	async getCoupons(options: LoadOptions = {}): Promise<Coupon[]> {
+		return fetchAllPages<Coupon>('/coupons', options);
 	},
 
 	/**
