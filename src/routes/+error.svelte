@@ -47,7 +47,7 @@
 	<meta name="robots" content="noindex" />
 </svelte:head>
 
-<section class="container mx-auto px-4 py-16 sm:py-24">
+<section class="container py-16 sm:py-24">
 	<div class="mx-auto max-w-lg text-center">
 		<h1 class="text-headline md:text-headline-lg text-balance text-ink">{title}</h1>
 		<p class="mt-3 text-pretty text-gray-600">{description}</p>
@@ -58,27 +58,25 @@
 					type="button"
 					onclick={retry}
 					disabled={retrying}
-					class="rounded-md bg-blue-600 px-6 py-3 font-medium text-white transition-colors hover:bg-blue-700 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+					class="btn-primary btn-lg"
 				>
 					{retrying ? 'Обновляем…' : 'Попробовать снова'}
 				</button>
 			{/if}
 			<a
 				href="/catalog"
-				class="rounded-md px-6 py-3 font-medium transition-colors focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:outline-none {status >= 500
-					? 'border border-gray-300 text-gray-700 hover:bg-gray-50'
-					: 'bg-blue-600 text-white hover:bg-blue-700'}"
+				class="btn-lg {status >= 500 ? 'btn-secondary' : 'btn-primary'}"
 			>
 				Перейти в каталог
 			</a>
 			<a
 				href="/"
-				class="rounded-md border border-gray-300 px-6 py-3 font-medium text-gray-700 transition-colors hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:outline-none"
+				class="btn-secondary btn-lg"
 			>
 				На главную
 			</a>
 		</div>
 
-		<p class="mt-10 text-xs text-gray-500">Код ошибки: {status}</p>
+		<p class="mt-10 text-label text-gray-500">Код ошибки: {status}</p>
 	</div>
 </section>

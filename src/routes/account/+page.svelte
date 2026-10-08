@@ -88,7 +88,7 @@
 	<meta name="robots" content="noindex" />
 </svelte:head>
 
-<div class="bg-white rounded-lg shadow-md p-6">
+<div class="rounded-2xl bg-surface p-5 md:p-6">
 	<h1 class="text-headline text-ink mb-6">Профиль</h1>
 
 	{#if $authStore.user}
@@ -120,23 +120,23 @@
 										disabled={savingName}
 										aria-invalid={!!nameError}
 										aria-describedby="profile-name-hint"
-										class="min-h-11 w-full rounded-md border border-gray-300 px-3 py-2 text-base focus:ring-2 focus:ring-blue-500 focus:outline-none aria-invalid:border-red-500"
+										class="w-full field"
 									/>
-									<p id="profile-name-hint" class="text-sm {nameError ? 'text-red-700' : 'text-gray-500'}">
+									<p id="profile-name-hint" class="text-body-sm {nameError ? 'text-negative' : 'text-gray-500'}">
 										{nameError ?? 'Его видят в ваших отзывах.'}
 									</p>
 									<div class="flex gap-2">
 										<button
 											type="submit"
 											disabled={savingName}
-											class="min-h-11 rounded-md bg-blue-600 px-4 text-control text-white hover:bg-blue-700 disabled:opacity-50"
+											class="btn-primary"
 										>
 											{savingName ? 'Сохраняем…' : 'Сохранить'}
 										</button>
 										<button
 											type="button"
 											onclick={() => (editingName = false)}
-											class="min-h-11 rounded-md px-4 text-control text-gray-700 hover:bg-gray-100"
+											class="btn-secondary"
 										>
 											Отмена
 										</button>
@@ -148,7 +148,7 @@
 									type="button"
 									onclick={startEditingName}
 									aria-label="Изменить имя"
-									class="ml-2 inline-flex min-h-11 items-center text-sm text-gray-600 underline-offset-4 hover:text-ink hover:underline"
+									class="ml-2 inline-flex min-h-11 items-center text-body-sm text-gray-600 underline-offset-4 hover:text-ink hover:underline"
 								>
 									Изменить
 								</button>
@@ -167,7 +167,7 @@
 			<EmailChange bind:this={emailChange} currentEmail={$authStore.user.email} />
 
 			<!-- Пароль -->
-			<div class="border-t pt-6">
+			<div class="border-t border-line pt-6">
 				<h2 class="text-title text-ink mb-2">Пароль</h2>
 				{#if changingPassword}
 					<ChangePasswordForm
@@ -177,11 +177,11 @@
 						}}
 					/>
 				{:else}
-					<p class="mb-4 text-sm text-gray-600">После смены пароля на других устройствах нужно будет войти заново.</p>
+					<p class="mb-4 text-body-sm text-gray-600">После смены пароля на других устройствах нужно будет войти заново.</p>
 					<button
 						type="button"
 						onclick={() => (changingPassword = true)}
-						class="min-h-11 rounded-md border border-gray-300 px-4 text-control transition-colors hover:bg-gray-50"
+						class="btn-secondary"
 					>
 						Сменить пароль
 					</button>
@@ -189,31 +189,31 @@
 			</div>
 
 			<!-- Удаление аккаунта -->
-			<div class="border-t pt-6">
+			<div class="border-t border-line pt-6">
 				<h2 class="text-title text-ink mb-2">Удаление аккаунта</h2>
-				<p class="mb-4 text-sm text-gray-600">Аккаунт удалится безвозвратно, восстановить его не получится.</p>
+				<p class="mb-4 text-body-sm text-gray-600">Аккаунт удалится безвозвратно, восстановить его не получится.</p>
 				
 				{#if !showDeleteConfirm}
 					<button
 						onclick={() => showDeleteConfirm = true}
-						class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
+						class="btn-secondary text-negative"
 					>
 						Удалить аккаунт
 					</button>
 				{:else}
 					<div class="space-y-4">
-						<p class="text-sm text-gray-600">
+						<p class="text-body-sm text-gray-600">
 							Чтобы подтвердить удаление, введите пароль от аккаунта.
 						</p>
 						
 						{#if deleteError}
-							<div role="alert" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+							<div role="alert" class="notice-error">
 								{deleteError}
 							</div>
 						{/if}
 
 						<div>
-							<label for="delete-password" class="block text-sm font-medium text-gray-700 mb-1">
+							<label for="delete-password" class="field-label">
 								Пароль
 							</label>
 							<input
@@ -221,15 +221,15 @@
 								type="password"
 								bind:value={deletePassword}
 								autocomplete="current-password"
-								class="w-full md:w-64 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
+								class="w-full md:w-64 field"
 							/>
 						</div>
 
-						<div class="flex space-x-2">
+						<div class="flex gap-1">
 							<button
 								onclick={handleDeleteAccount}
 								disabled={isDeleting}
-								class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors disabled:opacity-50"
+								class="btn-danger"
 							>
 								{isDeleting ? 'Удаляем аккаунт…' : 'Удалить аккаунт навсегда'}
 							</button>
@@ -239,7 +239,7 @@
 									deletePassword = '';
 									deleteError = null;
 								}}
-								class="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors text-control"
+								class="btn-secondary"
 							>
 								Отмена
 							</button>

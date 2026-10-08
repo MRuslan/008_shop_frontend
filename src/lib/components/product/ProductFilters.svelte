@@ -146,7 +146,7 @@
 		<button
 			type="button"
 			onclick={reset}
-			class="inline-flex min-h-11 items-center text-sm font-medium text-gray-600 underline decoration-gray-300 underline-offset-4 hover:text-ink hover:decoration-ink"
+			class="inline-flex min-h-11 items-center text-control text-gray-600 underline decoration-gray-300 underline-offset-4 hover:text-ink hover:decoration-ink"
 		>
 			Сбросить фильтры
 		</button>

@@ -1,5 +1,8 @@
 <script lang="ts">
 	import type { Address } from '$lib/types/common';
+	import Pencil from '@lucide/svelte/icons/pencil';
+	import Trash2 from '@lucide/svelte/icons/trash-2';
+	import Plus from '@lucide/svelte/icons/plus';
 	import { confirmDialog } from '$lib/stores/confirm';
 
 	interface Props {
@@ -49,9 +52,9 @@
 		{@const inputId = `${groupName}-${address.id}`}
 		{@const selected = selectedAddressId === address.id}
 		<div
-			class="flex items-start rounded-lg border-2 transition-colors has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-blue-500 has-[:focus-visible]:ring-offset-2 {selected
-				? 'border-blue-600'
-				: 'border-gray-300 hover:border-gray-400'}"
+			class="flex items-start rounded-xl border-2 transition-colors has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ink has-[:focus-visible]:ring-offset-2 {selected
+				? 'border-ink'
+				: 'border-line hover:border-gray-300'}"
 		>
 			<input
 				type="radio"
@@ -66,46 +69,32 @@
 				<span class="mb-2 flex flex-wrap items-center gap-2">
 					<span class="text-title-sm text-ink">{address.label}</span>
 					{#if address.isDefault}
-						<span class="rounded bg-gray-100 px-2 py-1 text-label font-medium text-gray-700">По умолчанию</span>
+						<span class="rounded-md bg-gray-100 px-2 py-0.5 text-label font-medium text-gray-700">По умолчанию</span>
 					{/if}
 				</span>
-				<span class="block text-sm text-gray-600">{formatAddress(address)}</span>
+				<span class="block text-body-sm text-gray-600">{formatAddress(address)}</span>
 				{#if address.postalCode}
-					<span class="block text-sm text-gray-600">Индекс: {address.postalCode}</span>
+					<span class="block text-body-sm text-gray-600">Индекс: {address.postalCode}</span>
 				{/if}
-				<span class="block text-sm text-gray-600">Телефон: {address.phone}</span>
+				<span class="block text-body-sm text-gray-600">Телефон: {address.phone}</span>
 			</label>
 
 			<div class="flex shrink-0 gap-1 p-2">
 				<button
 					type="button"
 					onclick={() => onEdit(address)}
-					class="rounded p-2 text-blue-600 transition-colors hover:bg-blue-50 hover:text-blue-800 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none"
+					class="inline-flex size-11 items-center justify-center rounded-xl text-gray-600 transition-colors hover:bg-gray-100 hover:text-ink"
 					aria-label="Редактировать адрес «{address.label}»"
 				>
-					<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-						<path
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							stroke-width="2"
-							d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-						/>
-					</svg>
+					<Pencil class="size-4.5" aria-hidden="true" />
 				</button>
 				<button
 					type="button"
 					onclick={() => handleDelete(address)}
-					class="rounded p-2 text-red-600 transition-colors hover:bg-red-50 hover:text-red-800 focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:outline-none"
+					class="inline-flex size-11 items-center justify-center rounded-xl text-gray-600 transition-colors hover:bg-negative/8 hover:text-negative"
 					aria-label="Удалить адрес «{address.label}»"
 				>
-					<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-						<path
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							stroke-width="2"
-							d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-						/>
-					</svg>
+					<Trash2 class="size-4.5" aria-hidden="true" />
 				</button>
 			</div>
 		</div>
@@ -114,8 +103,9 @@
 	<button
 		type="button"
 		onclick={onAddNew}
-		class="w-full rounded-lg border-2 border-dashed border-gray-300 p-4 text-gray-600 transition-colors hover:border-blue-600 hover:text-blue-600 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none"
+		class="btn-secondary w-full"
 	>
+		<Plus class="size-4" aria-hidden="true" />
 		Добавить адрес
 	</button>
 </fieldset>

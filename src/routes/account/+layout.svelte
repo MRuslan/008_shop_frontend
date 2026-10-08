@@ -6,7 +6,10 @@
 	import Package from '@lucide/svelte/icons/package';
 	import MapPin from '@lucide/svelte/icons/map-pin';
 	import Heart from '@lucide/svelte/icons/heart';
+	import LayoutDashboard from '@lucide/svelte/icons/layout-dashboard';
+	import LogOut from '@lucide/svelte/icons/log-out';
 	import SideMenuSkeleton from '$lib/components/ui/SideMenuSkeleton.svelte';
+	import CategoryChips from '$lib/components/catalog/CategoryChips.svelte';
 
 	let { children } = $props();
 
@@ -29,30 +32,41 @@
 		goto('/');
 	}
 
+	// Профиль — только сам /account; остальные разделы подсвечиваются и на вложенных страницах (заказ №N)
 	function isCurrent(href: string): boolean {
-		return page.url.pathname === href;
+		const path = page.url.pathname;
+		return href === '/account' ? path === href : path === href || path.startsWith(`${href}/`);
 	}
 </script>
 
 {#if $authStore.isLoading}
 	<SideMenuSkeleton items={5} />
 {:else if $authStore.isAuthenticated}
-	<div class="container mx-auto px-4 py-8">
-		<div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
-			<!-- Боковое меню -->
-			<aside class="lg:col-span-1">
-				<nav class="bg-white rounded-lg shadow-md p-4" aria-label="Личный кабинет">
+	<div class="container py-4 md:py-6">
+		<!-- Телефон: разделы строкой чипсов, как в каталоге; первый экран остаётся за содержимым -->
+		<div class="mb-3 lg:hidden">
+			<CategoryChips
+				label="Разделы кабинета"
+				chips={[
+					...menuItems.map((item) => ({ label: item.label, href: item.href, active: isCurrent(item.href) })),
+					...($hasRole(['admin', 'manager']) ? [{ label: 'Админ-панель', href: '/admin', active: false }] : [])
+				]}
+			/>
+		</div>
+
+		<div class="lg:grid lg:grid-cols-[16rem_minmax(0,1fr)] lg:items-start lg:gap-6">
+			<!-- Десктоп: боковое меню -->
+			<aside class="hidden lg:sticky lg:top-4 lg:block">
+				<nav class="rounded-2xl bg-surface p-5" aria-label="Личный кабинет">
 					<h2 class="text-title text-ink mb-4">Личный кабинет</h2>
-					<ul class="space-y-2">
+					<ul class="space-y-1">
 						{#each menuItems as item (item.href)}
 							<li>
 								<a
 									href={item.href}
-									class="flex min-h-11 items-center gap-2.5 px-4 py-2 rounded-md transition-colors"
-									class:bg-blue-100={isCurrent(item.href)}
-									class:text-blue-800={isCurrent(item.href)}
-									class:hover:bg-gray-100={!isCurrent(item.href)}
-									class:text-gray-700={!isCurrent(item.href)}
+									class="flex min-h-11 items-center gap-2.5 rounded-xl px-3 text-control transition-colors {isCurrent(item.href)
+										? 'bg-gray-100 text-ink'
+										: 'text-gray-700 hover:bg-gray-50 hover:text-ink'}"
 									aria-current={isCurrent(item.href) ? 'page' : undefined}
 								>
 									<item.icon class="size-4.5 shrink-0" aria-hidden="true" />
@@ -62,31 +76,42 @@
 						{/each}
 						{#if $hasRole(['admin', 'manager'])}
 							<li>
-								<a href="/admin" class="flex min-h-11 items-center rounded-md px-4 text-gray-700 transition-colors hover:bg-gray-100">
-									Админ-панель
+								<a href="/admin" class="flex min-h-11 items-center gap-2.5 rounded-xl px-3 text-control text-gray-700 transition-colors hover:bg-gray-50 hover:text-ink">
+									<LayoutDashboard class="size-4.5 shrink-0" aria-hidden="true" />
+									<span>Админ-панель</span>
 								</a>
 							</li>
 						{/if}
 					</ul>
-					<button
-						type="button"
-						onclick={handleLogout}
-						class="mt-4 flex min-h-11 w-full items-center rounded-md px-4 text-left text-gray-700 transition-colors hover:bg-gray-100"
-					>
-						Выйти
-					</button>
+					<div class="mt-3 border-t border-line pt-3">
+						<button
+							type="button"
+							onclick={handleLogout}
+							class="flex min-h-11 w-full items-center gap-2.5 rounded-xl px-3 text-left text-control text-gray-700 transition-colors hover:bg-gray-50 hover:text-ink"
+						>
+							<LogOut class="size-4.5 shrink-0" aria-hidden="true" />
+							Выйти
+						</button>
+					</div>
 				</nav>
 			</aside>
 
 			<!-- Основной контент -->
-			<div class="lg:col-span-3">
+			<div class="min-w-0">
 				{@render children()}
+				<!-- На телефоне бокового меню нет: выход внизу страницы кабинета -->
+				<div class="mt-4 flex justify-center lg:hidden">
+					<button type="button" onclick={handleLogout} class="btn-text">
+						<LogOut class="size-4.5" aria-hidden="true" />
+						Выйти из аккаунта
+					</button>
+				</div>
 			</div>
 		</div>
 	</div>
 {:else}
-	<div class="container mx-auto px-4 py-8 text-center">
+	<div class="container py-12 text-center">
 		<p class="text-gray-500 mb-4">Необходима авторизация</p>
-		<a href="/" class="text-blue-600 hover:text-blue-800">Вернуться на главную</a>
+		<a href="/" class="link">Вернуться на главную</a>
 	</div>
 {/if}

@@ -3,6 +3,7 @@
 	import LoginForm from './LoginForm.svelte';
 	import RegisterForm from './RegisterForm.svelte';
 	import ForgotPasswordForm from './ForgotPasswordForm.svelte';
+	import X from '@lucide/svelte/icons/x';
 
 	// forgot — восстановление пароля: не вкладка, а отдельный шаг из формы входа
 	type Mode = 'login' | 'register' | 'forgot';
@@ -103,10 +104,10 @@
 	onclick={handleBackdropClick}
 	onkeydown={handleDialogKeydown}
 	aria-label={mode === 'login' ? 'Вход в аккаунт' : mode === 'register' ? 'Регистрация' : 'Восстановление пароля'}
-	class="m-auto w-[calc(100%-2rem)] max-w-md rounded-lg bg-white p-0 text-gray-900 shadow-xl backdrop:bg-black/50"
+	class="m-auto w-[calc(100%-2rem)] max-w-md rounded-2xl bg-surface p-0 text-gray-900 shadow-[0_8px_24px_rgb(0_0_0/0.18)] backdrop:bg-black/40"
 >
 	{#if open}
-		<div class="p-6">
+		<div class="p-5 md:p-6">
 			<div class="mb-6 flex items-center justify-between gap-4">
 				{#if mode === 'forgot'}
 					<h2 class="text-title text-ink">Восстановление пароля</h2>
@@ -114,7 +115,7 @@
 				<div
 					role="tablist"
 					aria-label="Вход или регистрация"
-					class="flex gap-4"
+					class="flex gap-1 rounded-xl bg-gray-100 p-1"
 					onkeydown={handleTabKeydown}
 				>
 					{#each tabs as tab (tab.id)}
@@ -126,10 +127,9 @@
 							aria-controls="auth-panel"
 							tabindex={mode === tab.id ? 0 : -1}
 							onclick={() => switchMode(tab.id)}
-							class="min-h-11 rounded-t border-b-2 px-4 py-2 text-control transition-colors focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none {mode ===
-							tab.id
-								? 'border-blue-600 text-blue-600'
-								: 'border-transparent text-gray-500 hover:text-gray-700'}"
+							class="min-h-11 rounded-lg px-4 text-control transition-colors {mode === tab.id
+								? 'bg-surface text-ink'
+								: 'text-gray-600 hover:text-ink'}"
 						>
 							{tab.label}
 						</button>
@@ -139,28 +139,15 @@
 				<button
 					type="button"
 					onclick={close}
-					class="-mr-2 inline-flex h-11 w-11 shrink-0 items-center justify-center rounded text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none"
+					class="-mr-2 inline-flex size-11 shrink-0 items-center justify-center rounded-xl text-gray-500 transition-colors hover:bg-gray-100 hover:text-ink"
 					aria-label="Закрыть окно входа"
 				>
-					<svg
-						class="w-6 h-6"
-						fill="none"
-						stroke="currentColor"
-						viewBox="0 0 24 24"
-						aria-hidden="true"
-					>
-						<path
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							stroke-width="2"
-							d="M6 18L18 6M6 6l12 12"
-						/>
-					</svg>
+					<X class="size-5" aria-hidden="true" />
 				</button>
 			</div>
 
 			{#if reason && mode !== 'forgot'}
-				<p class="mb-4 text-sm text-gray-600">{reason}</p>
+				<p class="mb-4 text-body-sm text-gray-600">{reason}</p>
 			{/if}
 
 			{#if mode === 'forgot'}

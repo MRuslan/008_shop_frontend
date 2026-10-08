@@ -1,4 +1,6 @@
 <script lang="ts">
+	import Plus from '@lucide/svelte/icons/plus';
+	import ActiveBadge from '$lib/components/ui/ActiveBadge.svelte';
 	import { invalidateAll } from '$app/navigation';
 	import { categoriesApi } from '$lib/api/categories';
 	import type { Category } from '$lib/types/product';
@@ -107,61 +109,66 @@
 	<title>Управление категориями - Админ-панель</title>
 </svelte:head>
 
-<div class="bg-white rounded-lg shadow-md p-6">
+<div class="rounded-2xl bg-surface p-5 md:p-6">
 	<div class="flex items-center justify-between mb-6">
 		<h1 class="text-headline text-ink">Управление категориями</h1>
 		<button
 			onclick={handleCreate}
-			class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+			class="btn-primary"
 		>
-			+ Добавить категорию
+			<Plus class="size-4" aria-hidden="true" />
+			Добавить категорию
 		</button>
 	</div>
 
 	<!-- Форма категории -->
 	{#if showCategoryForm}
-		<div class="mb-6 bg-gray-50 rounded-lg p-6 border-2 border-blue-500">
+		<!-- Форма — раздел той же панели, отделённый линией, а не вложенная карточка -->
+		<div class="mb-6 border-b border-line pb-6">
 			<h2 class="text-title text-ink mb-4">
 				{editingCategory ? 'Редактирование категории' : 'Создание категории'}
 			</h2>
 
 			<form onsubmit={(e) => { e.preventDefault(); handleSubmit(); }} class="space-y-4">
 				{#if error}
-					<div role="alert" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+					<div role="alert" class="notice-error">
 						{error}
 					</div>
 				{/if}
 
 				<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 					<div>
-						<label class="block text-sm font-medium text-gray-700 mb-1">
-							Название <span class="text-red-500">*</span>
+						<label for="category-field-1" class="field-label">
+							Название <span class="text-negative" aria-hidden="true">*</span>
 						</label>
 						<input
+						id="category-field-1"
 							type="text"
 							bind:value={name}
 							required
-							class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+							class="w-full field"
 						/>
 					</div>
 
 					<div>
-						<label class="block text-sm font-medium text-gray-700 mb-1">Slug</label>
+						<label for="category-field-2" class="field-label">Slug</label>
 						<input
+						id="category-field-2"
 							type="text"
 							bind:value={slug}
 							placeholder="Автоматически из названия"
-							class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+							class="w-full field"
 						/>
 					</div>
 				</div>
 
 				<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 					<div>
-						<label class="block text-sm font-medium text-gray-700 mb-1">Родительская категория</label>
+						<label for="category-field-3" class="field-label">Родительская категория</label>
 						<select
+						id="category-field-3"
 							bind:value={parentId}
-							class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+							class="w-full field"
 						>
 							<option value={null}>Корневая категория</option>
 							{#each data.categories as cat}
@@ -180,31 +187,32 @@
 					</div>
 
 					<div>
-						<label class="block text-sm font-medium text-gray-700 mb-1">Порядок сортировки</label>
+						<label for="category-field-4" class="field-label">Порядок сортировки</label>
 						<input
+						id="category-field-4"
 							type="number"
 							bind:value={sortOrder}
-							class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+							class="w-full field"
 						/>
 					</div>
 				</div>
 
 				<div>
-					<label class="flex items-center space-x-2">
+					<label class="flex min-h-11 cursor-pointer items-center gap-2.5">
 						<input
 							type="checkbox"
 							bind:checked={isActive}
-							class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+							class="size-4"
 						/>
-						<span class="text-sm text-gray-700">Категория активна</span>
+						<span class="text-body-sm text-gray-800">Категория активна</span>
 					</label>
 				</div>
 
-				<div class="flex space-x-2 pt-4">
+				<div class="flex flex-wrap gap-2 pt-2">
 					<button
 						type="submit"
 						disabled={isSubmitting}
-						class="flex-1 bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50"
+						class="flex-1 btn-primary"
 					>
 						{isSubmitting ? 'Сохранение...' : 'Сохранить'}
 					</button>
@@ -214,7 +222,7 @@
 							showCategoryForm = false;
 							editingCategory = null;
 						}}
-						class="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+						class="btn-secondary"
 					>
 						Отмена
 					</button>
@@ -227,32 +235,24 @@
 	<div class="space-y-2">
 		{#each data.categories as category}
 			<div class="mb-2">
-				<div class="flex items-center justify-between p-3 bg-white border border-gray-200 rounded">
+				<div class="flex items-center justify-between rounded-xl bg-gray-50 p-3 pl-4">
 					<div class="flex-1">
 						<div class="font-medium text-gray-900">{category.name}</div>
-						<div class="text-sm text-gray-500">Slug: {category.slug}</div>
-						<div class="flex items-center space-x-2 mt-1">
-							<span
-								class="px-2 py-1 text-xs rounded"
-								class:bg-green-100={category.isActive}
-								class:text-green-800={category.isActive}
-								class:bg-red-100={!category.isActive}
-								class:text-red-800={!category.isActive}
-							>
-								{category.isActive ? 'Активна' : 'Неактивна'}
-							</span>
+						<div class="text-body-sm text-gray-500">Slug: {category.slug}</div>
+						<div class="flex items-center gap-2 mt-1">
+							<ActiveBadge active={category.isActive} on="Активна" off="Неактивна" />
 						</div>
 					</div>
-					<div class="flex space-x-2">
+					<div class="flex gap-1">
 						<button
 							onclick={() => handleEdit(category)}
-							class="px-3 py-1 pointer-coarse:min-h-11 text-indigo-600 hover:text-indigo-900 text-sm"
+							class="btn-text"
 						>
 							Редактировать
 						</button>
 						<button
 							onclick={() => handleDelete(category)}
-							class="px-3 py-1 pointer-coarse:min-h-11 text-red-600 hover:text-red-900 text-sm"
+							class="btn-text text-negative hover:text-negative"
 						>
 							Удалить
 						</button>
@@ -261,32 +261,24 @@
 				{#if category.children && category.children.length > 0}
 					<div class="ml-6 mt-2 space-y-2">
 						{#each category.children as child}
-							<div class="flex items-center justify-between p-3 bg-gray-50 border border-gray-200 rounded">
+							<div class="flex items-center justify-between rounded-xl bg-gray-50 p-3 pl-4">
 								<div class="flex-1">
 									<div class="font-medium text-gray-900">— {child.name}</div>
-									<div class="text-sm text-gray-500">Slug: {child.slug}</div>
-									<div class="flex items-center space-x-2 mt-1">
-										<span
-											class="px-2 py-1 text-xs rounded"
-											class:bg-green-100={child.isActive}
-											class:text-green-800={child.isActive}
-											class:bg-red-100={!child.isActive}
-											class:text-red-800={!child.isActive}
-										>
-											{child.isActive ? 'Активна' : 'Неактивна'}
-										</span>
+									<div class="text-body-sm text-gray-500">Slug: {child.slug}</div>
+									<div class="flex items-center gap-2 mt-1">
+										<ActiveBadge active={child.isActive} on="Активна" off="Неактивна" />
 									</div>
 								</div>
-								<div class="flex space-x-2">
+								<div class="flex gap-1">
 									<button
 										onclick={() => handleEdit(child)}
-										class="px-3 py-1 pointer-coarse:min-h-11 text-indigo-600 hover:text-indigo-900 text-sm"
+										class="btn-text"
 									>
 										Редактировать
 									</button>
 									<button
 										onclick={() => handleDelete(child)}
-										class="px-3 py-1 pointer-coarse:min-h-11 text-red-600 hover:text-red-900 text-sm"
+										class="btn-text text-negative hover:text-negative"
 									>
 										Удалить
 									</button>

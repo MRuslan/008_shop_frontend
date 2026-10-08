@@ -1,6 +1,6 @@
 // Store для управления состоянием авторизации
 
-import { writable, derived, get } from 'svelte/store';
+import { writable, derived } from 'svelte/store';
 import { browser } from '$app/environment';
 import { authApi } from '$lib/api/auth';
 import type { User, Role } from '$lib/types/auth';

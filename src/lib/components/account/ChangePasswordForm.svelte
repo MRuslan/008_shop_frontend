@@ -63,7 +63,7 @@
 	}
 
 	const inputClass =
-		'min-h-11 w-full rounded-md border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none aria-invalid:border-red-500 md:w-80';
+		'field w-full md:w-80';
 </script>
 
 <form
@@ -75,11 +75,11 @@
 	novalidate
 >
 	{#if error}
-		<div role="alert" class="rounded border border-red-400 bg-red-100 px-4 py-3 text-red-700">{error}</div>
+		<div role="alert" class="notice-error">{error}</div>
 	{/if}
 
 	<div>
-		<label for="current-password" class="mb-1 block text-sm font-medium text-gray-700">Текущий пароль</label>
+		<label for="current-password" class="field-label">Текущий пароль</label>
 		<input
 			id="current-password"
 			type="password"
@@ -91,12 +91,12 @@
 			class={inputClass}
 		/>
 		{#if shown.currentPassword}
-			<p id="current-password-error" class="mt-1 text-sm text-red-700">{shown.currentPassword}</p>
+			<p id="current-password-error" class="field-error">{shown.currentPassword}</p>
 		{/if}
 	</div>
 
 	<div>
-		<label for="new-password" class="mb-1 block text-sm font-medium text-gray-700">Новый пароль</label>
+		<label for="new-password" class="field-label">Новый пароль</label>
 		<input
 			id="new-password"
 			type="password"
@@ -107,13 +107,13 @@
 			aria-describedby="new-password-hint"
 			class={inputClass}
 		/>
-		<p id="new-password-hint" class="mt-1 text-sm {shown.newPassword ? 'text-red-700' : 'text-gray-500'}">
+		<p id="new-password-hint" class={shown.newPassword ? 'field-error' : 'field-hint'}>
 			{shown.newPassword ?? `Не короче ${PASSWORD_MIN} символов. Другие устройства выйдут из аккаунта.`}
 		</p>
 	</div>
 
 	<div>
-		<label for="confirm-new-password" class="mb-1 block text-sm font-medium text-gray-700">Повторите новый пароль</label>
+		<label for="confirm-new-password" class="field-label">Повторите новый пароль</label>
 		<input
 			id="confirm-new-password"
 			type="password"
@@ -125,7 +125,7 @@
 			class={inputClass}
 		/>
 		{#if shown.confirm}
-			<p id="confirm-new-password-error" class="mt-1 text-sm text-red-700">{shown.confirm}</p>
+			<p id="confirm-new-password-error" class="field-error">{shown.confirm}</p>
 		{/if}
 	</div>
 
@@ -133,14 +133,14 @@
 		<button
 			type="submit"
 			disabled={isSaving}
-			class="min-h-11 rounded-md bg-blue-600 px-4 text-control text-white transition-colors hover:bg-blue-700 disabled:opacity-50"
+			class="btn-primary"
 		>
 			{isSaving ? 'Сохраняем…' : 'Сменить пароль'}
 		</button>
 		<button
 			type="button"
 			onclick={onDone}
-			class="min-h-11 rounded-md border border-gray-300 px-4 text-control transition-colors hover:bg-gray-50"
+			class="btn-secondary"
 		>
 			Отмена
 		</button>

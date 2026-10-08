@@ -79,7 +79,7 @@
 				type="button"
 				onclick={retry}
 				disabled={retrying}
-				class="mt-5 inline-flex h-11 items-center rounded-xl bg-ink px-5 text-sm font-medium text-white transition-colors hover:bg-ink-hover disabled:cursor-not-allowed disabled:opacity-60"
+				class="btn-primary mt-5"
 			>
 				{retrying ? 'Обновляем…' : 'Попробовать снова'}
 			</button>
@@ -92,7 +92,7 @@
 			<p class="mt-1 text-sm text-gray-600">Проверьте написание или поищите похожее в каталоге.</p>
 			<a
 				href="/catalog"
-				class="mt-5 inline-flex h-11 items-center rounded-xl bg-ink px-5 text-sm font-medium text-white transition-colors hover:bg-ink-hover"
+				class="btn-primary mt-5"
 			>
 				Открыть каталог
 			</a>

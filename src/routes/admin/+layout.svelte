@@ -11,6 +11,7 @@
 	import MapPin from '@lucide/svelte/icons/map-pin';
 	import Settings from '@lucide/svelte/icons/settings';
 	import SideMenuSkeleton from '$lib/components/ui/SideMenuSkeleton.svelte';
+	import CategoryChips from '$lib/components/catalog/CategoryChips.svelte';
 
 	let { children } = $props();
 
@@ -45,22 +46,30 @@
 {#if $authStore.isLoading}
 	<SideMenuSkeleton items={6} />
 {:else if $authStore.isAuthenticated && $isAdminOrManager}
-	<div class="container mx-auto px-4 py-8">
-		<div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
-			<!-- Боковое меню -->
-			<aside class="lg:col-span-1">
-				<div class="bg-white rounded-lg shadow-md p-4 sticky top-4">
+	<div class="container py-4 md:py-6">
+		<!-- Телефон: разделы строкой чипсов; админка рассчитана на десктоп, но не ломается на телефоне -->
+		<div class="mb-3 lg:hidden">
+			<CategoryChips
+				label="Разделы админ-панели"
+				chips={menuItems
+					.filter((item) => $hasRole(item.roles))
+					.map((item) => ({ label: item.label, href: item.href, active: isCurrent(item.href) }))}
+			/>
+		</div>
+
+		<div class="lg:grid lg:grid-cols-[16rem_minmax(0,1fr)] lg:items-start lg:gap-6">
+			<!-- Десктоп: боковое меню -->
+			<aside class="hidden lg:sticky lg:top-4 lg:block">
+				<div class="rounded-2xl bg-surface p-5">
 					<h2 class="text-title text-ink mb-4">Админ-панель</h2>
-					<nav class="space-y-2" aria-label="Разделы админ-панели">
+					<nav class="space-y-1" aria-label="Разделы админ-панели">
 						{#each menuItems as item (item.href)}
 							{#if $hasRole(item.roles)}
 								<a
 									href={item.href}
-									class="flex min-h-11 items-center gap-2.5 px-4 py-2 rounded-md transition-colors"
-									class:bg-blue-100={isCurrent(item.href)}
-									class:text-blue-800={isCurrent(item.href)}
-									class:hover:bg-gray-100={!isCurrent(item.href)}
-									class:text-gray-700={!isCurrent(item.href)}
+									class="flex min-h-11 items-center gap-2.5 rounded-xl px-3 text-control transition-colors {isCurrent(item.href)
+										? 'bg-gray-100 text-ink'
+										: 'text-gray-700 hover:bg-gray-50 hover:text-ink'}"
 									aria-current={isCurrent(item.href) ? 'page' : undefined}
 								>
 									<item.icon class="size-4.5 shrink-0" aria-hidden="true" />
@@ -73,14 +82,14 @@
 			</aside>
 
 			<!-- Основной контент -->
-			<div class="lg:col-span-3">
+			<div class="min-w-0">
 				{@render children()}
 			</div>
 		</div>
 	</div>
 {:else}
-	<div class="container mx-auto px-4 py-8 text-center">
-		<p class="text-gray-500 mb-4">Доступ запрещён</p>
-		<a href="/" class="text-blue-600 hover:text-blue-800">Вернуться на главную</a>
+	<div class="container py-12 text-center">
+		<p class="mb-4 text-body text-gray-600">Доступ запрещён</p>
+		<a href="/" class="link">Вернуться на главную</a>
 	</div>
 {/if}

@@ -44,13 +44,13 @@
 
 <form onsubmit={(e) => { e.preventDefault(); handleSubmit(); }} class="space-y-4" novalidate>
 	{#if error}
-		<div role="alert" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+		<div role="alert" class="notice-error">
 			{error}
 		</div>
 	{/if}
 
 	<div>
-		<label for="login-email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+		<label for="login-email" class="field-label">Email</label>
 		<input
 			id="login-email"
 			type="email"
@@ -59,12 +59,12 @@
 			autocomplete="email"
 			inputmode="email"
 			disabled={isLoading}
-			class="w-full min-h-11 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+			class="w-full field"
 		/>
 	</div>
 
 	<div>
-		<label for="login-password" class="block text-sm font-medium text-gray-700 mb-1">Пароль</label>
+		<label for="login-password" class="field-label">Пароль</label>
 		<input
 			id="login-password"
 			type="password"
@@ -72,7 +72,7 @@
 			required
 			autocomplete="current-password"
 			disabled={isLoading}
-			class="w-full min-h-11 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+			class="w-full field"
 		/>
 		<!-- После поля, а не у подписи: Tab из email ведёт прямо в пароль -->
 		{#if onForgot}
@@ -80,7 +80,7 @@
 				<button
 					type="button"
 					onclick={() => onForgot(email.trim())}
-					class="-mb-2 inline-flex min-h-11 items-center text-sm text-gray-600 underline-offset-4 hover:text-ink hover:underline"
+					class="-mb-2 inline-flex min-h-11 items-center text-body-sm text-gray-600 underline-offset-4 hover:text-ink hover:underline"
 				>
 					Забыли пароль?
 				</button>
@@ -91,7 +91,7 @@
 	<button
 		type="submit"
 		disabled={isLoading}
-		class="w-full min-h-11 bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-control"
+		class="w-full btn-primary"
 	>
 		{isLoading ? 'Входим…' : 'Войти'}
 	</button>

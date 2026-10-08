@@ -88,7 +88,7 @@
 			<button
 				type="button"
 				onclick={() => ($authStore.isAuthenticated ? (showReviewForm = true) : window.dispatchEvent(new CustomEvent('open-auth-modal', { detail: { reason: 'Войдите, чтобы написать отзыв о товаре.' } })))}
-				class="inline-flex h-11 items-center gap-2 rounded-xl bg-gray-100 px-4 text-sm font-medium text-ink transition-colors hover:bg-gray-200"
+				class="btn-secondary"
 			>
 				<PenLine class="size-4" aria-hidden="true" />
 				Написать отзыв
@@ -109,11 +109,11 @@
 	{/if}
 
 	{#if isLoading}
-		<p class="mt-4 text-sm text-gray-500" role="status">Загружаем отзывы…</p>
+		<p class="mt-4 text-body-sm text-gray-600" role="status">Загружаем отзывы…</p>
 	{:else if error}
-		<p role="alert" class="mt-4 rounded-xl bg-red-50 px-4 py-3 text-sm text-negative">{error}</p>
+		<p role="alert" class="mt-4 notice-error">{error}</p>
 	{:else if reviews.length === 0}
-		<p class="mt-4 max-w-[36rem] text-sm text-gray-600">Отзывов пока нет. Купили этот товар? Расскажите, как он вам.</p>
+		<p class="mt-4 max-w-[36rem] text-body-sm text-gray-600">Отзывов пока нет. Купили этот товар? Расскажите, как он вам.</p>
 	{:else}
 		<ul class="mt-2 divide-y divide-line">
 			{#each reviews as review (review.id)}
@@ -131,7 +131,7 @@
 										/>
 									{/each}
 								</span>
-								<time datetime={review.createAt} class="text-sm text-gray-500">{formatDateTime(review.createAt)}</time>
+								<time datetime={review.createAt} class="text-body-sm text-gray-500">{formatDateTime(review.createAt)}</time>
 							</div>
 						</div>
 
@@ -140,7 +140,7 @@
 								<button
 									type="button"
 									onclick={() => handleDeleteReview(review.id)}
-									class="inline-flex size-11 items-center justify-center rounded-xl text-gray-500 transition-colors hover:bg-red-50 hover:text-negative"
+									class="inline-flex size-11 items-center justify-center rounded-xl text-gray-500 transition-colors hover:bg-negative/8 hover:text-negative"
 									aria-label="Удалить отзыв"
 								>
 									<Trash2 class="size-4.5" aria-hidden="true" />

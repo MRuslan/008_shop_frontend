@@ -1,4 +1,5 @@
 <script lang="ts">
+	import Plus from '@lucide/svelte/icons/plus';
 	import { onMount } from 'svelte';
 	import { productsApi } from '$lib/api/products';
 	import { locationsApi } from '$lib/api/locations';
@@ -213,31 +214,31 @@
 	}
 
 	const inputClass =
-		'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500';
+		'field w-full';
 </script>
 
-<div class="bg-gray-50 rounded-lg p-6 border-2 border-blue-500">
+<div class="border-b border-line pb-6">
 	<h2 class="text-title text-ink mb-4">
 		{product ? 'Редактирование товара' : 'Создание товара'}
 	</h2>
 
-	<form onsubmit={(e) => { e.preventDefault(); handleSubmit(); }} class="space-y-4">
+	<form onsubmit={(e) => { e.preventDefault(); handleSubmit(); }} class="space-y-6">
 		{#if error}
-			<div role="alert" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+			<div role="alert" class="notice-error">
 				{error}
 			</div>
 		{/if}
 
 		<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 			<div>
-				<label for="{formId}-name" class="block text-sm font-medium text-gray-700 mb-1">
-					Название <span class="text-red-500" aria-hidden="true">*</span>
+				<label for="{formId}-name" class="field-label">
+					Название <span class="text-negative" aria-hidden="true">*</span>
 				</label>
 				<input id="{formId}-name" type="text" bind:value={name} required maxlength="255" class={inputClass} />
 			</div>
 
 			<div>
-				<label for="{formId}-slug" class="block text-sm font-medium text-gray-700 mb-1">Slug</label>
+				<label for="{formId}-slug" class="field-label">Slug</label>
 				<input
 					id="{formId}-slug"
 					type="text"
@@ -249,31 +250,31 @@
 		</div>
 
 		<div>
-			<label for="{formId}-description" class="block text-sm font-medium text-gray-700 mb-1">Описание</label>
+			<label for="{formId}-description" class="field-label">Описание</label>
 			<textarea id="{formId}-description" bind:value={description} rows="4" class={inputClass}></textarea>
 		</div>
 
 		<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
 			<div>
-				<label for="{formId}-price" class="block text-sm font-medium text-gray-700 mb-1">
-					Цена <span class="text-red-500" aria-hidden="true">*</span>
+				<label for="{formId}-price" class="field-label">
+					Цена <span class="text-negative" aria-hidden="true">*</span>
 				</label>
 				<input id="{formId}-price" type="number" bind:value={price} min="0" step="0.01" required class={inputClass} />
 			</div>
 
 			<div>
-				<label for="{formId}-compare-price" class="block text-sm font-medium text-gray-700 mb-1">Старая цена</label>
+				<label for="{formId}-compare-price" class="field-label">Старая цена</label>
 				<input id="{formId}-compare-price" type="number" bind:value={compareAtPrice} min="0" step="0.01" class={inputClass} />
 			</div>
 
 			<div>
-				<label for="{formId}-sku" class="block text-sm font-medium text-gray-700 mb-1">Артикул</label>
+				<label for="{formId}-sku" class="field-label">Артикул</label>
 				<input id="{formId}-sku" type="text" bind:value={sku} class={inputClass} />
 			</div>
 		</div>
 
 		<div>
-			<label for="{formId}-category" class="block text-sm font-medium text-gray-700 mb-1">Категория</label>
+			<label for="{formId}-category" class="field-label">Категория</label>
 			<select id="{formId}-category" bind:value={categoryId} class="{inputClass} md:w-1/2">
 				<option value={null}>Без категории</option>
 				{#each categories as category (category.id)}
@@ -288,40 +289,40 @@
 		</div>
 
 		<div>
-			<label class="flex items-center space-x-2">
+			<label class="flex min-h-11 cursor-pointer items-center gap-2.5">
 				<input
 					type="checkbox"
 					bind:checked={isActive}
-					class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+					class="size-4"
 				/>
-				<span class="text-sm text-gray-700">Товар активен</span>
+				<span class="text-body-sm text-gray-800">Товар активен</span>
 			</label>
 		</div>
 
 		<!-- Остатки по точкам -->
 		<fieldset class="m-0 min-w-0 border-0 p-0">
-			<legend class="mb-2 block text-sm font-medium text-gray-700">
+			<legend class="mb-3 text-title-sm text-ink">
 				Остатки по точкам <span class="font-normal text-gray-500">· всего {stockTotal}&nbsp;шт.</span>
 			</legend>
 			{#if detailsLoading}
-				<p class="text-sm text-gray-500" role="status">Загружаем точки…</p>
+				<p class="text-body-sm text-gray-500" role="status">Загружаем точки…</p>
 			{:else if detailsError}
-				<p class="text-sm text-red-700" role="alert">{detailsError}</p>
+				<p class="text-body-sm text-negative" role="alert">{detailsError}</p>
 			{:else if locations.length === 0}
-				<p class="text-sm text-gray-600">
+				<p class="text-body-sm text-gray-600">
 					Точек продаж ещё нет. Без них товар нельзя заказать:
 					<a href="/admin/locations" class="underline underline-offset-4">добавьте склад или пункт выдачи</a>.
 				</p>
 			{:else}
-				<p class="mb-2 text-sm text-gray-500">
+				<p class="mb-2 text-body-sm text-gray-500">
 					Доставка списывается со склада, самовывоз — с выбранной точки.
 				</p>
 				<div class="grid gap-2 sm:grid-cols-2">
 					{#each locations as location (location.id)}
 						<div class="flex items-center gap-3">
-							<label for="{formId}-stock-{location.id}" class="min-w-0 flex-1 text-sm text-gray-700">
+							<label for="{formId}-stock-{location.id}" class="min-w-0 flex-1 text-body-sm text-gray-700">
 								<span class="block truncate">{location.name}</span>
-								<span class="block text-xs text-gray-500">
+								<span class="block text-label text-gray-500">
 									{LOCATION_TYPES[location.type]}{location.isActive ? '' : ', выключена'}
 								</span>
 							</label>
@@ -331,7 +332,7 @@
 								min="0"
 								step="1"
 								bind:value={stock[location.id]}
-								class="w-24 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+								class="w-24 field"
 							/>
 						</div>
 					{/each}
@@ -341,7 +342,7 @@
 
 		<!-- Характеристики -->
 		<fieldset class="m-0 min-w-0 border-0 p-0">
-			<legend class="mb-2 block text-sm font-medium text-gray-700">Характеристики</legend>
+			<legend class="mb-3 text-title-sm text-ink">Характеристики</legend>
 			<div class="space-y-2">
 				{#each attributes as attribute, index (index)}
 					<div class="flex flex-wrap items-center gap-2">
@@ -351,7 +352,7 @@
 							aria-label="Название характеристики {index + 1}"
 							placeholder="Например, Вес"
 							maxlength="255"
-							class="min-w-[8rem] flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+							class="min-w-[8rem] flex-1 field"
 						/>
 						<input
 							type="text"
@@ -359,7 +360,7 @@
 							aria-label="Значение характеристики {index + 1}"
 							placeholder="1,2"
 							maxlength="255"
-							class="min-w-[6rem] flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+							class="min-w-[6rem] flex-1 field"
 						/>
 						<input
 							type="text"
@@ -367,12 +368,12 @@
 							aria-label="Единица характеристики {index + 1}"
 							placeholder="кг"
 							maxlength="50"
-							class="w-20 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+							class="w-20 field"
 						/>
 						<button
 							type="button"
 							onclick={() => (attributes = attributes.filter((_, i) => i !== index))}
-							class="px-3 py-2 border border-gray-300 text-red-600 rounded-md hover:bg-red-50 transition-colors"
+							class="btn-text text-negative hover:text-negative"
 						>
 							Удалить
 						</button>
@@ -381,16 +382,17 @@
 				<button
 					type="button"
 					onclick={() => (attributes = [...attributes, { name: '', value: '', unit: '' }])}
-					class="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+					class="btn-secondary"
 				>
-					+ Добавить характеристику
+					<Plus class="size-4" aria-hidden="true" />
+					Добавить характеристику
 				</button>
 			</div>
 		</fieldset>
 
 		<!-- Изображения -->
 		<fieldset class="m-0 min-w-0 border-0 p-0">
-			<legend class="block text-sm font-medium text-gray-700 mb-2">Изображения</legend>
+			<legend class="mb-3 text-title-sm text-ink">Изображения</legend>
 			<div class="space-y-2">
 				{#each images as image, index (image.url)}
 					<div class="flex flex-wrap items-center gap-2">
@@ -402,7 +404,7 @@
 						/>
 						{#if image.thumbnailUrl}
 							<!-- Загруженный файл: ссылку не редактируем, только порядок и удаление -->
-							<span class="min-w-0 flex-1 truncate text-sm text-gray-600" title={image.url}>
+							<span class="min-w-0 flex-1 truncate text-body-sm text-gray-600" title={image.url}>
 								Загруженное фото{image.width ? `, ${image.width}×${image.height}` : ''}
 							</span>
 						{:else}
@@ -410,7 +412,7 @@
 								type="url"
 								bind:value={image.url}
 								aria-label="Ссылка на изображение {index + 1}"
-								class="flex-1 min-w-0 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+								class="flex-1 min-w-0 field"
 							/>
 						{/if}
 						<input
@@ -418,12 +420,12 @@
 							bind:value={image.sortOrder}
 							aria-label="Порядок изображения {index + 1}"
 							placeholder="Порядок"
-							class="w-24 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+							class="w-24 field"
 						/>
 						<button
 							type="button"
 							onclick={() => removeImage(index)}
-							class="px-3 py-2 border border-gray-300 text-red-600 rounded-md hover:bg-red-50 transition-colors"
+							class="btn-text text-negative hover:text-negative"
 						>
 							Удалить
 						</button>
@@ -432,13 +434,13 @@
 
 				{#each pendingFiles as file, index (file.name + index)}
 					<div class="flex flex-wrap items-center gap-2">
-						<span class="min-w-0 flex-1 truncate text-sm text-gray-700">
+						<span class="min-w-0 flex-1 truncate text-body-sm text-gray-700">
 							{file.name} <span class="text-gray-500">· загрузится при сохранении</span>
 						</span>
 						<button
 							type="button"
 							onclick={() => (pendingFiles = pendingFiles.filter((_, i) => i !== index))}
-							class="px-3 py-2 border border-gray-300 text-red-600 rounded-md hover:bg-red-50 transition-colors"
+							class="btn-text text-negative hover:text-negative"
 						>
 							Убрать
 						</button>
@@ -447,7 +449,7 @@
 
 				<div class="flex flex-wrap items-center gap-2 pt-1">
 					<label
-						class="inline-flex cursor-pointer items-center px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-blue-500"
+						class="btn-secondary cursor-pointer has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ink"
 					>
 						<input
 							bind:this={fileInput}
@@ -459,7 +461,7 @@
 						/>
 						Загрузить файлы
 					</label>
-					<span class="text-xs text-gray-500">JPEG, PNG, WebP, AVIF или GIF. Сожмём и сделаем превью сами.</span>
+					<span class="text-label text-gray-500">JPEG, PNG, WebP, AVIF или GIF. Сожмём и сделаем превью сами.</span>
 				</div>
 
 				<div class="flex flex-wrap items-start gap-2 pt-1">
@@ -481,32 +483,33 @@
 							class={inputClass}
 						/>
 						{#if imageError}
-							<p id="{formId}-image-error" class="mt-1 text-sm text-red-600" role="alert">{imageError}</p>
+							<p id="{formId}-image-error" class="field-error" role="alert">{imageError}</p>
 						{/if}
 					</div>
 					<button
 						type="button"
 						onclick={addImage}
-						class="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+						class="btn-secondary"
 					>
-						+ Добавить по ссылке
+						<Plus class="size-4" aria-hidden="true" />
+						Добавить по ссылке
 					</button>
 				</div>
 			</div>
 		</fieldset>
 
-		<div class="flex space-x-2 pt-4">
+		<div class="flex flex-wrap gap-2 pt-2">
 			<button
 				type="submit"
 				disabled={isSubmitting}
-				class="flex-1 bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50"
+				class="flex-1 btn-primary"
 			>
 				{isSubmitting ? 'Сохранение...' : 'Сохранить'}
 			</button>
 			<button
 				type="button"
 				onclick={onCancel}
-				class="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+				class="btn-secondary"
 			>
 				Отмена
 			</button>

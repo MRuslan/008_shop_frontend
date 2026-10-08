@@ -127,7 +127,7 @@
 		<SortTabs value={sortValue} href={(value: SortValue) => buildUrl(1, value)} />
 		<a
 			href="/catalog?categoryId={data.category.id}"
-			class="ml-auto inline-flex h-11 shrink-0 items-center gap-2 rounded-xl bg-surface px-3.5 text-sm font-medium text-ink hover:bg-gray-50"
+			class="ml-auto inline-flex h-11 shrink-0 items-center gap-2 rounded-xl bg-surface px-3.5 text-control text-ink hover:bg-gray-50"
 		>
 			<SlidersHorizontal class="size-4" aria-hidden="true" />
 			Фильтры
@@ -143,7 +143,7 @@
 				<p class="font-semibold text-ink">В этой категории пока нет товаров</p>
 				<a
 					href="/catalog"
-					class="mt-5 inline-flex h-11 items-center rounded-xl bg-ink px-5 text-sm font-medium text-white transition-colors hover:bg-ink-hover"
+					class="btn-primary mt-5"
 				>
 					Весь каталог
 				</a>

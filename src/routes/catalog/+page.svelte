@@ -207,7 +207,7 @@
 					onclick={() => (sheetOpen = true)}
 					aria-haspopup="dialog"
 					aria-controls="catalog-filters"
-					class="ml-auto inline-flex h-11 shrink-0 items-center gap-2 rounded-xl bg-surface px-3.5 text-sm font-medium text-ink lg:hidden"
+					class="ml-auto inline-flex h-11 shrink-0 items-center gap-2 rounded-xl bg-surface px-3.5 text-control text-ink lg:hidden"
 				>
 					<SlidersHorizontal class="size-4" aria-hidden="true" />
 					Фильтры
@@ -229,7 +229,7 @@
 					{#if activeFilterCount}
 						<a
 							href="/catalog"
-							class="mt-5 inline-flex h-11 items-center rounded-xl bg-ink px-5 text-sm font-medium text-white transition-colors hover:bg-ink-hover"
+							class="btn-primary mt-5"
 						>
 							Сбросить фильтры
 						</a>

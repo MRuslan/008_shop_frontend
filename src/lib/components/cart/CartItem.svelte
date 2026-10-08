@@ -2,6 +2,10 @@
 	import type { CartItem } from '$lib/types/cart';
 	import { formatPrice } from '$lib/utils/format';
 	import { storeSettings } from '$lib/stores/store';
+	import Minus from '@lucide/svelte/icons/minus';
+	import Plus from '@lucide/svelte/icons/plus';
+	import Trash2 from '@lucide/svelte/icons/trash-2';
+	import ImageOff from '@lucide/svelte/icons/image-off';
 
 	interface Props {
 		item: CartItem;
@@ -18,6 +22,7 @@
 
 	const inputId = $props.id();
 	const currency = $derived($storeSettings?.currency || 'RUB');
+	const cover = $derived(item.product.images?.[0]);
 
 	async function handleQuantityChange(newQuantity: number) {
 		if (!Number.isFinite(newQuantity) || newQuantity < 1) {
@@ -41,64 +46,63 @@
 	function handleRemove() {
 		onRemove(item.id);
 	}
+
+	const stepButton =
+		'inline-flex h-full min-w-11 items-center justify-center rounded-xl transition-colors hover:bg-gray-200 disabled:cursor-not-allowed disabled:text-gray-400 disabled:hover:bg-transparent';
 </script>
 
 <!-- На узких экранах управление переносится под описание, на широких остаётся справа -->
-<div class="flex flex-wrap items-start gap-4 p-4 bg-white rounded-lg shadow-md">
-	<!-- Изображение -->
+<div class="flex flex-wrap items-start gap-x-4 gap-y-3 rounded-2xl bg-surface p-4 sm:p-5">
+	<!-- Фото на светлом колодце, как в каталоге: белый фон снимка растворяется -->
 	<a href="/products/{item.product.slug}" class="shrink-0" tabindex="-1" aria-hidden="true">
-		<div class="w-20 h-20 bg-gray-100 rounded overflow-hidden">
-			{#if item.product.images && item.product.images.length > 0}
+		<div class="flex size-20 items-center justify-center overflow-hidden rounded-xl bg-gray-50">
+			{#if cover}
 				<img
-					src={item.product.images[0].url}
+					src={cover.thumbnailUrl ?? cover.url}
 					alt=""
 					width="80"
 					height="80"
-					class="w-full h-full object-cover"
+					class="size-full object-contain p-1.5 mix-blend-multiply"
 					loading="lazy"
 				/>
 			{:else}
-				<div class="w-full h-full flex items-center justify-center text-gray-400">
-					<svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-						<path
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							stroke-width="2"
-							d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-						/>
-					</svg>
-				</div>
+				<ImageOff class="size-7 text-gray-300" aria-hidden="true" />
 			{/if}
 		</div>
 	</a>
 
 	<!-- Информация о товаре -->
-	<div class="flex-1 min-w-[10rem]">
+	<div class="min-w-[10rem] flex-1">
 		<a href="/products/{item.product.slug}" class="block">
-			<h3 class="line-clamp-2 text-body-sm sm:text-body text-gray-800 hover:text-ink transition-colors break-words">
+			<h3 class="line-clamp-2 text-body-sm break-words text-gray-800 transition-colors hover:text-ink sm:text-body">
 				{item.product.name}
 			</h3>
 		</a>
 		{#if item.product.category}
-			<p class="text-sm text-gray-500">{item.product.category.name}</p>
+			<p class="text-body-sm text-gray-500">{item.product.category.name}</p>
 		{/if}
 		<p class="mt-1 text-body-sm text-gray-600">
-			{formatPrice(item.product.price, currency)}
+			{formatPrice(item.product.price, currency)} за&nbsp;шт.
 		</p>
 	</div>
 
-	<!-- Количество и действия -->
+	<!-- Количество, сумма строки и удаление -->
 	<div class="flex w-full items-center justify-between gap-3 sm:w-auto sm:justify-end">
-		<!-- Изменение количества -->
-		<div class="flex items-center border border-gray-300 rounded">
+		<!-- Тот же степпер, что на карточке товара: серая подложка, «−» и «+» по краям -->
+		<div
+			class="flex h-11 items-center rounded-xl bg-gray-100 text-gray-900 aria-busy:opacity-70"
+			role="group"
+			aria-label="Количество: {item.product.name}"
+			aria-busy={isChanging}
+		>
 			<button
 				type="button"
 				onclick={() => handleQuantityChange(localQuantity - 1)}
 				disabled={isChanging || isUpdating || localQuantity <= 1}
 				aria-label="Уменьшить количество"
-				class="inline-flex min-h-11 min-w-11 items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100"
+				class={stepButton}
 			>
-				−
+				<Minus class="size-4" aria-hidden="true" />
 			</button>
 			<input
 				id={inputId}
@@ -110,40 +114,33 @@
 				aria-label="Количество"
 				onchange={(e) => handleQuantityChange(parseInt(e.currentTarget.value) || 1)}
 				disabled={isChanging || isUpdating}
-				class="w-14 min-h-11 text-center border-0 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500 disabled:opacity-50"
+				class="h-full w-10 [appearance:textfield] bg-transparent text-center text-base font-semibold tabular-nums focus:rounded-lg focus:bg-surface focus:ring-2 focus:ring-ink focus:outline-none disabled:opacity-60 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
 			/>
 			<button
 				type="button"
 				onclick={() => handleQuantityChange(localQuantity + 1)}
 				disabled={isChanging || isUpdating || localQuantity >= item.product.quantity}
-				aria-label="Увеличить количество"
-				class="inline-flex min-h-11 min-w-11 items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100"
+				aria-label={localQuantity >= item.product.quantity
+					? `Больше нет в наличии, всего ${item.product.quantity} шт.`
+					: 'Увеличить количество'}
+				class={stepButton}
 			>
-				+
+				<Plus class="size-4" aria-hidden="true" />
 			</button>
 		</div>
 
-		<!-- Итоговая цена -->
-		<p class="text-price text-ink text-right sm:min-w-[6rem]">
+		<p class="text-right text-price text-ink sm:min-w-[6rem]">
 			{formatPrice((parseFloat(item.product.price) * localQuantity).toFixed(2), currency)}
 		</p>
 
-		<!-- Удаление -->
 		<button
 			type="button"
 			onclick={handleRemove}
 			disabled={isUpdating}
-			class="inline-flex h-11 w-11 shrink-0 items-center justify-center text-red-600 hover:text-red-800 hover:bg-red-50 rounded transition-colors disabled:opacity-50"
+			class="inline-flex size-11 shrink-0 items-center justify-center rounded-xl text-gray-600 transition-colors hover:bg-negative/8 hover:text-negative disabled:opacity-50"
 			aria-label="Удалить «{item.product.name}» из корзины"
 		>
-			<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-				<path
-					stroke-linecap="round"
-					stroke-linejoin="round"
-					stroke-width="2"
-					d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-				/>
-			</svg>
+			<Trash2 class="size-4.5" aria-hidden="true" />
 		</button>
 	</div>
 </div>

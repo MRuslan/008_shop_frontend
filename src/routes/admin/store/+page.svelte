@@ -150,18 +150,18 @@
 	<title>Настройки магазина - Админ-панель</title>
 </svelte:head>
 
-<div class="bg-white rounded-lg shadow-md p-6">
+<div class="rounded-2xl bg-surface p-5 md:p-6">
 	<h1 class="text-headline text-ink mb-6">Настройки магазина</h1>
 
 	<form onsubmit={(e) => { e.preventDefault(); handleSubmit(); }} class="space-y-6">
 		{#if error}
-			<div role="alert" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+			<div role="alert" class="notice-error">
 				{error}
 			</div>
 		{/if}
 
 		{#if success}
-			<div role="status" class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded">
+			<div role="status" class="notice-success">
 				Настройки успешно сохранены!
 			</div>
 		{/if}
@@ -171,20 +171,20 @@
 			<h2 class="text-title text-ink mb-4">Основная информация</h2>
 			<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 				<div>
-					<label for="store-name" class="block text-sm font-medium text-gray-700 mb-1">
-						Название магазина <span class="text-red-500" aria-hidden="true">*</span>
+					<label for="store-name" class="field-label">
+						Название магазина <span class="text-negative" aria-hidden="true">*</span>
 					</label>
 					<input
 						id="store-name"
 						type="text"
 						bind:value={name}
 						required
-						class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+						class="w-full field"
 					/>
 				</div>
 
 				<div>
-					<label for="store-slug" class="block text-sm font-medium text-gray-700 mb-1">Slug</label>
+					<label for="store-slug" class="field-label">Slug</label>
 					<!-- Подсказка показывает, какой slug получится, если поле оставить пустым -->
 					<input
 						id="store-slug"
@@ -192,9 +192,9 @@
 						bind:value={slug}
 						placeholder={autoSlug || 'Автоматически из названия'}
 						aria-describedby="store-slug-hint"
-						class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+						class="w-full field"
 					/>
-					<p id="store-slug-hint" class="mt-1 text-xs text-gray-500">
+					<p id="store-slug-hint" class="mt-1 text-label text-gray-500">
 						Латиница, цифры и дефисы. Пустое поле заполнится из названия.
 					</p>
 				</div>
@@ -206,20 +206,22 @@
 			<h2 class="text-title text-ink mb-4">Контакты</h2>
 			<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 				<div>
-					<label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+					<label for="store-field-1" class="field-label">Email</label>
 					<input
+						id="store-field-1"
 						type="email"
 						bind:value={contactEmail}
-						class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+						class="w-full field"
 					/>
 				</div>
 
 				<div>
-					<label class="block text-sm font-medium text-gray-700 mb-1">Телефон</label>
+					<label for="store-field-2" class="field-label">Телефон</label>
 					<input
+						id="store-field-2"
 						type="tel"
 						bind:value={contactPhone}
-						class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+						class="w-full field"
 					/>
 				</div>
 			</div>
@@ -230,29 +232,32 @@
 			<h2 class="text-title text-ink mb-4">Юридическая информация</h2>
 			<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 				<div>
-					<label class="block text-sm font-medium text-gray-700 mb-1">Юридическое название</label>
+					<label for="store-field-3" class="field-label">Юридическое название</label>
 					<input
+						id="store-field-3"
 						type="text"
 						bind:value={legalName}
-						class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+						class="w-full field"
 					/>
 				</div>
 
 				<div>
-					<label class="block text-sm font-medium text-gray-700 mb-1">ИНН</label>
+					<label for="store-field-4" class="field-label">ИНН</label>
 					<input
+						id="store-field-4"
 						type="text"
 						bind:value={inn}
-						class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+						class="w-full field"
 					/>
 				</div>
 			</div>
 			<div class="mt-4">
-				<label class="block text-sm font-medium text-gray-700 mb-1">Юридический адрес</label>
+				<label for="store-field-5" class="field-label">Юридический адрес</label>
 				<textarea
+						id="store-field-5"
 					bind:value={legalAddress}
 					rows="2"
-					class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+					class="w-full field"
 				></textarea>
 			</div>
 		</div>
@@ -262,32 +267,35 @@
 			<h2 class="text-title text-ink mb-4">Настройки</h2>
 			<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
 				<div>
-					<label class="block text-sm font-medium text-gray-700 mb-1">Валюта</label>
+					<label for="store-field-6" class="field-label">Валюта</label>
 					<input
+						id="store-field-6"
 						type="text"
 						bind:value={currency}
 						placeholder="RUB"
-						class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+						class="w-full field"
 					/>
 				</div>
 
 				<div>
-					<label class="block text-sm font-medium text-gray-700 mb-1">Часовой пояс</label>
+					<label for="store-field-7" class="field-label">Часовой пояс</label>
 					<input
+						id="store-field-7"
 						type="text"
 						bind:value={timezone}
 						placeholder="Europe/Moscow"
-						class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+						class="w-full field"
 					/>
 				</div>
 
 				<div>
-					<label class="block text-sm font-medium text-gray-700 mb-1">Локаль</label>
+					<label for="store-field-8" class="field-label">Локаль</label>
 					<input
+						id="store-field-8"
 						type="text"
 						bind:value={locale}
 						placeholder="ru-RU"
-						class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+						class="w-full field"
 					/>
 				</div>
 			</div>
@@ -297,28 +305,28 @@
 		<fieldset class="m-0 min-w-0 border-0 p-0">
 			<legend class="text-title text-ink mb-4">Получение заказа</legend>
 			<div class="space-y-4">
-				<label class="flex items-center space-x-2">
+				<label class="flex min-h-11 cursor-pointer items-center gap-2.5">
 					<input
 						type="checkbox"
 						bind:checked={deliveryEnabled}
-						class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+						class="size-4"
 					/>
-					<span class="text-sm text-gray-700">Доставка курьером</span>
+					<span class="text-body-sm text-gray-800">Доставка курьером</span>
 				</label>
 				<div class="grid grid-cols-1 gap-4 md:grid-cols-3">
 					<div>
-						<label for="delivery-price" class="block text-sm font-medium text-gray-700 mb-1">Стоимость доставки, ₽</label>
+						<label for="delivery-price" class="field-label">Стоимость доставки, ₽</label>
 						<input
 							id="delivery-price"
 							type="text"
 							inputmode="decimal"
 							bind:value={deliveryPrice}
 							disabled={!deliveryEnabled}
-							class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
+							class="w-full disabled:bg-gray-100 field"
 						/>
 					</div>
 					<div>
-						<label for="delivery-free-from" class="block text-sm font-medium text-gray-700 mb-1">Бесплатно от, ₽</label>
+						<label for="delivery-free-from" class="field-label">Бесплатно от, ₽</label>
 						<input
 							id="delivery-free-from"
 							type="text"
@@ -327,12 +335,12 @@
 							disabled={!deliveryEnabled}
 							placeholder="Без порога"
 							aria-describedby="delivery-free-from-hint"
-							class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
+							class="w-full disabled:bg-gray-100 field"
 						/>
-						<p id="delivery-free-from-hint" class="mt-1 text-xs text-gray-500">Сумма товаров после скидки</p>
+						<p id="delivery-free-from-hint" class="mt-1 text-label text-gray-500">Сумма товаров после скидки</p>
 					</div>
 					<div>
-						<label for="delivery-min-order" class="block text-sm font-medium text-gray-700 mb-1">Заказ с доставкой от, ₽</label>
+						<label for="delivery-min-order" class="field-label">Заказ с доставкой от, ₽</label>
 						<input
 							id="delivery-min-order"
 							type="text"
@@ -340,17 +348,17 @@
 							bind:value={minOrderAmount}
 							disabled={!deliveryEnabled}
 							placeholder="Без минимума"
-							class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
+							class="w-full disabled:bg-gray-100 field"
 						/>
 					</div>
 				</div>
-				<label class="flex items-center space-x-2">
+				<label class="flex min-h-11 cursor-pointer items-center gap-2.5">
 					<input
 						type="checkbox"
 						bind:checked={pickupEnabled}
-						class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+						class="size-4"
 					/>
-					<span class="text-sm text-gray-700">Самовывоз из пунктов выдачи и магазинов</span>
+					<span class="text-body-sm text-gray-800">Самовывоз из пунктов выдачи и магазинов</span>
 				</label>
 			</div>
 		</fieldset>
@@ -358,19 +366,19 @@
 		<!-- Ссылки подвала -->
 		<fieldset class="m-0 min-w-0 border-0 p-0">
 			<legend class="text-title text-ink mb-1">Ссылки в подвале</legend>
-			<p class="mb-4 text-sm text-gray-500">Адрес страницы или путь на сайте. Пустое поле убирает ссылку.</p>
+			<p class="mb-4 text-body-sm text-gray-500">Адрес страницы или путь на сайте. Пустое поле убирает ссылку.</p>
 			<div class="grid grid-cols-1 gap-4 md:grid-cols-3">
 				<div>
-					<label for="page-about" class="block text-sm font-medium text-gray-700 mb-1">О магазине</label>
-					<input id="page-about" type="text" bind:value={pageAbout} placeholder="/about" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+					<label for="page-about" class="field-label">О магазине</label>
+					<input id="page-about" type="text" bind:value={pageAbout} placeholder="/about" class="w-full field" />
 				</div>
 				<div>
-					<label for="page-privacy" class="block text-sm font-medium text-gray-700 mb-1">Политика конфиденциальности</label>
-					<input id="page-privacy" type="text" bind:value={pagePrivacy} placeholder="https://…" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+					<label for="page-privacy" class="field-label">Политика конфиденциальности</label>
+					<input id="page-privacy" type="text" bind:value={pagePrivacy} placeholder="https://…" class="w-full field" />
 				</div>
 				<div>
-					<label for="page-terms" class="block text-sm font-medium text-gray-700 mb-1">Условия продажи</label>
-					<input id="page-terms" type="text" bind:value={pageTerms} placeholder="https://…" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+					<label for="page-terms" class="field-label">Условия продажи</label>
+					<input id="page-terms" type="text" bind:value={pageTerms} placeholder="https://…" class="w-full field" />
 				</div>
 			</div>
 		</fieldset>
@@ -380,43 +388,45 @@
 			<h2 class="text-title text-ink mb-4">Изображения</h2>
 			<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 				<div>
-					<label class="block text-sm font-medium text-gray-700 mb-1">URL логотипа</label>
+					<label for="store-field-9" class="field-label">URL логотипа</label>
 					<input
+						id="store-field-9"
 						type="url"
 						bind:value={logoUrl}
 						placeholder="https://example.com/logo.png"
-						class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+						class="w-full field"
 					/>
 				</div>
 
 				<div>
-					<label class="block text-sm font-medium text-gray-700 mb-1">URL favicon</label>
+					<label for="store-field-10" class="field-label">URL favicon</label>
 					<input
+						id="store-field-10"
 						type="url"
 						bind:value={faviconUrl}
 						placeholder="https://example.com/favicon.ico"
-						class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+						class="w-full field"
 					/>
 				</div>
 			</div>
 		</div>
 
 		<div>
-			<label class="flex items-center space-x-2">
+			<label class="flex min-h-11 cursor-pointer items-center gap-2.5">
 				<input
 					type="checkbox"
 					bind:checked={isActive}
-					class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+					class="size-4"
 				/>
-				<span class="text-sm text-gray-700">Магазин активен</span>
+				<span class="text-body-sm text-gray-800">Магазин активен</span>
 			</label>
 		</div>
 
-		<div class="flex space-x-2 pt-4">
+		<div class="flex flex-wrap gap-2 pt-2">
 			<button
 				type="submit"
 				disabled={isSubmitting}
-				class="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50"
+				class="btn-primary"
 			>
 				{isSubmitting ? 'Сохранение...' : 'Сохранить настройки'}
 			</button>

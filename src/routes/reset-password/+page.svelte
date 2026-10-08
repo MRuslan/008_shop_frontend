@@ -54,7 +54,7 @@
 	}
 
 	const inputClass =
-		'min-h-11 w-full rounded-md border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none aria-invalid:border-red-500';
+		'field w-full';
 </script>
 
 <svelte:head>
@@ -75,7 +75,7 @@
 				<button
 					type="button"
 					onclick={() => openLogin()}
-					class="min-h-11 w-full rounded-md bg-blue-600 px-4 text-control text-white transition-colors hover:bg-blue-700"
+					class="w-full btn-primary"
 				>
 					Войти
 				</button>
@@ -88,7 +88,7 @@
 				<button
 					type="button"
 					onclick={() => openLogin('forgot')}
-					class="min-h-11 w-full rounded-md bg-blue-600 px-4 text-control text-white transition-colors hover:bg-blue-700"
+					class="w-full btn-primary"
 				>
 					Запросить новое письмо
 				</button>
@@ -103,7 +103,7 @@
 				novalidate
 			>
 				{#if error}
-					<div role="alert" class="rounded border border-red-400 bg-red-100 px-4 py-3 text-red-700">
+					<div role="alert" class="notice-error">
 						<p>{error}</p>
 						<button
 							type="button"
@@ -116,7 +116,7 @@
 				{/if}
 
 				<div>
-					<label for="reset-password" class="mb-1 block text-sm font-medium text-gray-700">Новый пароль</label>
+					<label for="reset-password" class="field-label">Новый пароль</label>
 					<input
 						id="reset-password"
 						type="password"
@@ -130,14 +130,14 @@
 					/>
 					<p
 						id="reset-password-hint"
-						class="mt-1 text-sm {submitted && fieldErrors.password ? 'text-red-700' : 'text-gray-500'}"
+						class={submitted && fieldErrors.password ? 'field-error' : 'field-hint'}
 					>
 						{submitted && fieldErrors.password ? fieldErrors.password : `Не короче ${PASSWORD_MIN} символов.`}
 					</p>
 				</div>
 
 				<div>
-					<label for="reset-confirm" class="mb-1 block text-sm font-medium text-gray-700">Повторите пароль</label>
+					<label for="reset-confirm" class="field-label">Повторите пароль</label>
 					<input
 						id="reset-confirm"
 						type="password"
@@ -150,14 +150,14 @@
 						class={inputClass}
 					/>
 					{#if submitted && fieldErrors.confirm}
-						<p id="reset-confirm-error" class="mt-1 text-sm text-red-700">{fieldErrors.confirm}</p>
+						<p id="reset-confirm-error" class="field-error">{fieldErrors.confirm}</p>
 					{/if}
 				</div>
 
 				<button
 					type="submit"
 					disabled={isLoading}
-					class="min-h-11 w-full rounded-md bg-blue-600 px-4 py-2 text-control text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+					class="w-full btn-primary"
 				>
 					{isLoading ? 'Сохраняем…' : 'Сохранить пароль'}
 				</button>

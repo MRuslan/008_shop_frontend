@@ -4,6 +4,7 @@
 	import type { WishlistItem } from '$lib/types/common';
 	import ProductList from '$lib/components/product/ProductList.svelte';
 	import ProductGridSkeleton from '$lib/components/product/ProductGridSkeleton.svelte';
+	import Heart from '@lucide/svelte/icons/heart';
 	import { wishlistStore, wishlistReady } from '$lib/stores/wishlist';
 	import { getErrorMessage } from '$lib/utils/errors';
 
@@ -40,11 +41,11 @@
 	<meta name="description" content="Ваши избранные товары" />
 </svelte:head>
 
-<div class="bg-white rounded-lg shadow-md p-6">
+<div class="rounded-2xl bg-surface p-5 md:p-6">
 	<h1 class="text-headline text-ink mb-6">Избранное</h1>
 
 	{#if error}
-		<div role="alert" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+		<div role="alert" class="mb-4 notice-error">
 			{error}
 		</div>
 	{/if}
@@ -56,22 +57,10 @@
 		</div>
 	{:else if visibleItems.length === 0}
 		<div class="text-center py-12">
-			<svg
-				class="mx-auto h-24 w-24 text-gray-400 mb-4"
-				fill="none"
-				stroke="currentColor"
-				viewBox="0 0 24 24"
-			>
-				<path
-					stroke-linecap="round"
-					stroke-linejoin="round"
-					stroke-width="2"
-					d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
-				/>
-			</svg>
+			<Heart class="mx-auto mb-4 size-12 text-gray-300" strokeWidth={1.5} aria-hidden="true" />
 			<p class="text-title-sm text-ink">В избранном пока пусто</p>
-			<p class="mt-1 mb-4 text-body-sm text-gray-600">Нажмите на сердечко у товара, чтобы сохранить его здесь.</p>
-			<a href="/catalog" class="text-blue-600 hover:text-blue-800">Перейти в каталог</a>
+			<p class="mt-1 mb-5 text-body-sm text-gray-600">Нажмите на сердечко у товара, чтобы сохранить его здесь.</p>
+			<a href="/catalog" class="btn-primary">Перейти в каталог</a>
 		</div>
 	{:else}
 		<!-- Сердечко на карточке убирает товар из избранного: список сразу это отражает -->

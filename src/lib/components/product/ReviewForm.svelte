@@ -3,6 +3,7 @@
 	import { authStore } from '$lib/stores/auth';
 	import type { CreateReviewDto } from '$lib/types/common';
 	import { getErrorMessage } from '$lib/utils/errors';
+	import Star from '@lucide/svelte/icons/star';
 
 	interface Props {
 		productId: number;
@@ -49,55 +50,46 @@
 </script>
 
 {#if $authStore.isAuthenticated}
-	<div class="bg-white rounded-lg shadow-md p-6">
+	<div class="rounded-2xl bg-surface p-5 md:p-6">
 		<h3 class="text-title text-ink mb-4">Ваш отзыв</h3>
 
 		<form onsubmit={(e) => { e.preventDefault(); handleSubmit(); }} class="space-y-4">
 			{#if error}
-				<div role="alert" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+				<div role="alert" class="notice-error">
 					{error}
 				</div>
 			{/if}
 
 			<!-- Оценка -->
 			<div role="group" aria-labelledby="review-rating-label">
-				<p id="review-rating-label" class="block text-sm font-medium text-gray-700 mb-2">Оценка</p>
-				<div class="flex items-center space-x-2">
+				<p id="review-rating-label" class="field-label">Оценка</p>
+				<div class="flex items-center gap-1">
 					{#each Array.from({ length: 5 }, (_, i) => i + 1) as star (star)}
 						<button
 							type="button"
 							onclick={() => rating = star}
-							class="inline-flex h-11 w-11 items-center justify-center rounded transition-transform hover:scale-110 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none"
+							class="inline-flex size-11 items-center justify-center rounded-xl transition-colors hover:bg-gray-100"
 							aria-label="{star} из 5"
 							aria-pressed={star === rating}
 						>
-							<svg
-								aria-hidden="true"
-								class="w-8 h-8"
+							<!-- Звёзды графитом, как в рейтинге карточки: жёлтого в палитре нет -->
+							<Star
+								class="size-7 {star <= rating ? 'text-ink' : 'text-gray-300'}"
 								fill={star <= rating ? 'currentColor' : 'none'}
-								stroke="currentColor"
-								viewBox="0 0 24 24"
-								class:text-yellow-400={star <= rating}
-								class:text-gray-300={star > rating}
-							>
-								<path
-									stroke-linecap="round"
-									stroke-linejoin="round"
-									stroke-width="2"
-									d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"
-								/>
-							</svg>
+								strokeWidth={1.5}
+								aria-hidden="true"
+							/>
 						</button>
 					{/each}
 					{#if rating > 0}
-						<span class="ml-2 text-sm text-gray-600">{rating} из 5</span>
+						<span class="ml-2 text-body-sm text-gray-600">{rating} из 5</span>
 					{/if}
 				</div>
 			</div>
 
 			<!-- Текст отзыва -->
 			<div>
-				<label for="review-text" class="block text-sm font-medium text-gray-700 mb-1">
+				<label for="review-text" class="field-label">
 					Текст отзыва <span class="font-normal text-gray-500">(необязательно)</span>
 				</label>
 				<textarea
@@ -105,26 +97,26 @@
 					bind:value={text}
 					rows="4"
 					placeholder="Что понравилось, что нет, как товар показал себя в деле"
-					class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+					class="w-full field"
 				></textarea>
 			</div>
 
 			<button
 				type="submit"
 				disabled={isSubmitting}
-				class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-control"
+				class="btn-primary"
 			>
 				{isSubmitting ? 'Публикуем…' : 'Опубликовать отзыв'}
 			</button>
 		</form>
 	</div>
 {:else}
-	<div class="bg-gray-50 rounded-lg p-6 text-center">
-		<p class="text-gray-600 mb-4">Чтобы написать отзыв, войдите в аккаунт.</p>
+	<div class="rounded-xl bg-gray-50 p-5 text-center">
+		<p class="mb-4 text-body text-gray-600">Чтобы написать отзыв, войдите в аккаунт.</p>
 		<button
 			type="button"
 			onclick={() => window.dispatchEvent(new CustomEvent('open-auth-modal', { detail: { reason: 'Войдите, чтобы написать отзыв о товаре.' } }))}
-			class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-control"
+			class="btn-primary"
 		>
 			Войти
 		</button>

@@ -79,12 +79,12 @@
 	}
 
 	const inputClass =
-		'w-full min-h-11 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 aria-invalid:border-red-500';
+		'field w-full';
 </script>
 
 <form onsubmit={(e) => { e.preventDefault(); handleSubmit(); }} class="space-y-4" novalidate>
 	{#if error}
-		<div role="alert" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+		<div role="alert" class="notice-error">
 			<p>{error}</p>
 			{#if emailTaken && onSwitchToLogin}
 				<button
@@ -99,7 +99,7 @@
 	{/if}
 
 	<div>
-		<label for="register-email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+		<label for="register-email" class="field-label">Email</label>
 		<input
 			id="register-email"
 			type="email"
@@ -110,15 +110,15 @@
 			disabled={isLoading}
 			aria-invalid={!!shown.email}
 			aria-describedby={shown.email ? 'register-email-error' : undefined}
-			class="{inputClass} border-gray-300"
+			class={inputClass}
 		/>
 		{#if shown.email}
-			<p id="register-email-error" class="mt-1 text-sm text-red-700">{shown.email}</p>
+			<p id="register-email-error" class="field-error">{shown.email}</p>
 		{/if}
 	</div>
 
 	<div>
-		<label for="register-username" class="block text-sm font-medium text-gray-700 mb-1">Имя</label>
+		<label for="register-username" class="field-label">Имя</label>
 		<input
 			id="register-username"
 			type="text"
@@ -128,15 +128,15 @@
 			disabled={isLoading}
 			aria-invalid={!!shown.username}
 			aria-describedby="register-username-hint"
-			class="{inputClass} border-gray-300"
+			class={inputClass}
 		/>
-		<p id="register-username-hint" class="mt-1 text-sm {shown.username ? 'text-red-700' : 'text-gray-500'}">
+		<p id="register-username-hint" class={shown.username ? 'field-error' : 'field-hint'}>
 			{shown.username ?? `Его увидят в ваших отзывах. Не короче ${USERNAME_MIN} символов.`}
 		</p>
 	</div>
 
 	<div>
-		<label for="register-password" class="block text-sm font-medium text-gray-700 mb-1">Пароль</label>
+		<label for="register-password" class="field-label">Пароль</label>
 		<input
 			id="register-password"
 			type="password"
@@ -146,15 +146,15 @@
 			disabled={isLoading}
 			aria-invalid={!!shown.password}
 			aria-describedby="register-password-hint"
-			class="{inputClass} border-gray-300"
+			class={inputClass}
 		/>
-		<p id="register-password-hint" class="mt-1 text-sm {shown.password ? 'text-red-700' : 'text-gray-500'}">
+		<p id="register-password-hint" class={shown.password ? 'field-error' : 'field-hint'}>
 			{shown.password ?? `Не короче ${PASSWORD_MIN} символов.`}
 		</p>
 	</div>
 
 	<div>
-		<label for="register-confirm-password" class="block text-sm font-medium text-gray-700 mb-1">Повторите пароль</label>
+		<label for="register-confirm-password" class="field-label">Повторите пароль</label>
 		<input
 			id="register-confirm-password"
 			type="password"
@@ -164,17 +164,17 @@
 			disabled={isLoading}
 			aria-invalid={!!shown.confirm}
 			aria-describedby={shown.confirm ? 'register-confirm-error' : undefined}
-			class="{inputClass} border-gray-300"
+			class={inputClass}
 		/>
 		{#if shown.confirm}
-			<p id="register-confirm-error" class="mt-1 text-sm text-red-700">{shown.confirm}</p>
+			<p id="register-confirm-error" class="field-error">{shown.confirm}</p>
 		{/if}
 	</div>
 
 	<button
 		type="submit"
 		disabled={isLoading}
-		class="w-full min-h-11 bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-control"
+		class="w-full btn-primary"
 	>
 		{isLoading ? 'Создаём аккаунт…' : 'Зарегистрироваться'}
 	</button>

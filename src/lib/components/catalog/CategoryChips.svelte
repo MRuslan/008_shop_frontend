@@ -9,13 +9,15 @@
 <script lang="ts">
 	interface Props {
 		chips: Chip[];
+		/** Подпись навигации для скринридера */
+		label?: string;
 	}
 
-	let { chips }: Props = $props();
+	let { chips, label = 'Разделы' }: Props = $props();
 </script>
 
 {#if chips.length > 1}
-	<nav aria-label="Разделы" class="-mx-4 overflow-x-auto px-4 [scrollbar-width:none] md:-mx-6 md:px-6 lg:mx-0 lg:px-0">
+	<nav aria-label={label} class="-mx-4 overflow-x-auto px-4 [scrollbar-width:none] md:-mx-6 md:px-6 lg:mx-0 lg:px-0">
 		<ul class="flex gap-2 whitespace-nowrap lg:flex-wrap">
 			{#each chips as chip (chip.href)}
 				<li>

@@ -37,15 +37,15 @@
 	onkeydown={handleDialogKeydown}
 	aria-labelledby="confirm-dialog-title"
 	aria-describedby={$confirmRequest?.message ? 'confirm-dialog-message' : undefined}
-	class="m-auto w-[calc(100%-2rem)] max-w-md rounded-lg bg-white p-0 text-gray-900 shadow-xl backdrop:bg-black/50"
+	class="m-auto w-[calc(100%-2rem)] max-w-md rounded-2xl bg-surface p-0 text-gray-900 shadow-[0_8px_24px_rgb(0_0_0/0.18)] backdrop:bg-black/40"
 >
 	{#if $confirmRequest}
-		<div class="p-6">
+		<div class="p-5 md:p-6">
 			<h2 id="confirm-dialog-title" class="text-title text-ink">
 				{$confirmRequest.title}
 			</h2>
 			{#if $confirmRequest.message}
-				<p id="confirm-dialog-message" class="mt-2 text-sm text-gray-600">
+				<p id="confirm-dialog-message" class="mt-2 text-body-sm text-gray-600">
 					{$confirmRequest.message}
 				</p>
 			{/if}
@@ -54,16 +54,14 @@
 				<button
 					type="button"
 					onclick={() => resolveConfirm(false)}
-					class="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:outline-none"
+					class="btn-secondary"
 				>
 					{$confirmRequest.cancelLabel ?? 'Отмена'}
 				</button>
 				<button
 					type="button"
 					onclick={() => resolveConfirm(true)}
-					class="rounded-md px-4 py-2 text-sm font-medium text-white transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none {$confirmRequest.danger
-						? 'bg-red-600 hover:bg-red-700 focus-visible:ring-red-500'
-						: 'bg-blue-600 hover:bg-blue-700 focus-visible:ring-blue-500'}"
+					class={$confirmRequest.danger ? 'btn-danger' : 'btn-primary'}
 				>
 					{$confirmRequest.confirmLabel ?? 'Подтвердить'}
 				</button>

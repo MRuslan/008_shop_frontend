@@ -41,7 +41,7 @@
 	{/if}
 </svelte:head>
 
-<div class="container mx-auto px-4 py-12">
+<div class="container py-12 md:py-16">
 	<div class="text-center">
 		<h1 class="text-headline md:text-headline-lg text-balance text-ink mb-4">
 			Добро пожаловать в {$storeSettings?.name || 'наш магазин'}!
@@ -51,7 +51,7 @@
 		</p>
 		<a
 			href="/catalog"
-			class="inline-block bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition-colors text-control-lg"
+			class="btn-primary btn-lg"
 		>
 			Перейти в каталог
 		</a>

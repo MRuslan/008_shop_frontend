@@ -44,7 +44,7 @@
 	}
 
 	const primaryClass =
-		'inline-flex min-h-11 w-full items-center justify-center rounded-md bg-blue-600 px-4 text-control text-white transition-colors hover:bg-blue-700 disabled:opacity-50';
+		'btn-primary w-full';
 </script>
 
 <svelte:head>
@@ -83,9 +83,9 @@
 			</p>
 
 			{#if status === 'failed' && error}
-				<div role="alert" class="mt-4 rounded border border-red-400 bg-red-100 px-4 py-3 text-red-700">
+				<div role="alert" class="mt-4 notice-error">
 					<p>{error}</p>
-					<p class="mt-1 text-sm">Ссылка одноразовая и действует ограниченное время. Запросите смену заново в профиле.</p>
+					<p class="mt-1 text-body-sm">Ссылка одноразовая и действует ограниченное время. Запросите смену заново в профиле.</p>
 				</div>
 			{/if}
 

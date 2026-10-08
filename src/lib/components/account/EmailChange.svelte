@@ -113,17 +113,17 @@
 	}
 
 	const inputClass =
-		'min-h-11 w-full rounded-md border border-gray-300 px-3 py-2 text-base focus:ring-2 focus:ring-blue-500 focus:outline-none aria-invalid:border-red-500 md:w-80';
+		'field w-full md:w-80';
 </script>
 
 {#if supported}
-	<div class="border-t pt-6">
+	<div class="border-t border-line pt-6">
 		<h2 class="text-title text-ink mb-2">Email для входа</h2>
 		<p class="mb-4 text-body text-ink break-all">{currentEmail}</p>
 
 		{#if pending?.pendingEmail && !formOpen}
 			<!-- Заявка ждёт подтверждения: до перехода по ссылке вход по прежнему адресу -->
-			<div class="mb-4 rounded-md border border-amber-300 bg-amber-50 px-4 py-3" role="status">
+			<div class="mb-4 notice-caution" role="status">
 				<p class="text-body-sm text-gray-900">
 					Ожидает подтверждения: <span class="font-medium break-all">{pending.pendingEmail}</span>
 				</p>
@@ -136,7 +136,7 @@
 					<button
 						type="button"
 						onclick={() => openForm(pending?.pendingEmail ?? '')}
-						class="min-h-11 rounded-md border border-gray-300 bg-white px-4 text-control transition-colors hover:bg-gray-50"
+						class="btn-secondary"
 					>
 						Отправить ещё раз
 					</button>
@@ -144,7 +144,7 @@
 						type="button"
 						onclick={cancelChange}
 						disabled={cancelling}
-						class="min-h-11 rounded-md px-4 text-control text-gray-700 transition-colors hover:bg-gray-100 disabled:opacity-50"
+						class="btn-text"
 					>
 						{cancelling ? 'Отменяем…' : 'Отменить смену'}
 					</button>
@@ -166,11 +166,11 @@
 				</p>
 
 				{#if error}
-					<div role="alert" class="rounded border border-red-400 bg-red-100 px-4 py-3 text-red-700">{error}</div>
+					<div role="alert" class="notice-error">{error}</div>
 				{/if}
 
 				<div>
-					<label for="new-email" class="mb-1 block text-sm font-medium text-gray-700">Новый email</label>
+					<label for="new-email" class="field-label">Новый email</label>
 					<input
 						id="new-email"
 						type="email"
@@ -184,12 +184,12 @@
 						class={inputClass}
 					/>
 					{#if shown.newEmail}
-						<p id="new-email-error" class="mt-1 text-sm text-red-700">{shown.newEmail}</p>
+						<p id="new-email-error" class="field-error">{shown.newEmail}</p>
 					{/if}
 				</div>
 
 				<div>
-					<label for="email-change-password" class="mb-1 block text-sm font-medium text-gray-700">Текущий пароль</label>
+					<label for="email-change-password" class="field-label">Текущий пароль</label>
 					<input
 						id="email-change-password"
 						type="password"
@@ -203,7 +203,7 @@
 					/>
 					<p
 						id="email-change-password-hint"
-						class="mt-1 text-sm {shown.password ? 'text-red-700' : 'text-gray-500'}"
+						class={shown.password ? 'field-error' : 'field-hint'}
 					>
 						{shown.password ?? 'Чтобы никто другой не сменил адрес, пока вы не у компьютера.'}
 					</p>
@@ -213,14 +213,14 @@
 					<button
 						type="submit"
 						disabled={saving}
-						class="min-h-11 rounded-md bg-blue-600 px-4 text-control text-white transition-colors hover:bg-blue-700 disabled:opacity-50"
+						class="btn-primary"
 					>
 						{saving ? 'Отправляем…' : 'Отправить ссылку'}
 					</button>
 					<button
 						type="button"
 						onclick={() => (formOpen = false)}
-						class="min-h-11 rounded-md border border-gray-300 px-4 text-control transition-colors hover:bg-gray-50"
+						class="btn-secondary"
 					>
 						Отмена
 					</button>
@@ -230,7 +230,7 @@
 			<button
 				type="button"
 				onclick={() => openForm()}
-				class="min-h-11 rounded-md border border-gray-300 px-4 text-control transition-colors hover:bg-gray-50"
+				class="btn-secondary"
 			>
 				Сменить email
 			</button>

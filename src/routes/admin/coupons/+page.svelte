@@ -1,4 +1,6 @@
 <script lang="ts">
+	import Plus from '@lucide/svelte/icons/plus';
+	import ActiveBadge from '$lib/components/ui/ActiveBadge.svelte';
 	import { onMount } from 'svelte';
 	import { invalidateAll } from '$app/navigation';
 	import { couponsApi, type CreateCouponDto } from '$lib/api/coupons';
@@ -169,52 +171,56 @@
 	<title>Управление купонами - Админ-панель</title>
 </svelte:head>
 
-<div class="bg-white rounded-lg shadow-md p-6">
+<div class="rounded-2xl bg-surface p-5 md:p-6">
 	<div class="flex items-center justify-between mb-6">
 		<h1 class="text-headline text-ink">Управление купонами</h1>
 		<button
 			onclick={handleCreate}
-			class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+			class="btn-primary"
 		>
-			+ Добавить купон
+			<Plus class="size-4" aria-hidden="true" />
+			Добавить купон
 		</button>
 	</div>
 
 	<!-- Форма купона -->
 	{#if showCouponForm}
-		<div class="mb-6 bg-gray-50 rounded-lg p-6 border-2 border-blue-500">
+		<!-- Форма — раздел той же панели, отделённый линией, а не вложенная карточка -->
+		<div class="mb-6 border-b border-line pb-6">
 			<h2 class="text-title text-ink mb-4">
 				{editingCoupon ? 'Редактирование купона' : 'Создание купона'}
 			</h2>
 
 			<form onsubmit={(e) => { e.preventDefault(); handleSubmit(); }} class="space-y-4">
 				{#if error}
-					<div role="alert" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+					<div role="alert" class="notice-error">
 						{error}
 					</div>
 				{/if}
 
 				<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 					<div>
-						<label class="block text-sm font-medium text-gray-700 mb-1">
-							Код купона <span class="text-red-500">*</span>
+						<label for="coupon-field-1" class="field-label">
+							Код купона <span class="text-negative" aria-hidden="true">*</span>
 						</label>
 						<input
+						id="coupon-field-1"
 							type="text"
 							bind:value={code}
 							required
 							placeholder="PROMO2024"
-							class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 uppercase"
+							class="w-full uppercase field"
 						/>
 					</div>
 
 					<div>
-						<label class="block text-sm font-medium text-gray-700 mb-1">
-							Тип <span class="text-red-500">*</span>
+						<label for="coupon-field-2" class="field-label">
+							Тип <span class="text-negative" aria-hidden="true">*</span>
 						</label>
 						<select
+						id="coupon-field-2"
 							bind:value={type}
-							class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+							class="w-full field"
 						>
 							<option value="percent">Процент</option>
 							<option value="fixed">Фиксированная сумма</option>
@@ -224,79 +230,83 @@
 
 				<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 					<div>
-						<label class="block text-sm font-medium text-gray-700 mb-1">
-							Значение <span class="text-red-500">*</span>
+						<label for="coupon-field-3" class="field-label">
+							Значение <span class="text-negative" aria-hidden="true">*</span>
 						</label>
 						<input
+						id="coupon-field-3"
 							type="number"
 							bind:value={value}
 							min="0"
 							step="0.01"
 							required
 							placeholder={type === 'percent' ? '10' : '1000'}
-							class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+							class="w-full field"
 						/>
-						<p class="text-xs text-gray-500 mt-1">
+						<p class="text-label text-gray-500 mt-1">
 							{type === 'percent' ? 'Процент скидки (0-100)' : 'Сумма скидки'}
 						</p>
 					</div>
 
 					<div>
-						<label class="block text-sm font-medium text-gray-700 mb-1">Активен</label>
-						<label class="flex items-center space-x-2 mt-2">
+						<label for="coupon-field-4" class="field-label">Активен</label>
+						<label class="mt-1 flex min-h-11 cursor-pointer items-center gap-2.5">
 							<input
+						id="coupon-field-4"
 								type="checkbox"
 								bind:checked={isActive}
-								class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+								class="size-4"
 							/>
-							<span class="text-sm text-gray-700">Купон активен</span>
+							<span class="text-body-sm text-gray-800">Купон активен</span>
 						</label>
 					</div>
 				</div>
 
 				<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 					<div>
-						<label class="block text-sm font-medium text-gray-700 mb-1">Действует с</label>
+						<label for="coupon-field-5" class="field-label">Действует с</label>
 						<input
+						id="coupon-field-5"
 							type="date"
 							bind:value={validFrom}
-							class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+							class="w-full field"
 						/>
 					</div>
 
 					<div>
-						<label class="block text-sm font-medium text-gray-700 mb-1">Действует до</label>
+						<label for="coupon-field-6" class="field-label">Действует до</label>
 						<input
+						id="coupon-field-6"
 							type="date"
 							bind:value={validTo}
-							class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+							class="w-full field"
 						/>
 					</div>
 				</div>
 
 				<fieldset class="m-0 min-w-0 border-0 p-0">
-					<legend class="mb-2 block text-sm font-medium text-gray-700">Ограничения <span class="font-normal text-gray-500">(пустое поле — без ограничения)</span></legend>
+					<legend class="mb-3 text-title-sm text-ink">Ограничения <span class="font-normal text-gray-500">(пустое поле — без ограничения)</span></legend>
 					<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
 						<div>
-							<label for="coupon-max-uses" class="block text-sm text-gray-700 mb-1">Всего применений</label>
-							<input id="coupon-max-uses" type="number" min="1" step="1" bind:value={maxUses} class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+							<label for="coupon-max-uses" class="block text-body-sm text-gray-700 mb-1">Всего применений</label>
+							<input id="coupon-max-uses" type="number" min="1" step="1" bind:value={maxUses} class="w-full field" />
 						</div>
 						<div>
-							<label for="coupon-max-per-user" class="block text-sm text-gray-700 mb-1">На одного покупателя</label>
-							<input id="coupon-max-per-user" type="number" min="1" step="1" bind:value={maxUsesPerUser} class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+							<label for="coupon-max-per-user" class="block text-body-sm text-gray-700 mb-1">На одного покупателя</label>
+							<input id="coupon-max-per-user" type="number" min="1" step="1" bind:value={maxUsesPerUser} class="w-full field" />
 						</div>
 						<div>
-							<label for="coupon-min-subtotal" class="block text-sm text-gray-700 mb-1">Заказ от, ₽</label>
-							<input id="coupon-min-subtotal" type="number" min="0" step="0.01" bind:value={minSubtotal} class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+							<label for="coupon-min-subtotal" class="block text-body-sm text-gray-700 mb-1">Заказ от, ₽</label>
+							<input id="coupon-min-subtotal" type="number" min="0" step="0.01" bind:value={minSubtotal} class="w-full field" />
 						</div>
 					</div>
 				</fieldset>
 
-				<div class="flex space-x-2 pt-4">
+				<div class="flex flex-wrap gap-2 pt-2">
 					<button
 						type="submit"
 						disabled={isSubmitting}
-						class="flex-1 bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50"
+						class="flex-1 btn-primary"
 					>
 						{isSubmitting ? 'Сохранение...' : 'Сохранить'}
 					</button>
@@ -306,7 +316,7 @@
 							showCouponForm = false;
 							editingCoupon = null;
 						}}
-						class="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+						class="btn-secondary"
 					>
 						Отмена
 					</button>
@@ -317,68 +327,60 @@
 
 	<!-- Таблица купонов -->
 	<div class="overflow-x-auto">
-		<table class="min-w-full divide-y divide-gray-200">
+		<table class="min-w-full divide-y divide-line text-left">
 			<thead class="bg-gray-50">
 				<tr>
-					<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Код</th>
-					<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Тип</th>
-					<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Значение</th>
-					<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Период действия</th>
-					<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Применений</th>
-					<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Статус</th>
-					<th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Действия</th>
+					<th class="text-left font-medium text-gray-500 px-4 py-3 text-label">Код</th>
+					<th class="text-left font-medium text-gray-500 px-4 py-3 text-label">Тип</th>
+					<th class="text-left font-medium text-gray-500 px-4 py-3 text-label">Значение</th>
+					<th class="text-left font-medium text-gray-500 px-4 py-3 text-label">Период действия</th>
+					<th class="text-left font-medium text-gray-500 px-4 py-3 text-label">Применений</th>
+					<th class="text-left font-medium text-gray-500 px-4 py-3 text-label">Статус</th>
+					<th class="text-right font-medium text-gray-500 px-4 py-3 text-label">Действия</th>
 				</tr>
 			</thead>
-			<tbody class="bg-white divide-y divide-gray-200">
+			<tbody class="divide-y divide-line">
 				{#each coupons as coupon}
 					<tr class="hover:bg-gray-50">
-						<td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+						<td class="whitespace-nowrap text-body-sm font-medium text-gray-900 px-4 py-3">
 							{coupon.code}
 						</td>
-						<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+						<td class="whitespace-nowrap text-body-sm text-gray-500 px-4 py-3">
 							{coupon.type === 'percent' ? 'Процент' : 'Фиксированная'}
 						</td>
-						<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+						<td class="whitespace-nowrap text-body-sm text-gray-900 px-4 py-3">
 							{coupon.type === 'percent' ? `${parseFloat(coupon.value)}%` : formatPrice(coupon.value)}
 							{#if coupon.minSubtotal}
-								<span class="block text-xs text-gray-500">от {formatPrice(coupon.minSubtotal)}</span>
+								<span class="block text-label text-gray-500">от {formatPrice(coupon.minSubtotal)}</span>
 							{/if}
 						</td>
-						<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+						<td class="whitespace-nowrap text-body-sm text-gray-500 px-4 py-3">
 							{#if coupon.validFrom || coupon.validTo}
 								{coupon.validFrom ? formatDateTime(coupon.validFrom) : '—'} - {coupon.validTo ? formatDateTime(coupon.validTo) : '—'}
 							{:else}
 								Без ограничений
 							{/if}
 						</td>
-						<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 tabular-nums">
+						<td class="whitespace-nowrap text-body-sm text-gray-700 tabular-nums px-4 py-3">
 							{coupon.usedCount ?? 0}{coupon.maxUses ? ` из ${coupon.maxUses}` : ''}
 							{#if coupon.maxUsesPerUser}
-								<span class="block text-xs text-gray-500">до {coupon.maxUsesPerUser} на покупателя</span>
+								<span class="block text-label text-gray-500">до {coupon.maxUsesPerUser} на покупателя</span>
 							{/if}
 						</td>
-						<td class="px-6 py-4 whitespace-nowrap">
-							<span
-								class="px-2 py-1 text-xs font-medium rounded-full"
-								class:bg-green-100={coupon.isActive}
-								class:text-green-800={coupon.isActive}
-								class:bg-red-100={!coupon.isActive}
-								class:text-red-800={!coupon.isActive}
-							>
-								{coupon.isActive ? 'Активен' : 'Неактивен'}
-							</span>
+						<td class="whitespace-nowrap px-4 py-3">
+							<ActiveBadge active={coupon.isActive} on="Активен" off="Неактивен" />
 						</td>
-						<td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-							<div class="flex justify-end space-x-2">
+						<td class="whitespace-nowrap text-right text-body-sm font-medium px-4 py-3">
+							<div class="flex justify-end gap-1">
 								<button
 									onclick={() => handleEdit(coupon)}
-									class="px-2 pointer-coarse:min-h-11 text-indigo-600 hover:text-indigo-900"
+									class="btn-text"
 								>
 									Редактировать
 								</button>
 								<button
 									onclick={() => handleDelete(coupon)}
-									class="px-2 pointer-coarse:min-h-11 text-red-600 hover:text-red-900"
+									class="btn-text text-negative hover:text-negative"
 								>
 									Удалить
 								</button>

@@ -97,22 +97,6 @@
 	--color-caution: #9a5b00;
 	--color-negative: #b42318;
 
-	/*
-	 * Временный мост: экраны, ещё не переведённые на семантические токены (корзина, оформление,
-	 * кабинет, админка), используют bg-blue-* и ring-blue-*. Шкала синего отображена в графит,
-	 * чтобы вся витрина говорила одним языком, пока экраны переводятся по очереди.
-	 */
-	--color-blue-50: #f4f4f5;
-	--color-blue-100: #e9e9ec;
-	--color-blue-200: #d6d6db;
-	--color-blue-300: #b9b9c0;
-	--color-blue-400: #8b8b93;
-	--color-blue-500: #41414a;
-	--color-blue-600: var(--color-gray-950);
-	--color-blue-700: var(--color-gray-800);
-	--color-blue-800: var(--color-gray-900);
-	--color-blue-900: var(--color-gray-950);
-
 	--ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
 
 	--animate-bump: bump 320ms var(--ease-out-quart);
@@ -140,6 +124,122 @@
 			transform: scale(1);
 		}
 	}
+}
+
+/*
+ * Общие компоненты кабинета, оформления, админки и форм. Витрина (каталог, товар) собрана
+ * из тех же токенов утилитами по месту; здесь то, что повторяется на десятках экранов форм.
+ * Размеры кнопок заданы переменными, поэтому btn-lg и ширина из разметки не спорят с базой.
+ */
+
+/* Кнопка: 44px, 12px, подпись control. Основная — чёрная, это действие (Black Means Act) */
+@utility btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 0.5rem;
+	min-height: var(--btn-height, 2.75rem);
+	padding-inline: var(--btn-padding, 1.25rem);
+	/* Высоту держит min-height; отступ нужен, когда подпись переносится на вторую строку */
+	padding-block: 0.5rem;
+	border-radius: var(--radius-xl);
+	font-size: var(--btn-font-size, var(--text-control));
+	line-height: var(--btn-line-height, var(--text-control--line-height));
+	font-weight: 500;
+	text-align: center;
+	transition-property: color, background-color, transform, opacity;
+	transition-duration: 150ms;
+
+	&:disabled {
+		cursor: not-allowed;
+		opacity: 0.5;
+	}
+
+	&[aria-busy='true'] {
+		opacity: 0.7;
+	}
+}
+
+/* Большая кнопка 52px: основное действие экрана («Оформить заказ», «Перейти в каталог») */
+@utility btn-lg {
+	--btn-height: 3.25rem;
+	--btn-font-size: var(--text-control-lg);
+	--btn-line-height: var(--text-control-lg--line-height);
+}
+
+@utility btn-primary {
+	@apply btn;
+	background-color: var(--color-ink);
+	color: #ffffff;
+
+	&:hover:not(:disabled) {
+		background-color: var(--color-ink-hover);
+	}
+
+	&:active:not(:disabled) {
+		transform: scale(0.98);
+	}
+}
+
+@utility btn-secondary {
+	@apply btn;
+	background-color: var(--color-gray-100);
+	color: var(--color-ink);
+
+	&:hover:not(:disabled) {
+		background-color: var(--color-gray-200);
+	}
+}
+
+/* Необратимое действие: удаление, отмена заказа. Красная заливка только здесь */
+@utility btn-danger {
+	@apply btn;
+	background-color: var(--color-negative);
+	color: #ffffff;
+
+	&:hover:not(:disabled) {
+		background-color: color-mix(in oklab, var(--color-negative) 88%, black);
+	}
+}
+
+/* Текстовое действие без заливки: «Изменить», «Отмена», «Удалить» в строке */
+@utility btn-text {
+	@apply inline-flex min-h-11 items-center gap-1.5 rounded-md px-1 text-control text-gray-700 underline-offset-4 transition-colors hover:text-ink hover:underline disabled:cursor-not-allowed disabled:opacity-50;
+}
+
+/* Поле ввода: без обводки, серая подложка, при фокусе белеет; 16px против зума iOS (16px Field Rule) */
+@utility field {
+	@apply min-h-11 rounded-xl bg-gray-100 px-4 py-2.5 text-base text-ink transition-colors placeholder:text-gray-500 focus:bg-surface focus:ring-2 focus:ring-ink focus:outline-none disabled:cursor-not-allowed disabled:opacity-60 aria-invalid:bg-surface aria-invalid:ring-2 aria-invalid:ring-negative;
+}
+
+@utility field-label {
+	@apply mb-1.5 block text-body-sm font-medium text-gray-800;
+}
+
+@utility field-hint {
+	@apply mt-1.5 text-body-sm text-gray-600;
+}
+
+@utility field-error {
+	@apply mt-1.5 text-body-sm text-negative;
+}
+
+/* Уведомления в потоке страницы: цвет статуса всегда со словом (Word-First Status) */
+@utility notice-error {
+	@apply rounded-xl bg-negative/8 px-4 py-3 text-body-sm text-negative;
+}
+
+@utility notice-caution {
+	@apply rounded-xl bg-caution/10 px-4 py-3 text-body-sm text-gray-900;
+}
+
+@utility notice-success {
+	@apply rounded-xl bg-positive/10 px-4 py-3 text-body-sm text-positive;
+}
+
+/* Ссылка в тексте: ink с подчёркиванием, которое темнеет при наведении */
+@utility link {
+	@apply text-ink underline decoration-gray-300 underline-offset-4 transition-colors hover:decoration-ink;
 }
 
 :root {
@@ -199,6 +299,12 @@ body {
 	caret-color: var(--color-ink);
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
+}
+
+/* Флажки и переключатели в палитре системы, а не синие по умолчанию браузера */
+input[type='checkbox'],
+input[type='radio'] {
+	accent-color: var(--color-ink);
 }
 
 ::selection {

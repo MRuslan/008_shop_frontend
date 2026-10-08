@@ -44,26 +44,26 @@
 	<link rel="canonical" href="{siteUrl}/contacts" />
 </svelte:head>
 
-<div class="container mx-auto px-4 py-8">
+<div class="container py-4 md:py-6">
 	<h1 class="text-headline md:text-headline-lg text-balance text-ink mb-6">Контакты</h1>
 
 	{#if !$storeSettings}
-		<p class="text-gray-600">Информация о магазине ещё не заполнена.</p>
+		<p class="text-body text-gray-600">Информация о магазине ещё не заполнена.</p>
 	{:else}
-		<div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
-			<div class="space-y-6 lg:col-span-1">
+		<div class="grid grid-cols-1 gap-3 lg:grid-cols-3 lg:items-start lg:gap-6">
+			<div class="space-y-3 lg:col-span-1 lg:space-y-6">
 				<!-- Связь -->
-				<section class="bg-white rounded-lg shadow-md p-6">
+				<section class="rounded-2xl bg-surface p-5 md:p-6">
 					<h2 class="text-title text-ink mb-4">Связаться с нами</h2>
 					{#if hasContacts}
-						<dl class="space-y-3 text-sm">
+						<dl class="space-y-3 text-body-sm">
 							{#if $storeSettings.contactPhone}
 								<div>
 									<dt class="text-gray-500">Телефон</dt>
 									<dd class="mt-0.5">
 										<a
 											href={telHref($storeSettings.contactPhone)}
-											class="font-medium text-gray-900 hover:text-blue-600"
+											class="font-medium text-gray-900 hover:text-ink"
 										>
 											{$storeSettings.contactPhone}
 										</a>
@@ -76,7 +76,7 @@
 									<dd class="mt-0.5">
 										<a
 											href="mailto:{$storeSettings.contactEmail}"
-											class="font-medium text-gray-900 break-all hover:text-blue-600"
+											class="font-medium text-gray-900 break-all hover:text-ink"
 										>
 											{$storeSettings.contactEmail}
 										</a>
@@ -85,15 +85,15 @@
 							{/if}
 						</dl>
 					{:else}
-						<p class="text-sm text-gray-600">Контактные данные пока не указаны.</p>
+						<p class="text-body-sm text-gray-600">Контактные данные пока не указаны.</p>
 					{/if}
 				</section>
 
 				<!-- Реквизиты -->
 				{#if hasLegal}
-					<section class="bg-white rounded-lg shadow-md p-6">
+					<section class="rounded-2xl bg-surface p-5 md:p-6">
 						<h2 class="text-title text-ink mb-4">Реквизиты</h2>
-						<dl class="space-y-3 text-sm">
+						<dl class="space-y-3 text-body-sm">
 							{#if $storeSettings.legalName}
 								<div>
 									<dt class="text-gray-500">Наименование</dt>
@@ -122,37 +122,37 @@
 				<h2 class="text-title text-ink mb-4">Точки самовывоза</h2>
 
 				{#if data.locationsError}
-					<div role="alert" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+					<div role="alert" class="notice-error">
 						{data.locationsError}
 					</div>
 				{:else if visibleLocations.length === 0}
-					<p class="text-sm text-gray-600">Точек самовывоза пока нет: заказы можно получить только с доставкой курьером.</p>
+					<p class="text-body-sm text-gray-600">Точек самовывоза пока нет: заказы можно получить только с доставкой курьером.</p>
 				{:else}
-					<ul class="grid grid-cols-1 gap-4 md:grid-cols-2">
+					<ul class="grid grid-cols-1 gap-3 md:grid-cols-2">
 						{#each visibleLocations as location (location.id)}
 							{@const hours = formatOpeningHours(location.openingHours)}
-							<li class="bg-white rounded-lg shadow-md p-6">
+							<li class="rounded-2xl bg-surface p-5 md:p-6">
 								<div class="mb-2 flex flex-wrap items-center gap-2">
 									<h3 class="text-title-sm text-ink">{location.name}</h3>
-									<span class="rounded bg-gray-100 px-2 py-1 text-label font-medium text-gray-700">
+									<span class="rounded-md bg-gray-100 px-2 py-0.5 text-label font-medium text-gray-700">
 										{typeLabels[location.type]}
 									</span>
 								</div>
-								<p class="text-sm text-gray-600">
+								<p class="text-body-sm text-gray-600">
 									{location.city}, {location.street}, д. {location.building}
 									{#if location.apartment}, {location.apartment}{/if}
 								</p>
 								{#if location.postalCode}
-									<p class="text-sm text-gray-600">Индекс: {location.postalCode}</p>
+									<p class="text-body-sm text-gray-600">Индекс: {location.postalCode}</p>
 								{/if}
-								<p class="mt-1 text-sm text-gray-600">
+								<p class="mt-1 text-body-sm text-gray-600">
 									Телефон:
-									<a href={telHref(location.phone)} class="text-gray-900 hover:text-blue-600">
+									<a href={telHref(location.phone)} class="text-gray-900 hover:text-ink">
 										{location.phone}
 									</a>
 								</p>
 								{#if hours.length > 0}
-									<div class="mt-3 text-sm text-gray-600">
+									<div class="mt-3 text-body-sm text-gray-600">
 										<p class="font-medium text-gray-700">График работы</p>
 										<ul class="mt-1 space-y-0.5">
 											{#each hours as line (line)}

@@ -7,6 +7,7 @@
 	import CartItem from '$lib/components/cart/CartItem.svelte';
 	import CartSummary from '$lib/components/cart/CartSummary.svelte';
 	import Skeleton from '$lib/components/ui/Skeleton.svelte';
+	import ShoppingCart from '@lucide/svelte/icons/shopping-cart';
 	import { getErrorMessage } from '$lib/utils/errors';
 	import { toast } from '$lib/stores/toast';
 	import { pluralize } from '$lib/utils/format';
@@ -99,59 +100,46 @@
 	<meta name="robots" content="noindex" />
 </svelte:head>
 
-<div class="container mx-auto px-4 py-8">
-	<h1 class="text-headline md:text-headline-lg text-balance text-ink mb-6">Корзина</h1>
+<div class="container py-4 md:py-6">
+	<h1 class="mb-4 text-headline text-balance text-ink md:mb-6 md:text-headline-lg">Корзина</h1>
 
 	{#if isLoading}
 		<!-- Заглушка в форме корзины: позиции слева, итог справа -->
-		<div class="grid grid-cols-1 gap-6 lg:grid-cols-3" role="status">
+		<div class="grid grid-cols-1 gap-3 lg:grid-cols-3 lg:gap-6" role="status">
 			<span class="sr-only">Загружаем корзину…</span>
-			<div class="space-y-4 lg:col-span-2">
-				<Skeleton class="h-32 rounded-lg" />
-				<Skeleton class="h-32 rounded-lg" />
+			<div class="space-y-3 lg:col-span-2">
+				<Skeleton class="h-32 rounded-2xl" />
+				<Skeleton class="h-32 rounded-2xl" />
 			</div>
-			<Skeleton class="h-56 rounded-lg" />
+			<Skeleton class="h-56 rounded-2xl" />
 		</div>
 	{:else if loadFailed}
-		<div role="alert" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+		<div role="alert" class="mb-4 notice-error">
 			Не удалось загрузить корзину. Проверьте соединение и попробуйте ещё раз.
 		</div>
 		<button
 			type="button"
 			onclick={() => cartStore.init()}
-			class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors text-control"
+			class="btn-primary"
 		>
 			Попробовать снова
 		</button>
 	{:else if !$cartStore || $cartStore.items.length === 0}
-		<div class="text-center py-12">
-			<svg
-				class="mx-auto h-24 w-24 text-gray-400 mb-4"
-				aria-hidden="true"
-				fill="none"
-				stroke="currentColor"
-				viewBox="0 0 24 24"
-			>
-				<path
-					stroke-linecap="round"
-					stroke-linejoin="round"
-					stroke-width="2"
-					d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L6 4H4M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"
-				/>
-			</svg>
+		<div class="rounded-2xl bg-surface px-6 py-12 text-center">
+			<ShoppingCart class="mx-auto mb-4 size-12 text-gray-300" strokeWidth={1.5} aria-hidden="true" />
 			<p class="text-title-sm text-ink">В корзине пока ничего нет</p>
-			<p class="mt-1 mb-4 text-body-sm text-gray-600">Добавляйте товары кнопкой «В корзину» в каталоге.</p>
+			<p class="mt-1 mb-5 text-body-sm text-gray-600">Добавляйте товары кнопкой «В корзину» в каталоге.</p>
 			<a
 				href="/catalog"
-				class="inline-block px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-control-lg"
+				class="btn-primary btn-lg"
 			>
 				Перейти в каталог
 			</a>
 		</div>
 	{:else}
-		<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+		<div class="grid grid-cols-1 gap-3 lg:grid-cols-3 lg:items-start lg:gap-6">
 			<!-- Товары в корзине -->
-			<div class="lg:col-span-2 space-y-4">
+			<div class="space-y-3 lg:col-span-2">
 				{#each $cartStore.items as item (item.id)}
 					<CartItem
 						{item}
@@ -162,12 +150,12 @@
 				{/each}
 
 				<!-- Кнопка очистки корзины -->
-				<div class="flex justify-end pt-4">
+				<div class="flex justify-end">
 					<button
 						type="button"
 						onclick={handleClearCart}
 						disabled={isUpdating}
-						class="px-4 py-2 text-negative hover:bg-red-50 rounded transition-colors disabled:opacity-50"
+						class="btn-text text-negative hover:text-negative"
 					>
 						Очистить корзину
 					</button>
@@ -175,7 +163,7 @@
 			</div>
 
 			<!-- Итого -->
-			<div class="lg:col-span-1">
+			<div class="lg:sticky lg:top-4">
 				<CartSummary cart={$cartStore} />
 			</div>
 		</div>

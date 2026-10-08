@@ -70,25 +70,12 @@
 	<meta name="robots" content="noindex" />
 </svelte:head>
 
-<div class="bg-white rounded-lg shadow-md p-6">
-	<div class="flex items-center justify-between mb-6">
-		<h1 class="text-headline text-ink">Адреса доставки</h1>
-		{#if !showAddressForm}
-			<button
-				type="button"
-				onclick={() => {
-					editingAddress = null;
-					showAddressForm = true;
-				}}
-				class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-control"
-			>
-				Добавить адрес
-			</button>
-		{/if}
-	</div>
+<div class="rounded-2xl bg-surface p-5 md:p-6">
+	<!-- Кнопка «Добавить адрес» одна: в пустом состоянии и под списком, без дубля в заголовке -->
+	<h1 class="mb-6 text-headline text-ink">Адреса доставки</h1>
 
 	{#if error}
-		<div role="alert" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+		<div role="alert" class="mb-4 notice-error">
 			{error}
 		</div>
 	{/if}
@@ -119,7 +106,7 @@
 					editingAddress = null;
 					showAddressForm = true;
 				}}
-				class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-control"
+				class="btn-primary"
 			>
 				Добавить адрес
 			</button>
@@ -141,7 +128,7 @@
 			}}
 		/>
 		
-		<p class="mt-4 text-sm text-gray-600">
+		<p class="mt-4 text-body-sm text-gray-600">
 			Основной адрес подставляется в новые заказы автоматически.
 		</p>
 	{/if}

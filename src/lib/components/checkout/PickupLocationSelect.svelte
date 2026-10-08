@@ -26,14 +26,14 @@
 </script>
 
 {#if locations.length === 0}
-	<p class="text-gray-600 py-4">Самовывоз в этом магазине пока недоступен. Выберите доставку курьером.</p>
+	<p class="py-4 text-body text-gray-600">Самовывоз в этом магазине пока недоступен. Выберите доставку курьером.</p>
 {:else}
 	<fieldset class="m-0 flex min-w-0 flex-col gap-3 border-0 p-0">
 		<legend class="sr-only">Точка самовывоза</legend>
 		{#if !stock}
-			<p class="text-sm text-gray-500">Наличие товаров проверим в выбранной точке при оформлении заказа.</p>
+			<p class="text-body-sm text-gray-500">Наличие товаров проверим в выбранной точке при оформлении заказа.</p>
 		{:else if !anyAvailable}
-			<p class="text-sm text-caution">
+			<p class="text-body-sm text-caution">
 				Ни в одной точке нет всего заказа сразу. Уменьшите количество в корзине или выберите доставку.
 			</p>
 		{/if}
@@ -46,11 +46,11 @@
 			<!-- Точку без всего заказа выбрать нельзя: бэкенд не примет заказ, но покупатель видит, чего не хватает -->
 			{@const blocked = !!stock && !pointStock?.available}
 			<div
-				class="rounded-lg border-2 transition-colors has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-blue-500 has-[:focus-visible]:ring-offset-2 {selected
-					? 'border-blue-600'
+				class="rounded-xl border-2 transition-colors has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ink has-[:focus-visible]:ring-offset-2 {selected
+					? 'border-ink'
 					: blocked
-						? 'border-gray-200 bg-gray-50'
-						: 'border-gray-300 hover:border-gray-400'}"
+						? 'border-line bg-gray-50'
+						: 'border-line hover:border-gray-300'}"
 			>
 				<input
 					type="radio"
@@ -65,16 +65,16 @@
 				/>
 				<label for={inputId} class="block p-4 {blocked ? 'cursor-not-allowed' : 'cursor-pointer'}">
 					<span class="mb-2 block text-title-sm {blocked ? 'text-gray-600' : 'text-ink'}">{location.name}</span>
-					<span class="mb-1 block text-sm text-gray-600">
+					<span class="mb-1 block text-body-sm text-gray-600">
 						{location.city}, {location.street}, д. {location.building}
 						{#if location.apartment}, {location.apartment}{/if}
 					</span>
 					{#if location.postalCode}
-						<span class="block text-sm text-gray-600">Индекс: {location.postalCode}</span>
+						<span class="block text-body-sm text-gray-600">Индекс: {location.postalCode}</span>
 					{/if}
-					<span class="block text-sm text-gray-600">Телефон: {location.phone}</span>
+					<span class="block text-body-sm text-gray-600">Телефон: {location.phone}</span>
 					{#if hours.length > 0}
-						<span class="mt-2 block text-sm text-gray-600">
+						<span class="mt-2 block text-body-sm text-gray-600">
 							<span class="block font-medium">График работы:</span>
 							{#each hours as line (line)}
 								<span class="block">{line}</span>
@@ -82,7 +82,7 @@
 						</span>
 					{/if}
 					{#if pointStock}
-						<span id="{inputId}-stock" class="mt-2 block text-sm">
+						<span id="{inputId}-stock" class="mt-2 block text-body-sm">
 							{#if pointStock.available}
 								<span class="text-positive">Весь заказ в наличии</span>
 							{:else}

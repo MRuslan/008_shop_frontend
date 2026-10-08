@@ -341,32 +341,32 @@
 	<meta name="robots" content="noindex" />
 </svelte:head>
 
-<div class="container mx-auto px-4 py-8">
-	<h1 class="text-headline md:text-headline-lg text-balance text-ink mb-6">Оформление заказа</h1>
+<div class="container py-4 md:py-6">
+	<h1 class="mb-4 text-headline text-balance text-ink md:mb-6 md:text-headline-lg">Оформление заказа</h1>
 
 	{#if isLoading}
 		<!-- Заглушка повторяет форму: способ получения, адрес, промокод, комментарий и итог справа -->
-		<div class="grid grid-cols-1 gap-6 lg:grid-cols-3" role="status">
+		<div class="grid grid-cols-1 gap-3 lg:grid-cols-3 lg:gap-6" role="status">
 			<span class="sr-only">{$authStore.isLoading ? 'Проверяем вход…' : 'Загружаем адреса и точки самовывоза…'}</span>
-			<div class="space-y-6 lg:col-span-2">
-				<div class="rounded-lg bg-white p-6 shadow-md">
+			<div class="space-y-3 lg:col-span-2 lg:space-y-6">
+				<div class="rounded-2xl bg-surface p-5 md:p-6">
 					<Skeleton class="mb-4 h-7 w-48" />
 					<div class="space-y-3">
 						<Skeleton class="h-[4.5rem]" />
 						<Skeleton class="h-[4.5rem]" />
 					</div>
 				</div>
-				<div class="rounded-lg bg-white p-6 shadow-md">
+				<div class="rounded-2xl bg-surface p-5 md:p-6">
 					<Skeleton class="mb-4 h-7 w-40" />
 					<Skeleton class="h-24" />
 				</div>
-				<div class="rounded-lg bg-white p-6 shadow-md">
+				<div class="rounded-2xl bg-surface p-5 md:p-6">
 					<Skeleton class="mb-2 h-5 w-24" />
 					<Skeleton class="h-11" />
 				</div>
 			</div>
 			<div class="lg:col-span-1">
-				<div class="space-y-3 rounded-lg bg-white p-6 shadow-md">
+				<div class="space-y-3 rounded-2xl bg-surface p-5 md:p-6">
 					<Skeleton class="mb-4 h-7 w-32" />
 					<Skeleton class="h-5" />
 					<Skeleton class="h-5 w-3/4" />
@@ -376,74 +376,74 @@
 			</div>
 		</div>
 	{:else if loadError}
-		<div role="alert" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+		<div role="alert" class="mb-4 notice-error">
 			{loadError}
 		</div>
 		<button
 			type="button"
 			onclick={loadData}
-			class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-control"
+			class="btn-primary"
 		>
 			Попробовать снова
 		</button>
 	{:else if !$cartStore || $cartStore.items.length === 0}
 		<div class="text-center py-12">
 			<p class="text-title-sm text-ink">В корзине пока ничего нет</p>
-			<p class="mt-1 mb-4 text-body-sm text-gray-600">Чтобы оформить заказ, добавьте товары из каталога.</p>
-			<a href="/catalog" class="text-blue-600 hover:text-blue-800">Перейти в каталог</a>
+			<p class="mt-1 mb-5 text-body-sm text-gray-600">Чтобы оформить заказ, добавьте товары из каталога.</p>
+			<a href="/catalog" class="btn-primary">Перейти в каталог</a>
 		</div>
 	{:else}
-		<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+		<div class="grid grid-cols-1 gap-3 lg:grid-cols-3 lg:items-start lg:gap-6">
 			<!-- Основная форма -->
-			<div class="lg:col-span-2 space-y-6">
+			<div class="space-y-3 lg:col-span-2 lg:space-y-6">
 				<!-- Тип доставки -->
-				<fieldset class="bg-white rounded-lg shadow-md p-6 m-0 min-w-0 border-0">
+				<fieldset class="m-0 min-w-0 border-0 rounded-2xl bg-surface p-5 md:p-6">
 					<legend class="sr-only">Способ получения</legend>
 					<h2 class="text-title text-ink mb-4" aria-hidden="true">Способ получения</h2>
 					<div class="space-y-3">
 						<label
-							class="flex items-center space-x-3 p-4 border-2 rounded-lg has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-blue-500 has-[:focus-visible]:ring-offset-2 {deliveryEnabled
-								? 'cursor-pointer'
-								: 'cursor-not-allowed bg-gray-50'}"
-							class:border-blue-600={deliveryType === 'delivery'}
-							class:border-gray-300={deliveryType !== 'delivery'}
+							class="flex items-center gap-3 rounded-xl border-2 p-4 transition-colors has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ink has-[:focus-visible]:ring-offset-2 {deliveryType === 'delivery'
+								? 'border-ink'
+								: deliveryEnabled
+									? 'cursor-pointer border-line hover:border-gray-300'
+									: 'cursor-not-allowed border-line bg-gray-50'}"
 						>
 							<input
 								type="radio"
 								bind:group={deliveryType}
 								value="delivery"
 								disabled={!deliveryEnabled}
-								class="text-blue-600 focus:ring-blue-500"
+								class="size-4"
 							/>
 							<span class="flex-1">
-								<span class="block font-medium {deliveryEnabled ? '' : 'text-gray-600'}">Доставка курьером</span>
+								<span class="block text-title-sm {deliveryEnabled ? 'text-ink' : 'text-gray-600'}">Доставка курьером</span>
 								{#if !deliveryEnabled}
-									<span class="block text-sm text-gray-600">Сейчас магазин не доставляет заказы</span>
+									<span class="block text-body-sm text-gray-600">Сейчас магазин не доставляет заказы</span>
 								{:else}
-									<span class="block text-sm text-gray-600">Привезём по адресу, который вы укажете</span>
+									<span class="block text-body-sm text-gray-600">Привезём по адресу, который вы укажете</span>
 									{#if deliveryTerms}
-										<span class="block text-sm text-gray-600">{deliveryTerms}</span>
+										<span class="block text-body-sm text-gray-600">{deliveryTerms}</span>
 									{/if}
 								{/if}
 							</span>
 						</label>
 						<label
-							class="flex items-center space-x-3 p-4 border-2 rounded-lg has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-blue-500 has-[:focus-visible]:ring-offset-2 {pickupEnabled
-								? 'cursor-pointer'
-								: 'cursor-not-allowed bg-gray-50'}"
-							class:border-blue-600={deliveryType === 'pickup'}
-							class:border-gray-300={deliveryType !== 'pickup'}
+							class="flex items-center gap-3 rounded-xl border-2 p-4 transition-colors has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ink has-[:focus-visible]:ring-offset-2 {deliveryType === 'pickup'
+								? 'border-ink'
+								: pickupEnabled
+									? 'cursor-pointer border-line hover:border-gray-300'
+									: 'cursor-not-allowed border-line bg-gray-50'}"
 						>
 							<input
 								type="radio"
 								bind:group={deliveryType}
 								value="pickup"
 								disabled={!pickupEnabled}
-								class="text-blue-600 focus:ring-blue-500"
+								class="size-4"
 							/>
 							<span class="flex-1">
-								<span class="block font-medium {pickupEnabled ? '' : 'text-gray-600'}">Самовывоз</span>
-								<span class="block text-sm text-gray-600">
+								<span class="block text-title-sm {pickupEnabled ? 'text-ink' : 'text-gray-600'}">Самовывоз</span>
+								<span class="block text-body-sm text-gray-600">
 									{pickupEnabled
 										? 'Бесплатно. Заберёте сами из пункта выдачи или магазина'
 										: 'Сейчас самовывоз недоступен'}
@@ -455,7 +455,7 @@
 
 				<!-- Адреса доставки или точки самовывоза -->
 				{#if deliveryType === 'delivery'}
-					<div class="bg-white rounded-lg shadow-md p-6">
+					<div class="rounded-2xl bg-surface p-5 md:p-6">
 						<h2 class="text-title text-ink mb-4">Адрес доставки</h2>
 
 						{#if showAddressForm}
@@ -485,7 +485,7 @@
 						{/if}
 					</div>
 				{:else}
-					<div class="bg-white rounded-lg shadow-md p-6">
+					<div class="rounded-2xl bg-surface p-5 md:p-6">
 						<h2 class="text-title text-ink mb-4">Точка самовывоза</h2>
 						<PickupLocationSelect
 							{locations}
@@ -497,7 +497,7 @@
 				{/if}
 
 				<!-- Промокод -->
-				<div class="bg-white rounded-lg shadow-md p-6">
+				<div class="rounded-2xl bg-surface p-5 md:p-6">
 					<CouponInput
 						{couponCode}
 						status={couponStatus}
@@ -509,8 +509,8 @@
 				</div>
 
 				<!-- Комментарий -->
-				<div class="bg-white rounded-lg shadow-md p-6">
-					<label for="order-comment" class="block text-title text-ink mb-4">
+				<div class="rounded-2xl bg-surface p-5 md:p-6">
+					<label for="order-comment" class="mb-4 block text-title text-ink">
 						Комментарий к заказу <span class="text-body-sm font-normal text-gray-500">(необязательно)</span>
 					</label>
 					<textarea
@@ -519,23 +519,23 @@
 						maxlength="2000"
 						placeholder="Например, код домофона или удобное время для звонка"
 						rows="4"
-						class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+						class="w-full field"
 					></textarea>
 				</div>
 			</div>
 
 			<!-- Итого -->
 			<div class="lg:col-span-1">
-				<div class="bg-white rounded-lg shadow-md p-6 sticky top-4">
+				<div class="sticky top-4 rounded-2xl bg-surface p-5 md:p-6">
 					<h2 class="text-title text-ink mb-4">Ваш заказ</h2>
 
 					<ul class="space-y-2 mb-4">
 						{#each $cartStore.items as item (item.id)}
-							<li class="flex justify-between gap-3 text-sm">
+							<li class="flex justify-between gap-3 text-body-sm">
 								<span class="text-gray-600 min-w-0 break-words">
 									{item.product.name} × {item.quantity}
 								</span>
-								<span class="font-medium shrink-0">
+								<span class="shrink-0 text-gray-900">
 									{money((parseFloat(item.product.price) * item.quantity).toFixed(2))}
 								</span>
 							</li>
@@ -543,7 +543,7 @@
 					</ul>
 
 					<!-- Пока идёт пересчёт, прежние суммы бледнеют, но не исчезают -->
-					<dl class="space-y-2 border-t pt-4 text-sm transition-opacity {quotePending ? 'opacity-60' : ''}" aria-busy={quotePending}>
+					<dl class="space-y-2 border-t border-line pt-4 text-body-sm transition-opacity {quotePending ? 'opacity-60' : ''}" aria-busy={quotePending}>
 						<div class="flex justify-between text-gray-600">
 							<dt>Товары</dt>
 							<dd>{money(subtotal)}</dd>
@@ -565,22 +565,22 @@
 								<dd>Бесплатно</dd>
 							</div>
 						{/if}
-						<div class="flex items-baseline justify-between border-t pt-3 text-ink">
+						<div class="flex items-baseline justify-between border-t border-line pt-3 text-ink">
 							<dt class="text-title-sm">Итого</dt>
 							<dd class="text-price-md">{money(total)}</dd>
 						</div>
 					</dl>
 
 					{#if quote?.freeDeliveryRemaining && deliveryType === 'delivery'}
-						<p class="mt-2 text-sm text-gray-600">
+						<p class="mt-2 text-body-sm text-gray-600">
 							Добавьте товаров на&nbsp;{money(quote.freeDeliveryRemaining)}, и доставка станет бесплатной.
 						</p>
 					{/if}
 					{#if !quote && couponCode}
-						<p class="mt-2 text-sm text-gray-500">Сумма без скидки по промокоду</p>
+						<p class="mt-2 text-body-sm text-gray-600">Сумма без скидки по промокоду</p>
 					{/if}
 					{#if quoteError}
-						<p class="mt-2 text-sm text-gray-500">{quoteError}</p>
+						<p class="mt-2 text-body-sm text-gray-600">{quoteError}</p>
 					{/if}
 
 					{#if blockers.length > 0}
@@ -588,7 +588,7 @@
 							bind:this={blockersBox}
 							tabindex="-1"
 							role="status"
-							class="mt-4 rounded-md border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-gray-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-ink"
+							class="mt-4 notice-caution focus:outline-none focus-visible:ring-2 focus-visible:ring-ink"
 						>
 							<p class="font-medium">Чтобы оформить заказ:</p>
 							<ul class="mt-1 list-disc space-y-1 pl-5">
@@ -597,13 +597,13 @@
 								{/each}
 							</ul>
 							{#if blockers.some((text) => text.includes('корзин'))}
-								<a href="/cart" class="mt-2 inline-block underline underline-offset-4">Перейти в корзину</a>
+								<a href="/cart" class="link mt-2 inline-block">Перейти в корзину</a>
 							{/if}
 						</div>
 					{/if}
 
 					{#if submitError}
-						<div role="alert" class="mt-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded text-sm">
+						<div role="alert" class="mt-4 notice-error">
 							{submitError}
 						</div>
 					{/if}
@@ -612,11 +612,11 @@
 						type="button"
 						onclick={handleSubmitOrder}
 						disabled={isSubmitting}
-						class="mt-4 w-full bg-blue-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-control-lg"
+						class="mt-4 w-full btn-primary btn-lg"
 					>
 						{isSubmitting ? 'Оформляем заказ…' : 'Оформить заказ'}
 					</button>
-					<p class="mt-3 text-sm text-gray-500">Оплата при получении. Предоплата не нужна.</p>
+					<p class="mt-3 text-body-sm text-gray-600">Оплата при получении. Предоплата не нужна.</p>
 				</div>
 			</div>
 		</div>

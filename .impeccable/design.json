@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-09-27T12:00:00+03:00",
+  "generatedAt": "2026-10-08T12:00:00+03:00",
   "title": "Design System: Витрина магазина",
   "extensions": {
     "colorMeta": {
@@ -195,21 +195,6 @@
         "canonical": "#0b0b0c"
       }
     },
-    "deprecatedBridge": {
-      "purpose": "Временный мост: --color-blue-* в @theme отображены в графит, чтобы непереведённые экраны (корзина, оформление, кабинет, админка) совпадали с витриной. В новой работе не использовать; удалить, когда последний экран переведён на семантические роли.",
-      "values": {
-        "blue-50": "#f4f4f5",
-        "blue-100": "#e9e9ec",
-        "blue-200": "#d6d6db",
-        "blue-300": "#b9b9c0",
-        "blue-400": "#8b8b93",
-        "blue-500": "#41414a",
-        "blue-600": "var(--color-gray-950)",
-        "blue-700": "var(--color-gray-800)",
-        "blue-800": "var(--color-gray-900)",
-        "blue-900": "var(--color-gray-950)"
-      }
-    },
     "typographyMeta": {
       "headline": {
         "displayName": "Headline",
@@ -237,7 +222,7 @@
       },
       "title-sm": {
         "displayName": "Title small",
-        "purpose": "Заголовки внутри панелей: адрес, пункт выдачи, строка заказа, колонки подвала."
+        "purpose": "Заголовки внутри панелей: адрес, пункт выдачи, строка заказа, колонки подвала, легенды групп полей в формах админки."
       },
       "body": {
         "displayName": "Body",
@@ -245,11 +230,11 @@
       },
       "body-sm": {
         "displayName": "Body small",
-        "purpose": "Название в карточке (две строки), крошки, строки фильтров, тосты, вторичные строки (цена за штуку — gray-600)."
+        "purpose": "Название в карточке (две строки), крошки, строки фильтров, тосты, вторичные строки (цена за штуку — gray-600), подписи, подсказки и ошибки полей, уведомления, ячейки таблиц админки."
       },
       "control": {
         "displayName": "Control",
-        "purpose": "Подписи кнопок, чипсов, сортировки, пагинации."
+        "purpose": "Подписи кнопок, чипсов, сортировки, пагинации, пунктов бокового меню и сегментного переключателя."
       },
       "control-lg": {
         "displayName": "Control large",
@@ -257,7 +242,7 @@
       },
       "label": {
         "displayName": "Label",
-        "purpose": "Остаток, старая цена, плашка скидки (600), подписи иконок шапки; бейджи статуса и «По умолчанию» — 500."
+        "purpose": "Остаток, старая цена, плашка скидки (600), подписи иконок шапки; бейджи статуса и активности, «По умолчанию», заголовки столбцов таблиц админки — 500."
       },
       "tab": {
         "displayName": "Tab",
@@ -282,14 +267,14 @@
         "purpose": "Только при наведении на карточку товара, переход 200ms. В покое теней нет."
       },
       {
-        "name": "toast",
+        "name": "temporary-layer",
         "value": "0 8px 24px rgb(0 0 0 / 0.18)",
-        "purpose": "Тёмная плашка уведомления над контентом."
+        "purpose": "Временный слой над контентом: тост и диалоги (подтверждение, вход)."
       },
       {
-        "name": "sheet-backdrop",
+        "name": "backdrop",
         "value": "rgb(0 0 0 / 0.4)",
-        "purpose": "Затемнение под нижним листом фильтров."
+        "purpose": "Затемнение под нижним листом фильтров и под диалогами."
       }
     ],
     "motion": [
@@ -322,6 +307,21 @@
         "name": "toast-fly",
         "value": "fly y 16px, 220ms",
         "purpose": "Появление тоста; при reduced motion — 0."
+      },
+      {
+        "name": "page-crossfade",
+        "value": "::view-transition-old/new(root) 180ms var(--ease-out-quart)",
+        "purpose": "Растворение страницы при смене раздела. site-header, tab-bar и nav-progress исключены и меняются сразу; пропускается на том же пути и при reduced motion."
+      },
+      {
+        "name": "nav-progress",
+        "value": "2px ink; show after 150ms; scaleX 0→0.9 over 8000ms cubic-bezier(0.1, 0.7, 0.2, 1); finish 300ms ease-out",
+        "purpose": "Полоса загрузки сверху, только для переходов дольше 150ms."
+      },
+      {
+        "name": "skeleton-pulse",
+        "value": "animate-pulse (motion-safe)",
+        "purpose": "Скелетоны gray-200/70 той же формы, что содержимое; без пульсации при reduced motion."
       },
       {
         "name": "reduced-motion",
@@ -386,24 +386,33 @@
       ],
       "purpose": "Иерархия — размер роли плюс 600; активное состояние — подложка и цвет."
     },
-    "priceFormat": "Копейки целиком или никак (0 или 2 знака); неразрывный пробел между числом и единицей."
+    "priceFormat": "Копейки целиком или никак (0 или 2 знака); неразрывный пробел между числом и единицей.",
+    "scroll": {
+      "value": "html { overflow-y: scroll }",
+      "purpose": "Полоса прокрутки видна всегда, чтобы макет не сдвигался вбок при переходе между длинной и короткой страницей."
+    },
+    "formControls": {
+      "accentColor": "var(--color-ink)",
+      "purpose": "Нативные флажки и радиокнопки в палитре системы."
+    },
+    "destructivePattern": "Вход в разрушительное действие — btn-secondary или btn-text с текстом negative; заливка btn-danger только у финального необратимого подтверждения."
   },
   "components": [
     {
       "name": "Primary Button",
       "kind": "button",
       "refersTo": "button-primary",
-      "description": "Чёрная плитка основного действия: «В корзину», «Каталог», «Показать N товаров».",
+      "description": "Чёрная плитка основного действия (btn-primary): «В корзину», «Каталог», «Показать N товаров». btn-lg — 52px, control-lg.",
       "html": "<button class=\"ds-btn-primary\"><svg viewBox=\"0 0 24 24\" width=\"16\" height=\"16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><circle cx=\"8\" cy=\"21\" r=\"1\"/><circle cx=\"19\" cy=\"21\" r=\"1\"/><path d=\"M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12\"/></svg>В корзину</button>",
-      "css": ".ds-btn-primary { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 44px; padding: 0 20px; border: 0; border-radius: 12px; background: var(--color-ink, #0b0b0c); color: #ffffff; font-family: 'Onest Variable', 'Onest Fallback Segoe', 'Onest Fallback Arial', system-ui, sans-serif; font-size: 14px; font-weight: 500; cursor: pointer; transition: background-color 150ms, transform 150ms; } .ds-btn-primary:hover { background: var(--color-ink-hover, #2a2a2f); } .ds-btn-primary:active { transform: scale(0.98); } .ds-btn-primary:focus-visible { outline: 2px solid var(--color-ink, #0b0b0c); outline-offset: 2px; }"
+      "css": ".ds-btn-primary { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 8px 20px; border: 0; border-radius: 12px; font-family: 'Onest Variable', 'Onest Fallback Segoe', 'Onest Fallback Arial', system-ui, sans-serif; font-size: 14px; line-height: 20px; font-weight: 500; text-align: center; cursor: pointer; transition: color 150ms, background-color 150ms, transform 150ms, opacity 150ms; background: var(--color-ink, #0b0b0c); color: #ffffff; } .ds-btn-primary:hover:not(:disabled) { background: var(--color-ink-hover, #2a2a2f); } .ds-btn-primary:active:not(:disabled) { transform: scale(0.98); } .ds-btn-primary:disabled { opacity: 0.5; cursor: not-allowed; } .ds-btn-primary[aria-busy='true'] { opacity: 0.7; } .ds-btn-primary:focus-visible { outline: 2px solid var(--color-ink, #0b0b0c); outline-offset: 2px; }"
     },
     {
       "name": "Secondary Button",
       "kind": "button",
       "refersTo": "button-secondary",
-      "description": "Серая плитка второстепенного действия: «Написать отзыв», «в избранное» рядом с покупкой.",
+      "description": "Серая плитка второстепенного действия (btn-secondary): «Написать отзыв», «Отмена» в диалоге; с текстом negative — вход в разрушительное действие.",
       "html": "<button class=\"ds-btn-secondary\">Написать отзыв</button>",
-      "css": ".ds-btn-secondary { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 44px; padding: 0 16px; border: 0; border-radius: 12px; background: var(--color-gray-100, #f0f0f2); color: var(--color-ink, #0b0b0c); font-family: 'Onest Variable', 'Onest Fallback Segoe', 'Onest Fallback Arial', system-ui, sans-serif; font-size: 14px; font-weight: 500; cursor: pointer; transition: background-color 150ms; } .ds-btn-secondary:hover { background: var(--color-gray-200, #e4e4e7); } .ds-btn-secondary:focus-visible { outline: 2px solid var(--color-ink, #0b0b0c); outline-offset: 2px; }"
+      "css": ".ds-btn-secondary { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 8px 20px; border: 0; border-radius: 12px; font-family: 'Onest Variable', 'Onest Fallback Segoe', 'Onest Fallback Arial', system-ui, sans-serif; font-size: 14px; line-height: 20px; font-weight: 500; text-align: center; cursor: pointer; transition: color 150ms, background-color 150ms, transform 150ms, opacity 150ms; background: var(--color-gray-100, #f0f0f2); color: var(--color-ink, #0b0b0c); } .ds-btn-secondary:hover:not(:disabled) { background: var(--color-gray-200, #e4e4e7); } .ds-btn-secondary:disabled { opacity: 0.5; cursor: not-allowed; } .ds-btn-secondary:focus-visible { outline: 2px solid var(--color-ink, #0b0b0c); outline-offset: 2px; }"
     },
     {
       "name": "Search Field",
@@ -460,6 +469,62 @@
       "description": "Тёмная плашка-снэкбар: ink, 16px, над вкладками на телефоне, справа снизу на десктопе.",
       "html": "<div class=\"ds-toast\" role=\"status\"><svg class=\"ds-toast-icon\" viewBox=\"0 0 24 24\" width=\"20\" height=\"20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><circle cx=\"12\" cy=\"12\" r=\"10\"/><path d=\"m9 12 2 2 4-4\"/></svg><p class=\"ds-toast-text\">Товар добавлен в корзину <a href=\"#\">Перейти</a></p><button class=\"ds-toast-close\" type=\"button\" aria-label=\"Закрыть уведомление\"><svg viewBox=\"0 0 24 24\" width=\"16\" height=\"16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" aria-hidden=\"true\"><path d=\"M18 6 6 18\"/><path d=\"m6 6 12 12\"/></svg></button></div>",
       "css": ".ds-toast { display: flex; align-items: flex-start; gap: 12px; width: 384px; max-width: 100%; padding: 12px 8px 12px 16px; border-radius: 16px; background: var(--color-ink, #0b0b0c); color: #ffffff; box-shadow: 0 8px 24px rgb(0 0 0 / 0.18); font-family: 'Onest Variable', 'Onest Fallback Segoe', 'Onest Fallback Arial', system-ui, sans-serif; } .ds-toast-icon { flex-shrink: 0; margin-top: 2px; color: var(--color-gray-300, #d1d1d6); } .ds-toast-text { flex: 1; margin: 0; font-size: 14px; line-height: 20px; } .ds-toast-text a { margin-left: 4px; color: #ffffff; font-weight: 600; text-decoration: underline; text-decoration-color: rgb(255 255 255 / 0.4); text-underline-offset: 2px; } .ds-toast-text a:hover { text-decoration-color: #ffffff; } .ds-toast-close { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; margin: -8px 0; border: 0; border-radius: 12px; background: transparent; color: var(--color-gray-400, #a1a1a8); cursor: pointer; transition: background-color 150ms, color 150ms; } .ds-toast-close:hover { background: rgb(255 255 255 / 0.1); color: #ffffff; } .ds-toast-close:focus-visible { outline: 2px solid #ffffff; outline-offset: 2px; }"
+    },
+    {
+      "name": "Danger Button",
+      "kind": "button",
+      "refersTo": "button-danger",
+      "description": "Заливка negative только у финального необратимого подтверждения: «Удалить» в диалоге, «Удалить аккаунт навсегда», «Отменить заказ».",
+      "html": "<button class=\"ds-btn-danger\" type=\"button\">Удалить аккаунт навсегда</button>",
+      "css": ".ds-btn-danger { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 8px 20px; border: 0; border-radius: 12px; font-family: 'Onest Variable', 'Onest Fallback Segoe', 'Onest Fallback Arial', system-ui, sans-serif; font-size: 14px; line-height: 20px; font-weight: 500; text-align: center; cursor: pointer; transition: color 150ms, background-color 150ms, transform 150ms, opacity 150ms; background: var(--color-negative, #b42318); color: #ffffff; } .ds-btn-danger:hover:not(:disabled) { background: color-mix(in oklab, var(--color-negative, #b42318) 88%, black); } .ds-btn-danger:disabled { opacity: 0.5; cursor: not-allowed; } .ds-btn-danger:focus-visible { outline: 2px solid var(--color-ink, #0b0b0c); outline-offset: 2px; }"
+    },
+    {
+      "name": "Text Button",
+      "kind": "button",
+      "refersTo": "button-text",
+      "description": "Текстовое действие без заливки (btn-text): «Изменить», «Отмена», «Выйти из аккаунта»; с текстом negative — вход в удаление.",
+      "html": "<div class=\"ds-text-row\"><button class=\"ds-btn-text\" type=\"button\">Изменить</button><button class=\"ds-btn-text ds-btn-text-negative\" type=\"button\"><svg viewBox=\"0 0 24 24\" width=\"16\" height=\"16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M3 6h18\"/><path d=\"M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6\"/><path d=\"M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2\"/></svg>Удалить</button></div>",
+      "css": ".ds-text-row { display: flex; gap: 16px; } .ds-btn-text { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 4px; border: 0; border-radius: 6px; background: transparent; color: var(--color-gray-700, #414147); font-family: 'Onest Variable', 'Onest Fallback Segoe', 'Onest Fallback Arial', system-ui, sans-serif; font-size: 14px; line-height: 20px; font-weight: 500; text-underline-offset: 4px; cursor: pointer; transition: color 150ms; } .ds-btn-text:hover { color: var(--color-ink, #0b0b0c); text-decoration: underline; } .ds-btn-text-negative, .ds-btn-text-negative:hover { color: var(--color-negative, #b42318); } .ds-btn-text:focus-visible { outline: 2px solid var(--color-ink, #0b0b0c); outline-offset: 2px; }"
+    },
+    {
+      "name": "Form Field",
+      "kind": "input",
+      "refersTo": "input-field",
+      "description": "Поле формы (field) с подписью, подсказкой и ошибкой: gray-100 без обводки, 16px текст; фокус — белое и кольцо ink, aria-invalid — белое и кольцо negative.",
+      "html": "<div class=\"ds-field-group\"><label class=\"ds-field-label\" for=\"ds-email\">Электронная почта</label><input class=\"ds-field\" id=\"ds-email\" type=\"email\" value=\"ivan@\" aria-invalid=\"true\" aria-describedby=\"ds-email-error\"><p class=\"ds-field-error\" id=\"ds-email-error\">Введите адрес полностью, например ivan@mail.ru</p><label class=\"ds-field-label ds-field-gap\" for=\"ds-name\">Имя</label><input class=\"ds-field\" id=\"ds-name\" type=\"text\" placeholder=\"Как к вам обращаться\"><p class=\"ds-field-hint\">Покажем курьеру и в письмах</p></div>",
+      "css": ".ds-field-group { max-width: 320px; font-family: 'Onest Variable', 'Onest Fallback Segoe', 'Onest Fallback Arial', system-ui, sans-serif; } .ds-field-label { display: block; margin-bottom: 6px; font-size: 14px; line-height: 20px; font-weight: 500; color: var(--color-gray-800, #2a2a2f); } .ds-field-gap { margin-top: 16px; } .ds-field { width: 100%; min-height: 44px; padding: 10px 16px; border: 0; border-radius: 12px; background: var(--color-gray-100, #f0f0f2); color: var(--color-ink, #0b0b0c); font: inherit; font-size: 16px; transition: background-color 150ms, box-shadow 150ms; } .ds-field::placeholder { color: var(--color-gray-500, #6a6a71); } .ds-field:focus { outline: none; background: #ffffff; box-shadow: 0 0 0 2px var(--color-ink, #0b0b0c); } .ds-field[aria-invalid='true'] { background: #ffffff; box-shadow: 0 0 0 2px var(--color-negative, #b42318); } .ds-field-hint, .ds-field-error { margin: 6px 0 0; font-size: 14px; line-height: 20px; } .ds-field-hint { color: var(--color-gray-600, #57575e); } .ds-field-error { color: var(--color-negative, #b42318); }"
+    },
+    {
+      "name": "Notices",
+      "kind": "custom",
+      "refersTo": "notice-error",
+      "description": "Уведомления в потоке страницы: тонированная подложка статуса рядом со словом (notice-error / notice-caution / notice-success).",
+      "html": "<div class=\"ds-notices\"><p class=\"ds-notice ds-notice-error\" role=\"alert\">Не удалось сохранить адрес. Попробуйте ещё раз.</p><p class=\"ds-notice ds-notice-caution\">Пункт выдачи временно не принимает заказы.</p><p class=\"ds-notice ds-notice-success\" role=\"status\">Пароль изменён.</p></div>",
+      "css": ".ds-notices { display: grid; gap: 8px; max-width: 420px; font-family: 'Onest Variable', 'Onest Fallback Segoe', 'Onest Fallback Arial', system-ui, sans-serif; } .ds-notice { margin: 0; padding: 12px 16px; border-radius: 12px; font-size: 14px; line-height: 20px; } .ds-notice-error { background: color-mix(in oklab, var(--color-negative, #b42318) 8%, transparent); color: var(--color-negative, #b42318); } .ds-notice-caution { background: color-mix(in oklab, var(--color-caution, #9a5b00) 10%, transparent); color: var(--color-gray-900, #18181b); } .ds-notice-success { background: color-mix(in oklab, var(--color-positive, #1d7a47) 10%, transparent); color: var(--color-positive, #1d7a47); }"
+    },
+    {
+      "name": "Order Status Badge",
+      "kind": "chip",
+      "refersTo": "status-badge",
+      "description": "Статус заказа и активность в админке: слово и точка 6px на нейтральной плашке gray-100 (Word-First Status).",
+      "html": "<div class=\"ds-badges\"><span class=\"ds-badge-status\"><span class=\"ds-dot\" style=\"background: var(--color-caution, #9a5b00)\"></span>Ожидает подтверждения</span><span class=\"ds-badge-status\"><span class=\"ds-dot\" style=\"background: var(--color-gray-500, #6a6a71)\"></span>Подтверждён</span><span class=\"ds-badge-status\"><span class=\"ds-dot\" style=\"background: var(--color-ink, #0b0b0c)\"></span>Готов к выдаче</span><span class=\"ds-badge-status\"><span class=\"ds-dot\" style=\"background: var(--color-positive, #1d7a47)\"></span>Доставлен</span><span class=\"ds-badge-status\"><span class=\"ds-dot\" style=\"background: var(--color-negative, #b42318)\"></span>Отменён</span><span class=\"ds-badge-status ds-badge-off\"><span class=\"ds-dot\" style=\"background: var(--color-gray-400, #a1a1a8)\"></span>Неактивен</span></div>",
+      "css": ".ds-badges { display: flex; flex-wrap: wrap; gap: 8px; font-family: 'Onest Variable', 'Onest Fallback Segoe', 'Onest Fallback Arial', system-ui, sans-serif; } .ds-badge-status { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 9999px; background: var(--color-gray-100, #f0f0f2); color: var(--color-gray-800, #2a2a2f); font-size: 12px; line-height: 16px; font-weight: 500; white-space: nowrap; } .ds-badge-off { color: var(--color-gray-600, #57575e); } .ds-dot { width: 6px; height: 6px; flex-shrink: 0; border-radius: 9999px; }"
+    },
+    {
+      "name": "Selection Card",
+      "kind": "custom",
+      "refersTo": "selection-card",
+      "description": "Карточка выбора в оформлении (способ получения, пункт выдачи, адрес): рамка 2px — состояние выбора: line → gray-300 → ink; недоступная — gray-50.",
+      "html": "<fieldset class=\"ds-select-group\"><legend class=\"ds-select-legend\">Способ получения</legend><label class=\"ds-select ds-select-on\"><input type=\"radio\" name=\"ds-delivery\" checked><span><strong>Доставка</strong><br>Курьер привезёт по адресу</span></label><label class=\"ds-select\"><input type=\"radio\" name=\"ds-delivery\"><span><strong>Самовывоз</strong><br>Из пункта выдачи магазина</span></label><label class=\"ds-select ds-select-off\"><input type=\"radio\" name=\"ds-delivery\" disabled><span><strong>Постамат</strong><br>Сейчас недоступно</span></label></fieldset>",
+      "css": ".ds-select-group { display: grid; gap: 8px; max-width: 360px; margin: 0; padding: 0; border: 0; font-family: 'Onest Variable', 'Onest Fallback Segoe', 'Onest Fallback Arial', system-ui, sans-serif; } .ds-select-legend { margin-bottom: 8px; font-size: 16px; line-height: 24px; font-weight: 600; color: var(--color-ink, #0b0b0c); } .ds-select { display: flex; align-items: center; gap: 12px; padding: 16px; border: 2px solid var(--color-line, #e4e4e7); border-radius: 12px; background: #ffffff; font-size: 14px; line-height: 20px; color: var(--color-gray-600, #57575e); cursor: pointer; transition: border-color 150ms; } .ds-select strong { font-weight: 600; color: var(--color-ink, #0b0b0c); } .ds-select input { accent-color: var(--color-ink, #0b0b0c); width: 18px; height: 18px; } .ds-select:hover { border-color: var(--color-gray-300, #d1d1d6); } .ds-select-on, .ds-select-on:hover { border-color: var(--color-ink, #0b0b0c); } .ds-select-off, .ds-select-off:hover { border-color: var(--color-line, #e4e4e7); background: var(--color-gray-50, #f7f7f8); cursor: not-allowed; } .ds-select:has(:focus-visible) { box-shadow: 0 0 0 2px #ffffff, 0 0 0 4px var(--color-ink, #0b0b0c); }"
+    },
+    {
+      "name": "Side Menu",
+      "kind": "nav",
+      "refersTo": "side-menu-item",
+      "description": "Боковое меню кабинета и админки с 1024px: белая панель, пункты 44px; текущий gray-100 и ink, наведение gray-50. На телефоне — строка чипсов.",
+      "html": "<div class=\"ds-menu-canvas\"><nav class=\"ds-menu\" aria-label=\"Личный кабинет\"><h2 class=\"ds-menu-title\">Личный кабинет</h2><a class=\"ds-menu-item\" href=\"#\"><svg viewBox=\"0 0 24 24\" width=\"18\" height=\"18\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2\"/><circle cx=\"12\" cy=\"7\" r=\"4\"/></svg>Профиль</a><a class=\"ds-menu-item ds-menu-item-active\" href=\"#\" aria-current=\"page\"><svg viewBox=\"0 0 24 24\" width=\"18\" height=\"18\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M11 21.73a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73z\"/><path d=\"M12 22V12\"/><path d=\"m3.3 7 8.7 5 8.7-5\"/></svg>Мои заказы</a><a class=\"ds-menu-item\" href=\"#\"><svg viewBox=\"0 0 24 24\" width=\"18\" height=\"18\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0\"/><circle cx=\"12\" cy=\"10\" r=\"3\"/></svg>Адреса</a></nav></div>",
+      "css": ".ds-menu-canvas { padding: 16px; background: var(--color-canvas, #f0f0f2); } .ds-menu { width: 256px; padding: 20px; border-radius: 16px; background: #ffffff; font-family: 'Onest Variable', 'Onest Fallback Segoe', 'Onest Fallback Arial', system-ui, sans-serif; } .ds-menu-title { margin: 0 0 16px; font-size: 18px; line-height: 28px; font-weight: 600; color: var(--color-ink, #0b0b0c); } .ds-menu-item { display: flex; align-items: center; gap: 10px; min-height: 44px; margin-top: 4px; padding: 0 12px; border-radius: 12px; color: var(--color-gray-700, #414147); font-size: 14px; line-height: 20px; font-weight: 500; text-decoration: none; transition: background-color 150ms, color 150ms; } .ds-menu-item:hover { background: var(--color-gray-50, #f7f7f8); color: var(--color-ink, #0b0b0c); } .ds-menu-item-active, .ds-menu-item-active:hover { background: var(--color-gray-100, #f0f0f2); color: var(--color-ink, #0b0b0c); } .ds-menu-item:focus-visible { outline: 2px solid var(--color-ink, #0b0b0c); outline-offset: 2px; }"
     }
   ],
   "narrative": {
@@ -481,12 +546,12 @@
       },
       {
         "name": "The Word-First Status Rule",
-        "body": "Цвет статуса всегда дублирует слово, а не заменяет его: точка 6px плюс текст «В наличии 14 шт.» / «Осталось 3 шт.» / «Нет в наличии». Скидка — чёрная плашка, никогда не красная.",
+        "body": "Цвет статуса всегда дублирует слово, а не заменяет его: точка 6px плюс текст «В наличии 14 шт.» / «Осталось 3 шт.» / «Нет в наличии». Так же статус заказа (ожидает — caution, подтверждён — gray-500, передан в доставку / готов к выдаче — ink, доставлен / получен — positive, отменён — negative) и активность в админке (positive против gray-400): слово и точка на нейтральной плашке gray-100, а не цветная плашка. Уведомления в потоке несут цвет тонированной подложкой рядом со словом. Скидка — чёрная плашка, никогда не красная.",
         "section": "colors"
       },
       {
-        "name": "The Temporary Bridge Rule",
-        "body": "Шкала `--color-blue-*` в `@theme` — временный мост, отображённый в графит, чтобы ещё не переведённые экраны (корзина, оформление, кабинет, админка) говорили тем же языком. Новая работа использует только семантические роли (canvas, surface, ink, ink-hover, line, muted, positive, caution, negative) и серую шкалу; `bg-blue-*` и `ring-blue-*` в новом коде запрещены, а мост исчезает, когда последний экран переведён.",
+        "name": "The Semantic Roles Only Rule",
+        "body": "Все экраны — витрина, корзина, оформление, кабинет и админка — красятся только семантическими ролями (canvas, surface, ink, ink-hover, line, muted, positive, caution, negative) и серой шкалой. Других хроматических шкал в `@theme` нет; цвет, которого нет среди ролей, в разметку не попадает.",
         "section": "colors"
       },
       {
@@ -526,7 +591,7 @@
       },
       {
         "name": "The Flat-At-Rest Rule",
-        "body": "В покое ни одна поверхность не отбрасывает тень и не имеет обводки; тень — это состояние (наведение) или временный слой (тост), а не декор.",
+        "body": "В покое ни одна поверхность не отбрасывает тень и не имеет обводки; тень — это состояние (наведение) или временный слой (тост, диалог), а не декор. Вложенность внутри панели передаётся тоном (плитка gray-50) или линией-разделителем, а не рамкой и тенью. Единственная рамка — 2px у карточки выбора: это состояние радиокнопки, а не контур карточки.",
         "section": "elevation"
       },
       {
@@ -536,7 +601,9 @@
       }
     ],
     "dos": [
-      "**Do** строить новые экраны на семантических ролях canvas, surface, ink, ink-hover, line, muted, positive, caution, negative и серой шкале.",
+      "**Do** строить любой экран (витрина, корзина, оформление, кабинет, админка) на семантических ролях canvas, surface, ink, ink-hover, line, muted, positive, caution, negative и серой шкале.",
+      "**Do** собирать формы из общих утилит `btn-*`, `field`, `field-label`, `field-hint`, `field-error`, `notice-*`, `link`, а не повторять классы по месту.",
+      "**Do** начинать разрушительное действие с `btn-secondary` или `btn-text` с текстом negative и отдавать заливку `btn-danger` только финальному подтверждению.",
       "**Do** класть контент в белые карточки 16px на сером холсте, а элементы внутри скруглять на 12px.",
       "**Do** держать цели касания от 44px, а основную кнопку покупки — 52px.",
       "**Do** показывать фото товара на колодце gray-50 с `mix-blend-multiply`, чтобы белый фон снимка растворялся.",
@@ -547,7 +614,8 @@
       "**Do** держать текст полей ввода 16px на телефоне и ставить неразрывный пробел между числом и единицей."
     ],
     "donts": [
-      "**Don't** использовать `bg-blue-*` / `ring-blue-*` в новой работе: это временный мост для непереведённых экранов.",
+      "**Don't** вводить хроматические шкалы помимо статусных ролей (`blue-*` и подобные): цвета, которого нет среди ролей, в разметке нет.",
+      "**Don't** вкладывать в панель серые коробки с рамкой: разделы формы отделяет линия line, строки списка — плитки gray-50.",
       "**Don't** заливать чёрным что-либо, кроме действий и активного состояния; подвал остаётся светлым.",
       "**Don't** добавлять баннеры, карусели акций, ярлыки акций, бонусы и оранжевый цвет, даже следуя компоновке Ситилинка.",
       "**Don't** красить скидку в красный: скидка — чёрная плашка «−N%».",

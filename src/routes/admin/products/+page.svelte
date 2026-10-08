@@ -1,4 +1,6 @@
 <script lang="ts">
+	import Plus from '@lucide/svelte/icons/plus';
+	import ActiveBadge from '$lib/components/ui/ActiveBadge.svelte';
 	import { goto, invalidateAll } from '$app/navigation';
 	import { productsApi } from '$lib/api/products';
 	import type { Product, Category } from '$lib/types/product';
@@ -11,6 +13,17 @@
 	import Eye from '@lucide/svelte/icons/eye';
 	import Pencil from '@lucide/svelte/icons/pencil';
 	import Trash2 from '@lucide/svelte/icons/trash-2';
+	import Pagination from '$lib/components/catalog/Pagination.svelte';
+	import { page } from '$app/state';
+
+	// Ссылка на страницу списка с теми же поиском и категорией
+	function pageHref(pageNumber: number): string {
+		const params = new URLSearchParams(page.url.searchParams);
+		if (pageNumber > 1) params.set('page', String(pageNumber));
+		else params.delete('page');
+		const query = params.toString();
+		return query ? `/admin/products?${query}` : '/admin/products';
+	}
 
 	interface Props {
 		data: {
@@ -72,14 +85,15 @@
 	<title>Управление товарами - Админ-панель</title>
 </svelte:head>
 
-<div class="bg-white rounded-lg shadow-md p-6">
+<div class="rounded-2xl bg-surface p-5 md:p-6">
 	<div class="flex items-center justify-between mb-6">
 		<h1 class="text-headline text-ink">Управление товарами</h1>
 		<button
 			onclick={handleCreate}
-			class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+			class="btn-primary"
 		>
-			+ Добавить товар
+			<Plus class="size-4" aria-hidden="true" />
+			Добавить товар
 		</button>
 	</div>
 
@@ -89,11 +103,11 @@
 			type="text"
 			bind:value={searchQuery}
 			placeholder="Поиск товаров..."
-			class="flex-1 min-w-[12rem] min-h-11 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+			class="flex-1 min-w-[12rem] field"
 		/>
 		<select
 			bind:value={selectedCategoryId}
-			class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+			class="field"
 		>
 			<option value="">Все товары</option>
 			<option value="null">Товары без категорий</option>
@@ -117,7 +131,7 @@
 				}
 				goto(`/admin/products?${params.toString()}`);
 			}}
-			class="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors"
+			class="btn-secondary"
 		>
 			Применить
 		</button>
@@ -141,75 +155,67 @@
 	<!-- Таблица товаров -->
 	{#if data.products && data.products.length > 0}
 		<div class="overflow-x-auto">
-			<table class="min-w-full divide-y divide-gray-200">
+			<table class="min-w-full divide-y divide-line text-left">
 				<thead class="bg-gray-50">
 					<tr>
-						<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+						<th class="text-left font-medium text-gray-500 px-4 py-3 text-label">
 							Товар
 						</th>
-						<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+						<th class="text-left font-medium text-gray-500 px-4 py-3 text-label">
 							Категория
 						</th>
-						<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+						<th class="text-left font-medium text-gray-500 px-4 py-3 text-label">
 							Цена
 						</th>
-						<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+						<th class="text-left font-medium text-gray-500 px-4 py-3 text-label">
 							Остаток
 						</th>
-						<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+						<th class="text-left font-medium text-gray-500 px-4 py-3 text-label">
 							Статус
 						</th>
-						<th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+						<th class="text-right font-medium text-gray-500 px-4 py-3 text-label">
 							Действия
 						</th>
 					</tr>
 				</thead>
-				<tbody class="bg-white divide-y divide-gray-200">
+				<tbody class="divide-y divide-line">
 					{#each data.products as product}
 						<tr class="hover:bg-gray-50">
-							<td class="px-6 py-4 whitespace-nowrap">
+							<td class="whitespace-nowrap px-4 py-3">
 								<div class="flex items-center">
 									{#if product.images && product.images.length > 0}
 										<img
-											class="h-10 w-10 rounded object-cover mr-3"
+											class="mr-3 size-10 rounded-lg bg-gray-50 object-contain mix-blend-multiply"
 											src={product.images[0].url}
 											alt={product.name}
 										/>
 									{:else}
-										<div class="h-10 w-10 bg-gray-200 rounded mr-3"></div>
+										<div class="mr-3 size-10 rounded-lg bg-gray-100"></div>
 									{/if}
 									<div>
-										<div class="text-sm font-medium text-gray-900">{product.name}</div>
-										<div class="text-sm text-gray-500">{product.sku || '—'}</div>
+										<div class="text-body-sm font-medium text-gray-900">{product.name}</div>
+										<div class="text-body-sm text-gray-500">{product.sku || '—'}</div>
 									</div>
 								</div>
 							</td>
-							<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+							<td class="whitespace-nowrap text-body-sm text-gray-500 px-4 py-3">
 								{product.category?.name || '—'}
 							</td>
-							<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+							<td class="whitespace-nowrap text-body-sm text-gray-900 px-4 py-3">
 								{formatPrice(product.price, $storeSettings?.currency || 'RUB')}
 							</td>
-							<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+							<td class="whitespace-nowrap text-body-sm text-gray-500 px-4 py-3">
 								{product.quantity}
 							</td>
-							<td class="px-6 py-4 whitespace-nowrap">
-								<span
-									class="px-2 py-1 text-xs font-medium rounded-full"
-									class:bg-green-100={product.isActive}
-									class:text-green-800={product.isActive}
-									class:bg-red-100={!product.isActive}
-									class:text-red-800={!product.isActive}
-								>
-									{product.isActive ? 'Активен' : 'Неактивен'}
-								</span>
+							<td class="whitespace-nowrap px-4 py-3">
+								<ActiveBadge active={product.isActive} on="Активен" off="Неактивен" />
 							</td>
-							<td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-								<div class="flex justify-end space-x-2">
+							<td class="whitespace-nowrap text-right text-body-sm font-medium px-4 py-3">
+								<div class="flex justify-end gap-1">
 									<a
 										href="/products/{product.slug}"
 										target="_blank"
-										class="inline-flex h-11 w-11 items-center justify-center rounded-md text-blue-600 hover:bg-blue-50 hover:text-blue-900"
+										class="inline-flex size-11 items-center justify-center rounded-xl text-gray-600 transition-colors hover:bg-gray-100 hover:text-ink"
 										title="Открыть на витрине"
 										aria-label="Открыть «{product.name}» на витрине"
 									>
@@ -217,7 +223,7 @@
 									</a>
 									<button
 										onclick={() => handleEdit(product)}
-										class="inline-flex h-11 w-11 items-center justify-center rounded-md text-indigo-600 hover:bg-indigo-50 hover:text-indigo-900"
+										class="inline-flex size-11 items-center justify-center rounded-xl text-gray-600 transition-colors hover:bg-gray-100 hover:text-ink"
 										title="Редактировать"
 										aria-label="Редактировать «{product.name}»"
 									>
@@ -225,7 +231,7 @@
 									</button>
 									<button
 										onclick={() => handleDelete(product)}
-										class="inline-flex h-11 w-11 items-center justify-center rounded-md text-red-600 hover:bg-red-50 hover:text-red-900"
+										class="inline-flex size-11 items-center justify-center rounded-xl text-gray-600 transition-colors hover:bg-negative/8 hover:text-negative"
 										title="Удалить"
 										aria-label="Удалить «{product.name}»"
 									>
@@ -240,21 +246,22 @@
 		</div>
 
 		<!-- Пагинация -->
-		{#if Math.ceil(data.total / data.limit) > 1}
-			<div class="mt-6 flex justify-center">
-				<p class="text-sm text-gray-600">
-					Страница {data.page} из {Math.ceil(data.total / data.limit)} • Всего товаров: {data.total}
-				</p>
-			</div>
-		{/if}
+		<Pagination
+			current={data.page}
+			total={Math.max(1, Math.ceil(data.total / data.limit))}
+			href={pageHref}
+			label="Страницы товаров"
+		/>
+		<p class="mt-3 text-center text-body-sm text-gray-600">Всего товаров: {data.total}</p>
 	{:else}
 		<div class="text-center py-12">
-			<p class="text-gray-500 mb-4">Товары не найдены</p>
+			<p class="mb-4 text-body text-gray-600">Товары не найдены</p>
 			<button
 				onclick={handleCreate}
-				class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+				class="btn-primary"
 			>
-				+ Добавить первый товар
+				<Plus class="size-4" aria-hidden="true" />
+				Добавить первый товар
 			</button>
 		</div>
 	{/if}

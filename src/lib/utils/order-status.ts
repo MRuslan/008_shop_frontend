@@ -29,12 +29,16 @@ export function orderStatusFilterLabel(status: OrderStatus): string {
 	return pickup ? `${LABELS[status]} / ${pickup.toLowerCase()}` : LABELS[status];
 }
 
-export const ORDER_STATUS_TONE: Record<OrderStatus, string> = {
-	pending: 'bg-yellow-100 text-yellow-800',
-	confirmed: 'bg-blue-100 text-blue-800',
-	shipped: 'bg-purple-100 text-purple-800',
-	delivered: 'bg-green-100 text-green-800',
-	cancelled: 'bg-red-100 text-red-800'
+/**
+ * Цвет точки статуса. Статус всегда читается словом, точка лишь подсказывает (Word-First Status):
+ * ждёт действия магазина — caution, в работе — графит, получен — positive, отменён — negative
+ */
+export const ORDER_STATUS_DOT: Record<OrderStatus, string> = {
+	pending: 'bg-caution',
+	confirmed: 'bg-gray-500',
+	shipped: 'bg-ink',
+	delivered: 'bg-positive',
+	cancelled: 'bg-negative'
 };
 
 /** Переходы, которые принимает бэкенд; остальные он отклонит с 400 */
