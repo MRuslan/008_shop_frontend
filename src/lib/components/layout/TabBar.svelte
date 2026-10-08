@@ -48,15 +48,17 @@
 	aria-label="Разделы магазина"
 	class="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-surface pb-[env(safe-area-inset-bottom)] [view-transition-name:tab-bar] md:hidden"
 >
-	<ul class="grid h-(--tabbar-height) grid-cols-5">
+	<!-- Пять равных колонок. При крупном шрифте в настройках телефона подпись обрезается в своей колонке
+	     многоточием, а не наезжает на соседнюю; полное название остаётся у ссылки для скринридера -->
+	<ul class="grid min-h-(--tabbar-height) grid-cols-5">
 		{#each tabs as tab (tab.href)}
-			<li>
+			<li class="min-w-0">
 				<a
 					href={tab.href}
 					onclick={(event) => handleClick(event, tab.auth, tab.href)}
 					aria-current={tab.active ? 'page' : undefined}
 					aria-label={tab.href === '/cart' && $cartItemsCount > 0 ? `Корзина, товаров: ${$cartItemsCount}` : undefined}
-					class="relative flex h-full flex-col items-center justify-center gap-0.5 text-tab transition-colors {tab.active
+					class="relative flex h-full flex-col items-center justify-center gap-0.5 px-1 text-tab transition-colors {tab.active
 						? 'text-ink'
 						: 'text-gray-500'}"
 				>
@@ -66,7 +68,7 @@
 							<CartBadge class="absolute -top-1.5 -right-3" />
 						{/if}
 					</span>
-					<span aria-hidden={tab.href === '/cart' && $cartItemsCount > 0 ? 'true' : undefined}>{tab.label}</span>
+					<span class="max-w-full truncate" aria-hidden={tab.href === '/cart' && $cartItemsCount > 0 ? 'true' : undefined}>{tab.label}</span>
 				</a>
 			</li>
 		{/each}

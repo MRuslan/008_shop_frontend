@@ -78,13 +78,21 @@
 
 <NavigationProgress />
 
+<!-- Первая остановка Tab: сразу к содержимому, мимо шапки с поиском и разделами -->
+<a
+	href="#main"
+	class="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:inline-flex focus:h-11 focus:items-center focus:rounded-xl focus:bg-ink focus:px-4 focus:text-control focus:text-white"
+>
+	Перейти к содержимому
+</a>
+
 <div
 	class="flex min-h-screen flex-col {showTabBar
 		? 'pb-[calc(var(--tabbar-height)+env(safe-area-inset-bottom))] md:pb-0'
 		: ''}"
 >
 	<Header />
-	<main class="flex-grow">
+	<main id="main" tabindex="-1" class="flex-grow">
 		{@render children()}
 	</main>
 	<Footer />

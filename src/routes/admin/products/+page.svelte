@@ -100,13 +100,15 @@
 	<!-- Фильтры -->
 	<div class="mb-6 flex flex-wrap gap-3">
 		<input
-			type="text"
+			type="search"
 			bind:value={searchQuery}
 			placeholder="Поиск товаров..."
+			aria-label="Поиск товаров"
 			class="flex-1 min-w-[12rem] field"
 		/>
 		<select
 			bind:value={selectedCategoryId}
+			aria-label="Категория"
 			class="field"
 		>
 			<option value="">Все товары</option>

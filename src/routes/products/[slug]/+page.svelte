@@ -257,7 +257,8 @@
 
 				<StockStatus quantity={product.quantity} class="mt-3 text-sm" />
 
-				<div bind:this={buyRow} class="mt-4 flex gap-2">
+				<!-- При крупном шрифте сердечко уходит на следующую строку, а не раздвигает страницу вбок -->
+				<div bind:this={buyRow} class="mt-4 flex flex-wrap gap-2">
 					<div class="min-w-0 flex-1">
 						<CartControl {product} size="lg" />
 					</div>

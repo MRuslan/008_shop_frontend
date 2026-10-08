@@ -51,7 +51,7 @@
 			<!-- Десктоп: боковое меню -->
 			<aside class="hidden lg:sticky lg:top-4 lg:block">
 				<nav class="rounded-2xl bg-surface p-5" aria-label="Личный кабинет">
-					<h2 class="text-title text-ink mb-4">Личный кабинет</h2>
+					<p class="text-title text-ink mb-4">Личный кабинет</p>
 					<ul class="space-y-1">
 						{#each menuItems as item (item.href)}
 							<li>

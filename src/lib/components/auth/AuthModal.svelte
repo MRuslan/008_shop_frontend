@@ -114,6 +114,7 @@
 				{:else}
 				<div
 					role="tablist"
+					tabindex="-1"
 					aria-label="Вход или регистрация"
 					class="flex gap-1 rounded-xl bg-gray-100 p-1"
 					onkeydown={handleTabKeydown}

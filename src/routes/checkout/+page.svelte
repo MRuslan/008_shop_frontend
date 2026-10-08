@@ -396,9 +396,8 @@
 			<!-- Основная форма -->
 			<div class="space-y-3 lg:col-span-2 lg:space-y-6">
 				<!-- Тип доставки -->
-				<fieldset class="m-0 min-w-0 border-0 rounded-2xl bg-surface p-5 md:p-6">
-					<legend class="sr-only">Способ получения</legend>
-					<h2 class="text-title text-ink mb-4" aria-hidden="true">Способ получения</h2>
+				<fieldset class="m-0 min-w-0 border-0 rounded-2xl bg-surface p-5 md:p-6" aria-labelledby="checkout-delivery-type">
+					<h2 id="checkout-delivery-type" class="text-title text-ink mb-4">Способ получения</h2>
 					<div class="space-y-3">
 						<label
 							class="flex items-center gap-3 rounded-xl border-2 p-4 transition-colors has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ink has-[:focus-visible]:ring-offset-2 {deliveryType === 'delivery'

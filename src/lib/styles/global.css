@@ -317,6 +317,11 @@ input[type='radio'] {
 	outline-offset: 2px;
 }
 
+/* Цель ссылки «Перейти к содержимому»: фокус переходит в main, рамка вокруг всей страницы не нужна */
+main:focus-visible {
+	outline: none;
+}
+
 a {
 	text-underline-offset: 0.2em;
 }

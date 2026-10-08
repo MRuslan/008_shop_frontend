@@ -67,6 +67,8 @@
 	}
 
 	function applyFilters() {
+		// Даты, введённые с клавиатуры, могут прийти наоборот: перевёрнутый диапазон дал бы пустой список
+		if (dateFrom && dateTo && dateFrom > dateTo) [dateFrom, dateTo] = [dateTo, dateFrom];
 		const params = new URLSearchParams();
 		if (selectedStatus) params.set('status', selectedStatus);
 		if (dateFrom) params.set('dateFrom', dateFrom);
@@ -83,28 +85,24 @@
 	<h1 class="text-headline text-ink mb-6">Управление заказами</h1>
 
 	<!-- Фильтры -->
-	<div class="mb-6 grid grid-cols-1 md:grid-cols-4 gap-4">
-		<select
-			bind:value={selectedStatus}
-			class="field"
-		>
-			<option value="">Все статусы</option>
-			{#each ORDER_STATUSES as status (status)}
-				<option value={status}>{orderStatusFilterLabel(status)}</option>
-			{/each}
-		</select>
-		<input
-			type="date"
-			bind:value={dateFrom}
-			placeholder="Дата от"
-			class="field"
-		/>
-		<input
-			type="date"
-			bind:value={dateTo}
-			placeholder="Дата до"
-			class="field"
-		/>
+	<div class="mb-6 grid grid-cols-1 gap-4 md:grid-cols-4 md:items-end">
+		<div>
+			<label for="orders-status" class="field-label">Статус</label>
+			<select id="orders-status" bind:value={selectedStatus} class="w-full field">
+				<option value="">Все статусы</option>
+				{#each ORDER_STATUSES as status (status)}
+					<option value={status}>{orderStatusFilterLabel(status)}</option>
+				{/each}
+			</select>
+		</div>
+		<div>
+			<label for="orders-date-from" class="field-label">Созданы с</label>
+			<input id="orders-date-from" type="date" bind:value={dateFrom} max={dateTo || undefined} class="w-full field" />
+		</div>
+		<div>
+			<label for="orders-date-to" class="field-label">Созданы по</label>
+			<input id="orders-date-to" type="date" bind:value={dateTo} min={dateFrom || undefined} class="w-full field" />
+		</div>
 		<button
 			onclick={applyFilters}
 			class="btn-primary"

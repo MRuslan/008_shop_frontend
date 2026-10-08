@@ -135,7 +135,8 @@
 	{:else}
 		<div class="grid grid-cols-1 gap-3 lg:grid-cols-3 lg:items-start lg:gap-6">
 			<!-- Товары в корзине -->
-			<div class="space-y-3 lg:col-span-2">
+			<section class="space-y-3 lg:col-span-2" aria-labelledby="cart-items-heading">
+				<h2 id="cart-items-heading" class="sr-only">Товары в корзине</h2>
 				{#each $cartStore.items as item (item.id)}
 					<CartItem
 						{item}
@@ -156,7 +157,7 @@
 						Очистить корзину
 					</button>
 				</div>
-			</div>
+			</section>
 
 			<!-- Итого -->
 			<div class="lg:sticky lg:top-4">

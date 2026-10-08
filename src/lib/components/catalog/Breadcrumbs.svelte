@@ -27,7 +27,7 @@
 				{#if index === items.length - 1}
 					<span aria-current="page" class="max-w-[16rem] truncate text-gray-700">{item.name}</span>
 				{:else}
-					<a href={item.href} class="inline-flex min-h-8 items-center rounded-md px-0.5 hover:text-ink">{item.name}</a>
+					<a href={item.href} class="inline-flex min-h-8 items-center rounded-md px-0.5 hover:text-ink pointer-coarse:min-h-11">{item.name}</a>
 				{/if}
 			</li>
 		{/each}

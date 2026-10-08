@@ -45,7 +45,7 @@
 			<!-- Десктоп: боковое меню -->
 			<aside class="hidden lg:sticky lg:top-4 lg:block">
 				<div class="rounded-2xl bg-surface p-5">
-					<h2 class="text-title text-ink mb-4">Админ-панель</h2>
+					<p class="text-title text-ink mb-4">Админ-панель</p>
 					<nav class="space-y-1" aria-label="Разделы админ-панели">
 						{#each menuItems as item (item.href)}
 							{#if $hasRole(item.roles)}

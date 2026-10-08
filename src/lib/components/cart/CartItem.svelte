@@ -114,7 +114,7 @@
 				aria-label="Количество"
 				onchange={(e) => handleQuantityChange(parseInt(e.currentTarget.value) || 1)}
 				disabled={isChanging || isUpdating}
-				class="h-full w-10 [appearance:textfield] bg-transparent text-center text-base font-semibold tabular-nums focus:rounded-lg focus:bg-surface focus:ring-2 focus:ring-ink focus:outline-none disabled:opacity-60 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+				class="h-full w-11 [appearance:textfield] bg-transparent text-center text-base font-semibold tabular-nums focus:rounded-lg focus:bg-surface focus:ring-2 focus:ring-ink focus:outline-none disabled:opacity-60 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
 			/>
 			<button
 				type="button"
