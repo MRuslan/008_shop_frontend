@@ -39,6 +39,11 @@
 	--text-headline-lg--line-height: 2.25rem;
 	--text-headline-lg--letter-spacing: -0.025em;
 	--text-headline-lg--font-weight: 600;
+	/* Главная цифра дашборда: одна на экран, тем же шрифтом, что и всё остальное */
+	--text-figure: 2.5rem;
+	--text-figure--line-height: 1;
+	--text-figure--letter-spacing: -0.03em;
+	--text-figure--font-weight: 600;
 	--text-price-lg: 1.875rem;
 	--text-price-lg--line-height: 2.25rem;
 	--text-price-lg--letter-spacing: -0.025em;

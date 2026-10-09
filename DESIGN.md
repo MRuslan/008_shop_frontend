@@ -35,6 +35,12 @@ typography:
     fontWeight: 600
     lineHeight: "2.25rem"
     letterSpacing: "-0.025em"
+  figure:
+    fontFamily: "'Onest Variable', 'Onest Fallback Segoe', 'Onest Fallback Arial', system-ui, -apple-system, Roboto, sans-serif"
+    fontSize: "2.5rem"
+    fontWeight: 600
+    lineHeight: 1
+    letterSpacing: "-0.03em"
   price-lg:
     fontFamily: "'Onest Variable', 'Onest Fallback Segoe', 'Onest Fallback Arial', system-ui, -apple-system, Roboto, sans-serif"
     fontSize: "1.875rem"

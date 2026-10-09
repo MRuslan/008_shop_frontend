@@ -4,6 +4,7 @@
 	import { unreadNewOrders } from '$lib/stores/notifications';
 	import type { Role } from '$lib/types/auth';
 	import type { Component } from 'svelte';
+	import ChartColumn from '@lucide/svelte/icons/chart-column';
 	import Package from '@lucide/svelte/icons/package';
 	import FolderTree from '@lucide/svelte/icons/folder-tree';
 	import ShoppingCart from '@lucide/svelte/icons/shopping-cart';
@@ -17,6 +18,7 @@
 	// Гостя и покупателя не пускает сервер (+layout.server.ts), до отрисовки админки
 
 	const menuItems: { href: string; label: string; icon: Component; roles: Role[] }[] = [
+		{ href: '/admin', label: 'Обзор', icon: ChartColumn, roles: ['manager', 'admin'] },
 		{ href: '/admin/products', label: 'Товары', icon: Package, roles: ['manager', 'admin'] },
 		{ href: '/admin/categories', label: 'Категории', icon: FolderTree, roles: ['manager', 'admin'] },
 		{ href: '/admin/orders', label: 'Заказы', icon: ShoppingCart, roles: ['manager', 'admin'] },
@@ -25,8 +27,9 @@
 		{ href: '/admin/store', label: 'Настройки магазина', icon: Settings, roles: ['admin'] }
 	];
 
+	// Обзор живёт на корне админки, поэтому ему подходит только точное совпадение
 	function isCurrent(href: string): boolean {
-		return page.url.pathname.startsWith(href);
+		return href === '/admin' ? page.url.pathname === '/admin' : page.url.pathname.startsWith(href);
 	}
 </script>
 
